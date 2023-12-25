@@ -9,7 +9,22 @@ impl ToWitSyntax for wit_parser::Resolve {
 
         for (_, type_) in &self.types {
             match &type_.kind {
-                wit_parser::TypeDefKind::Record(_) => todo!(),
+                wit_parser::TypeDefKind::Record(record) => {
+                    output.add_line(
+                        indentation,
+                        &format!(
+                            "record {} {{",
+                            &type_.name.as_ref().unwrap_or(&String::new())
+                        ),
+                    );
+                    indentation += 1;
+                    for case in &record.fields {
+                        let ty = &case.ty.to_wit_syntax()?;
+                        output.add_line(indentation, &format!("{}: {},", case.name, ty));
+                    }
+                    indentation -= 1;
+                    output.add_line(indentation, &format!("}}"));
+                }
                 wit_parser::TypeDefKind::Resource => todo!(),
                 wit_parser::TypeDefKind::Handle(_) => todo!(),
                 wit_parser::TypeDefKind::Flags(_) => todo!(),
@@ -29,7 +44,7 @@ impl ToWitSyntax for wit_parser::Resolve {
                     );
                     indentation += 1;
                     for case in &e.cases {
-                        output.add_line(indentation, &format!("{},", &case.name));
+                        output.add_line(indentation, &format!("{},", case.name));
                     }
                     indentation -= 1;
                     output.add_line(indentation, &format!("}}"));
@@ -38,6 +53,27 @@ impl ToWitSyntax for wit_parser::Resolve {
         }
 
         Ok(output.to_string())
+    }
+}
+
+impl ToWitSyntax for wit_parser::Type {
+    fn to_wit_syntax(&self) -> anyhow::Result<String> {
+        Ok(String::from(match self {
+            wit_parser::Type::Bool => "bool",
+            wit_parser::Type::U8 => "u8",
+            wit_parser::Type::U16 => "u16",
+            wit_parser::Type::U32 => "u32",
+            wit_parser::Type::U64 => "u64",
+            wit_parser::Type::S8 => "s8",
+            wit_parser::Type::S16 => "s16",
+            wit_parser::Type::S32 => "s32",
+            wit_parser::Type::S64 => "s64",
+            wit_parser::Type::Float32 => "float32",
+            wit_parser::Type::Float64 => "float64",
+            wit_parser::Type::Char => "char",
+            wit_parser::Type::String => "string",
+            wit_parser::Type::Id(_) => todo!(),
+        }))
     }
 }
 

@@ -2,3 +2,6 @@ enum GPUPowerPreference {
     "low-power",
     "high-performance",
 };
+dictionary GPURequestAdapterOptions {
+    boolean forceFallbackAdapter = false;
+};
