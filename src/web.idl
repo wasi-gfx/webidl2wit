@@ -3,5 +3,6 @@ enum GPUPowerPreference {
     "high-performance",
 };
 dictionary GPURequestAdapterOptions {
+    GPUPowerPreference powerPreference;
     boolean forceFallbackAdapter = false;
 };

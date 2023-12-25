@@ -8,7 +8,7 @@ fn main() -> anyhow::Result<()> {
     println!("{webidl_code}");
     let webidl = weedle::parse(&webidl_code)?;
     let wit = translations::webidl_to_wit(webidl)?;
-    let wit_code = wit.to_wit_syntax()?;
+    let wit_code = wit.to_wit_syntax(&wit)?;
     println!("{wit_code}");
     Ok(())
 }

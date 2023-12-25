@@ -1,9 +1,12 @@
+use anyhow::Context;
+use wit_parser::Resolve;
+
 pub trait ToWitSyntax {
-    fn to_wit_syntax(&self) -> anyhow::Result<String>;
+    fn to_wit_syntax(&self, resolve: &Resolve) -> anyhow::Result<String>;
 }
 
 impl ToWitSyntax for wit_parser::Resolve {
-    fn to_wit_syntax(&self) -> anyhow::Result<String> {
+    fn to_wit_syntax(&self, resolve: &Resolve) -> anyhow::Result<String> {
         let mut output = OutputBuilder::new();
         let mut indentation = 0;
 
@@ -19,7 +22,7 @@ impl ToWitSyntax for wit_parser::Resolve {
                     );
                     indentation += 1;
                     for case in &record.fields {
-                        let ty = &case.ty.to_wit_syntax()?;
+                        let ty = &case.ty.to_wit_syntax(&resolve)?;
                         output.add_line(indentation, &format!("{}: {},", case.name, ty));
                     }
                     indentation -= 1;
@@ -57,7 +60,7 @@ impl ToWitSyntax for wit_parser::Resolve {
 }
 
 impl ToWitSyntax for wit_parser::Type {
-    fn to_wit_syntax(&self) -> anyhow::Result<String> {
+    fn to_wit_syntax(&self, resolve: &Resolve) -> anyhow::Result<String> {
         Ok(String::from(match self {
             wit_parser::Type::Bool => "bool",
             wit_parser::Type::U8 => "u8",
@@ -72,7 +75,16 @@ impl ToWitSyntax for wit_parser::Type {
             wit_parser::Type::Float64 => "float64",
             wit_parser::Type::Char => "char",
             wit_parser::Type::String => "string",
-            wit_parser::Type::Id(_) => todo!(),
+            wit_parser::Type::Id(id) => {
+                let name = resolve
+                    .types
+                    .get(*id)
+                    .context("")?
+                    .name
+                    .as_ref()
+                    .context("")?;
+                return Ok(name.to_owned());
+            }
         }))
     }
 }

@@ -30,7 +30,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .iter()
                     .map(|mem| wit_parser::Field {
                         name: mem.identifier.0.to_string(),
-                        ty: wi2w_type(&mem.type_).unwrap(),
+                        ty: wi2w_type(&resolve, &mem.type_).unwrap(),
                         docs: Default::default(),
                     })
                     .collect_vec();
