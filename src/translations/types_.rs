@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use wit_parser::Resolve;
 
 pub fn wi2w_type(resolve: &Resolve, wi: &weedle::types::Type) -> anyhow::Result<wit_parser::Type> {
@@ -34,12 +35,9 @@ fn wi_non_any2w(
             weedle::types::FloatingPointType::Double(_) => wit_parser::Type::Float64,
         },
         weedle::types::NonAnyType::Identifier(ident) => {
-            println!("{ident:#?}");
-            if let Some((id, _)) = resolve
-                .types
-                .iter()
-                .find(|(_, type_)| type_.name == Some(ident.type_.0.to_string()))
-            {
+            if let Some((id, _)) = resolve.types.iter().find(|(_, type_)| {
+                type_.name == Some(ident.type_.0.to_string().to_case(Case::Kebab))
+            }) {
                 wit_parser::Type::Id(id)
             } else {
                 anyhow::bail!("Can't find type `{}`", &ident.type_.0)

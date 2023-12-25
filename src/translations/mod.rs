@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use itertools::Itertools;
 use weedle::{Definition, Definitions as WebIdlDefinitions};
 use wit_parser::Resolve;
@@ -29,14 +30,14 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .body
                     .iter()
                     .map(|mem| wit_parser::Field {
-                        name: mem.identifier.0.to_string(),
+                        name: mem.identifier.0.to_string().to_case(Case::Kebab),
                         ty: wi2w_type(&resolve, &mem.type_).unwrap(),
                         docs: Default::default(),
                     })
                     .collect_vec();
                 let record = wit_parser::Record { fields };
                 let out = wit_parser::TypeDef {
-                    name: Some(dict.identifier.0.to_string()),
+                    name: Some(dict.identifier.0.to_string().to_case(Case::Kebab)),
                     kind: wit_parser::TypeDefKind::Record(record),
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
@@ -50,13 +51,13 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .list
                     .iter()
                     .map(|case| wit_parser::EnumCase {
-                        name: case.0.to_string(),
+                        name: case.0.to_string().to_case(Case::Kebab),
                         docs: Default::default(),
                     })
                     .collect_vec();
                 let out = wit_parser::Enum { cases };
                 let out = wit_parser::TypeDef {
-                    name: Some(e.identifier.0.to_string()),
+                    name: Some(e.identifier.0.to_string().to_case(Case::Kebab)),
                     kind: wit_parser::TypeDefKind::Enum(out),
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
