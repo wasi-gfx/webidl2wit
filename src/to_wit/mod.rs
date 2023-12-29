@@ -48,13 +48,22 @@ impl ToWitSyntax for wit_parser::Resolve {
                     let interface = resolve.interfaces.get(interface_id).unwrap();
 
                     for (func_name, function) in &interface.functions {
-                        let return_ = match function.results {
-                            wit_parser::Results::Named(_) => todo!(),
+                        let return_ = match &function.results {
+                            wit_parser::Results::Named(returns) => {
+                                if returns.is_empty() {
+                                    None
+                                } else {
+                                    todo!()
+                                }
+                            }
                             wit_parser::Results::Anon(return_type) => {
-                                return_type.to_wit_syntax(&resolve)?
+                                Some(return_type.to_wit_syntax(&resolve)?)
                             }
                         };
-                        let return_ = format!(" -> {return_}");
+                        let return_ = match return_ {
+                            Some(return_) => format!(" -> {return_}"),
+                            None => String::new(),
+                        };
                         let params = function
                             .params
                             .iter()
@@ -67,9 +76,15 @@ impl ToWitSyntax for wit_parser::Resolve {
                             })
                             .collect_vec()
                             .join(", ");
+                        let static_ = match function.kind {
+                            wit_parser::FunctionKind::Freestanding => todo!(),
+                            wit_parser::FunctionKind::Method(_) => String::new(),
+                            wit_parser::FunctionKind::Static(_) => String::from(" static"),
+                            wit_parser::FunctionKind::Constructor(_) => todo!(),
+                        };
                         output.add_line(
                             indentation,
-                            &format!("{func_name}: func({params}){return_};"),
+                            &format!("{func_name}{static_}: func({params}){return_};"),
                         );
                     }
 

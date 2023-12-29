@@ -8,4 +8,8 @@ dictionary GPURequestAdapterOptions {
 };
 interface GPUAdapterInfo {
     long requestAdapter(optional GPURequestAdapterOptions options = {});
+    readonly attribute DOMString foo;
+    attribute DOMString bar;
+    static readonly attribute DOMString bar;
+    static attribute DOMString biz;
 };

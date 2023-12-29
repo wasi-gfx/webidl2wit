@@ -43,13 +43,44 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                 for member in interface.members.body {
                     match member {
                         weedle::interface::InterfaceMember::Const(_) => todo!(),
-                        weedle::interface::InterfaceMember::Attribute(_) => todo!(),
                         weedle::interface::InterfaceMember::Constructor(_) => todo!(),
                         weedle::interface::InterfaceMember::Iterable(_) => todo!(),
                         weedle::interface::InterfaceMember::AsyncIterable(_) => todo!(),
                         weedle::interface::InterfaceMember::Maplike(_) => todo!(),
                         weedle::interface::InterfaceMember::Setlike(_) => todo!(),
                         weedle::interface::InterfaceMember::Stringifier(_) => todo!(),
+                        weedle::interface::InterfaceMember::Attribute(attr) => {
+                            let attr_name = attr.identifier.0.to_string().to_case(Kebab);
+                            let attr_type = wi2w_type(&resolve, &attr.type_.type_)?;
+                            let method_kind = match attr.modifier {
+                                Some(weedle::interface::StringifierOrInheritOrStatic::Static(
+                                    _,
+                                )) => wit_parser::FunctionKind::Static(resource_id),
+                                _ => wit_parser::FunctionKind::Method(resource_id),
+                            };
+                            println!("{attr:#?}");
+                            let getter = wit_parser::Function {
+                                name: attr_name.clone(),
+                                kind: method_kind.clone(),
+                                params: Default::default(),
+                                results: wit_parser::Results::Anon(attr_type),
+                                docs: Default::default(),
+                            };
+                            let interface = resolve.interfaces.get_mut(interface_id).unwrap();
+                            interface.functions.insert(attr_name.clone(), getter);
+                            if attr.readonly.is_none() {
+                                let setter_name = format!("set-{attr_name}");
+                                let setter = wit_parser::Function {
+                                    name: setter_name.clone(),
+                                    kind: method_kind,
+                                    params: vec![(attr_name, attr_type)],
+                                    results: wit_parser::Results::Named(Default::default()),
+                                    docs: Default::default(),
+                                };
+                                let interface = resolve.interfaces.get_mut(interface_id).unwrap();
+                                interface.functions.insert(setter_name, setter);
+                            }
+                        }
                         weedle::interface::InterfaceMember::Operation(operation) => {
                             let function_name =
                                 operation.identifier.unwrap().0.to_string().to_case(Kebab);
