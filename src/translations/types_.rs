@@ -43,6 +43,15 @@ fn wi_non_any2w(
                 anyhow::bail!("Can't find type `{}`", &ident.type_.0)
             }
         }
+        weedle::types::NonAnyType::Promise(promise) => {
+            // use wit_parser::TypeDefKind::Future instead?
+            match &*promise.generics.body {
+                weedle::types::ReturnType::Undefined(_) => todo!(),
+                weedle::types::ReturnType::Type(type_) => {
+                    wi2w_type(resolve, type_)?
+                },
+            }
+        },
         weedle::types::NonAnyType::Boolean(_) => wit_parser::Type::Bool,
         weedle::types::NonAnyType::ByteString(_) => wit_parser::Type::String,
         weedle::types::NonAnyType::DOMString(_) => wit_parser::Type::String,
