@@ -1,4 +1,5 @@
 use anyhow::Context;
+use itertools::Itertools;
 use wit_parser::Resolve;
 
 pub trait ToWitSyntax {
@@ -28,7 +29,53 @@ impl ToWitSyntax for wit_parser::Resolve {
                     indentation -= 1;
                     output.add_line(indentation, &format!("}}"));
                 }
-                wit_parser::TypeDefKind::Resource => todo!(),
+                wit_parser::TypeDefKind::Resource => {
+                    output.add_line(
+                        indentation,
+                        &format!(
+                            "resource {} {{",
+                            &type_.name.as_ref().unwrap_or(&String::new())
+                        ),
+                    );
+                    indentation += 1;
+
+                    let interface_id = match type_.owner {
+                        wit_parser::TypeOwner::World(_) => todo!(),
+                        wit_parser::TypeOwner::Interface(interface_id) => interface_id,
+                        wit_parser::TypeOwner::None => todo!(),
+                    };
+
+                    let interface = resolve.interfaces.get(interface_id).unwrap();
+
+                    for (func_name, function) in &interface.functions {
+                        let return_ = match function.results {
+                            wit_parser::Results::Named(_) => todo!(),
+                            wit_parser::Results::Anon(return_type) => {
+                                return_type.to_wit_syntax(&resolve)?
+                            }
+                        };
+                        let return_ = format!(" -> {return_}");
+                        let params = function
+                            .params
+                            .iter()
+                            .map(|(param_name, param_type)| {
+                                format!(
+                                    "{}: {}",
+                                    param_name,
+                                    param_type.to_wit_syntax(&resolve).unwrap()
+                                )
+                            })
+                            .collect_vec()
+                            .join(", ");
+                        output.add_line(
+                            indentation,
+                            &format!("{func_name}: func({params}){return_};"),
+                        );
+                    }
+
+                    indentation -= 1;
+                    output.add_line(indentation, &format!("}}"));
+                }
                 wit_parser::TypeDefKind::Handle(_) => todo!(),
                 wit_parser::TypeDefKind::Flags(_) => todo!(),
                 wit_parser::TypeDefKind::Tuple(_) => todo!(),

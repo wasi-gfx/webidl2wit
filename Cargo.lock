@@ -200,8 +200,7 @@ dependencies = [
 [[package]]
 name = "weedle"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "610950904727748ca09682e857f0d6d6437f0ca862f32f9229edba8cec8b2635"
+source = "git+https://github.com/rustwasm/weedle.git#c704b30c7bb8c041ab4a9a47637378e02192ab6f"
 dependencies = [
  "nom",
 ]

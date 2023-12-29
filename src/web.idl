@@ -6,3 +6,6 @@ dictionary GPURequestAdapterOptions {
     GPUPowerPreference powerPreference;
     boolean forceFallbackAdapter = false;
 };
+interface GPUAdapterInfo {
+    long requestAdapter(optional GPURequestAdapterOptions options = {});
+};
