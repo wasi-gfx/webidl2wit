@@ -1,7 +1,10 @@
 use convert_case::{Case, Casing};
 use wit_parser::Resolve;
 
-pub fn wi2w_type(resolve: &Resolve, wi: &weedle::types::Type) -> anyhow::Result<wit_parser::Type> {
+pub fn wi2w_type(
+    resolve: &mut Resolve,
+    wi: &weedle::types::Type,
+) -> anyhow::Result<wit_parser::Type> {
     match wi {
         weedle::types::Type::Single(weedle::types::SingleType::NonAny(type_)) => {
             wi_non_any2w(resolve, type_)
@@ -12,10 +15,14 @@ pub fn wi2w_type(resolve: &Resolve, wi: &weedle::types::Type) -> anyhow::Result<
 }
 
 fn wi_non_any2w(
-    resolve: &Resolve,
+    resolve: &mut Resolve,
     wi: &weedle::types::NonAnyType,
 ) -> anyhow::Result<wit_parser::Type> {
     Ok(match wi {
+        weedle::types::NonAnyType::Boolean(_) => wit_parser::Type::Bool,
+        weedle::types::NonAnyType::ByteString(_) => wit_parser::Type::String,
+        weedle::types::NonAnyType::DOMString(_) => wit_parser::Type::String,
+        weedle::types::NonAnyType::USVString(_) => wit_parser::Type::String,
         weedle::types::NonAnyType::Integer(int) => match int.type_ {
             weedle::types::IntegerType::LongLong(int) => match int.unsigned {
                 Some(_) => wit_parser::Type::U64,
@@ -47,20 +54,22 @@ fn wi_non_any2w(
             // use wit_parser::TypeDefKind::Future instead?
             match &*promise.generics.body {
                 weedle::types::ReturnType::Undefined(_) => todo!(),
-                weedle::types::ReturnType::Type(type_) => {
-                    wi2w_type(resolve, type_)?
-                },
+                weedle::types::ReturnType::Type(type_) => wi2w_type(resolve, type_)?,
             }
-        },
-        weedle::types::NonAnyType::Boolean(_) => wit_parser::Type::Bool,
-        weedle::types::NonAnyType::ByteString(_) => wit_parser::Type::String,
-        weedle::types::NonAnyType::DOMString(_) => wit_parser::Type::String,
-        weedle::types::NonAnyType::USVString(_) => wit_parser::Type::String,
+        }
+        weedle::types::NonAnyType::Sequence(seq) => {
+            let type_ = wi2w_type(resolve, &*seq.type_.generics.body)?;
+            let type_id = resolve.types.alloc(wit_parser::TypeDef {
+                name: None,
+                kind: wit_parser::TypeDefKind::List(type_),
+                owner: wit_parser::TypeOwner::None,
+                docs: Default::default(),
+            });
+            wit_parser::Type::Id(type_id)
+        }
         weedle::types::NonAnyType::Error(_) => todo!(),
         weedle::types::NonAnyType::Byte(_) => todo!(),
         weedle::types::NonAnyType::Octet(_) => todo!(),
-        weedle::types::NonAnyType::Promise(_) => todo!(),
-        weedle::types::NonAnyType::Sequence(_) => todo!(),
         weedle::types::NonAnyType::Object(_) => todo!(),
         weedle::types::NonAnyType::Symbol(_) => todo!(),
         weedle::types::NonAnyType::ArrayBuffer(_) => todo!(),

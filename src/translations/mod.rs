@@ -51,14 +51,13 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                         weedle::interface::InterfaceMember::Stringifier(_) => todo!(),
                         weedle::interface::InterfaceMember::Attribute(attr) => {
                             let attr_name = attr.identifier.0.to_string().to_case(Kebab);
-                            let attr_type = wi2w_type(&resolve, &attr.type_.type_)?;
+                            let attr_type = wi2w_type(&mut resolve, &attr.type_.type_)?;
                             let method_kind = match attr.modifier {
                                 Some(weedle::interface::StringifierOrInheritOrStatic::Static(
                                     _,
                                 )) => wit_parser::FunctionKind::Static(resource_id),
                                 _ => wit_parser::FunctionKind::Method(resource_id),
                             };
-                            println!("{attr:#?}");
                             let getter = wit_parser::Function {
                                 name: attr_name.clone(),
                                 kind: method_kind.clone(),
@@ -97,19 +96,20 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                                         weedle::argument::Argument::Single(arg) => {
                                             let name = arg.identifier.0.to_string().to_case(Kebab);
                                             let type_ =
-                                                wi2w_type(&resolve, &arg.type_.type_).unwrap();
+                                                wi2w_type(&mut resolve, &arg.type_.type_).unwrap();
                                             (name, type_)
                                         }
                                     })
                                     .collect_vec(),
-                                results: wit_parser::Results::Anon({
-                                    match &operation.return_type {
-                                        weedle::types::ReturnType::Undefined(_) => todo!(),
-                                        weedle::types::ReturnType::Type(type_) => {
-                                            wi2w_type(&resolve, &type_).unwrap()
-                                        }
+                                results: match &operation.return_type {
+                                    weedle::types::ReturnType::Undefined(_) => {
+                                        wit_parser::Results::Named(Default::default())
                                     }
-                                }),
+                                    weedle::types::ReturnType::Type(type_) => {
+                                        let type_ = wi2w_type(&mut resolve, &type_).unwrap();
+                                        wit_parser::Results::Anon(type_)
+                                    }
+                                },
                                 docs: Default::default(),
                             };
                             let interface = resolve.interfaces.get_mut(interface_id).unwrap();
@@ -125,7 +125,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .iter()
                     .map(|mem| wit_parser::Field {
                         name: mem.identifier.0.to_string().to_case(Kebab),
-                        ty: wi2w_type(&resolve, &mem.type_).unwrap(),
+                        ty: wi2w_type(&mut resolve, &mem.type_).unwrap(),
                         docs: Default::default(),
                     })
                     .collect_vec();
