@@ -1,15 +1,16 @@
-enum GPUPowerPreference {
-    "low-power",
-    "high-performance",
-};
-dictionary GPURequestAdapterOptions {
-    GPUPowerPreference powerPreference;
-    boolean forceFallbackAdapter = false;
-};
 interface GPUAdapterInfo {
     long requestAdapter(optional GPURequestAdapterOptions options = {});
     readonly attribute DOMString foo;
     attribute DOMString bar;
     static readonly attribute DOMString bar;
     static attribute DOMString biz;
+    undefined withList(sequence<long> w);
+};
+dictionary GPURequestAdapterOptions {
+    GPUPowerPreference powerPreference;
+    boolean forceFallbackAdapter = false;
+};
+enum GPUPowerPreference {
+    "low-power",
+    "high-performance",
 };

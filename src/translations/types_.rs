@@ -1,6 +1,8 @@
 use convert_case::{Case, Casing};
 use wit_parser::Resolve;
 
+use super::{add_type, get_type_id};
+
 pub fn wi2w_type(
     resolve: &mut Resolve,
     wi: &weedle::types::Type,
@@ -42,13 +44,8 @@ fn wi_non_any2w(
             weedle::types::FloatingPointType::Double(_) => wit_parser::Type::Float64,
         },
         weedle::types::NonAnyType::Identifier(ident) => {
-            if let Some((id, _)) = resolve.types.iter().find(|(_, type_)| {
-                type_.name == Some(ident.type_.0.to_string().to_case(Case::Kebab))
-            }) {
-                wit_parser::Type::Id(id)
-            } else {
-                anyhow::bail!("Can't find type `{}`", &ident.type_.0)
-            }
+            let type_id = get_type_id(resolve, ident.type_.0.to_string().to_case(Case::Kebab));
+            wit_parser::Type::Id(type_id)
         }
         weedle::types::NonAnyType::Promise(promise) => {
             // use wit_parser::TypeDefKind::Future instead?
@@ -59,12 +56,16 @@ fn wi_non_any2w(
         }
         weedle::types::NonAnyType::Sequence(seq) => {
             let type_ = wi2w_type(resolve, &*seq.type_.generics.body)?;
-            let type_id = resolve.types.alloc(wit_parser::TypeDef {
-                name: None,
-                kind: wit_parser::TypeDefKind::List(type_),
-                owner: wit_parser::TypeOwner::None,
-                docs: Default::default(),
-            });
+            let type_id = add_type(
+                resolve,
+                wit_parser::TypeDef {
+                    name: None,
+                    kind: wit_parser::TypeDefKind::List(type_),
+                    owner: wit_parser::TypeOwner::None,
+                    docs: Default::default(),
+                },
+            )?;
+
             wit_parser::Type::Id(type_id)
         }
         weedle::types::NonAnyType::Error(_) => todo!(),

@@ -38,7 +38,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     owner: wit_parser::TypeOwner::Interface(interface_id),
                     docs: Default::default(),
                 };
-                let resource_id = resolve.types.alloc(resource);
+                let resource_id = add_type(&mut resolve, resource)?;
 
                 for member in interface.members.body {
                     match member {
@@ -136,7 +136,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
                 };
-                resolve.types.alloc(out);
+                add_type(&mut resolve, out)?;
             }
             Definition::Enum(e) => {
                 let cases = e
@@ -156,10 +156,48 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
                 };
-                resolve.types.alloc(out);
+                add_type(&mut resolve, out)?;
             }
         }
     }
 
     Ok(resolve)
+}
+
+pub fn add_type(
+    resolve: &mut Resolve,
+    type_def: wit_parser::TypeDef,
+) -> anyhow::Result<wit_parser::TypeId> {
+    if let Some((id, td)) = resolve
+        .types
+        .iter()
+        .find(|(_, td)| td.name == type_def.name)
+    {
+        assert_eq!(td.kind, wit_parser::TypeDefKind::Unknown);
+        // drop(td);
+        let td = resolve.types.get_mut(id).unwrap();
+        td.kind = type_def.kind;
+        td.owner = type_def.owner;
+        td.docs = type_def.docs;
+        Ok(id)
+    } else {
+        Ok(resolve.types.alloc(type_def))
+    }
+}
+
+pub fn get_type_id(resolve: &mut Resolve, type_name: String) -> wit_parser::TypeId {
+    let type_ = resolve
+        .types
+        .iter()
+        .find(|(_, type_)| type_.name.as_ref() == Some(&type_name));
+
+    match type_ {
+        Some((type_id, _)) => type_id,
+        None => resolve.types.alloc(wit_parser::TypeDef {
+            name: Some(type_name),
+            kind: wit_parser::TypeDefKind::Unknown,
+            owner: wit_parser::TypeOwner::None,
+            docs: Default::default(),
+        }),
+    }
 }
