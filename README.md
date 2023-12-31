@@ -7,6 +7,8 @@ Side effects of reading this code may include facepalming, mouth drops, and a st
 ## Conversions from WebIDL to wit types.
 > **_NOTE:_** This does not represent what's currently implemented, this only shows future plans.
 
+If you have any thoughts, please use the [discussion about this table](discussions/1) to chime in.
+
 | WebIDL type                     | wit type              |
 |:--------------------------------|:----------------------|
 | `any`                           | ❓                    |
@@ -48,4 +50,4 @@ Side effects of reading this code may include facepalming, mouth drops, and a st
 | `namespace`                     | ❓                    |
 | `typedef`                       | `type`                |
 
-❓ = Not yet sure how to deal with this type. Please chime in, if you have any thoughts.
+❓ = Not yet sure how to deal with this type.
