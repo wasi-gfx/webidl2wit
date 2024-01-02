@@ -180,7 +180,7 @@ pub fn add_type(
     if let Some((id, td)) = resolve
         .types
         .iter()
-        .find(|(_, td)| td.name == type_def.name)
+        .find(|(_, td)| td.name.is_some() && td.name == type_def.name)
     {
         assert_eq!(td.kind, wit_parser::TypeDefKind::Unknown);
         // drop(td);
