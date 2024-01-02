@@ -150,12 +150,19 @@ impl ToWitSyntax for wit_parser::Type {
             wit_parser::Type::String => "string",
             wit_parser::Type::Id(id) => {
                 let type_ = resolve.types.get(*id).context("Can't find type.")?;
-                return Ok(match &type_.name {
-                    Some(name) => name.to_owned(),
-                    None => type_.kind.to_wit_syntax(resolve)?,
-                });
+                return type_.to_wit_syntax(resolve);
             }
         }))
+    }
+}
+
+impl ToWitSyntax for wit_parser::TypeDef {
+    fn to_wit_syntax(&self, resolve: &Resolve) -> anyhow::Result<String> {
+        // if the type has a name use name.
+        Ok(match &self.name {
+            Some(name) => name.to_owned(),
+            None => self.kind.to_wit_syntax(resolve)?,
+        })
     }
 }
 
