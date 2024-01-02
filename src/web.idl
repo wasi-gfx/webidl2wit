@@ -5,6 +5,8 @@ interface GPUAdapterInfo {
     static readonly attribute DOMString bar;
     static attribute DOMString biz;
     undefined withList(sequence<long> w);
+    undefined union((long or double) num);
+    undefined unionSame((DOMString or ByteString) val);
 };
 dictionary GPURequestAdapterOptions {
     GPUPowerPreference powerPreference;

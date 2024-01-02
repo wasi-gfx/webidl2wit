@@ -84,7 +84,24 @@ impl ToWitSyntax for wit_parser::Resolve {
                     wit_parser::TypeDefKind::Handle(_) => todo!(),
                     wit_parser::TypeDefKind::Flags(_) => todo!(),
                     wit_parser::TypeDefKind::Tuple(_) => todo!(),
-                    wit_parser::TypeDefKind::Variant(_) => todo!(),
+                    wit_parser::TypeDefKind::Variant(variant) => {
+                        output.add_line(indentation, &format!("variant {name} {{"));
+                        indentation += 1;
+                        for case in &variant.cases {
+                            match case.ty {
+                                Some(ty) => {
+                                    let ty = ty.to_wit_syntax(resolve)?;
+                                    output
+                                        .add_line(indentation, &format!("{}({}),", case.name, ty));
+                                }
+                                None => {
+                                    output.add_line(indentation, &format!("{},", case.name));
+                                }
+                            }
+                        }
+                        indentation -= 1;
+                        output.add_line(indentation, &format!("}}"));
+                    }
                     wit_parser::TypeDefKind::Option(_) => todo!(),
                     wit_parser::TypeDefKind::Result(_) => todo!(),
                     wit_parser::TypeDefKind::List(_) => todo!(),

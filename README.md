@@ -41,7 +41,7 @@ If you have any thoughts, please use the [discussion about this table](https://g
 | `sequence<T>`                   | `list<T>`             |
 | `record<K, V>`                  | ❓                    |
 | `Promise<T>`                    | ❓                    |
-| `or` (union)                    | ❓ (maybe `enum`?)    |
+| `or` (union)                    | `variant`             |
 | Buffer types (e.g. `Int8Array`) | ❓                    |
 | `FrozenArray<T>`                | ❓ (maybe `list<T>`?) |
 | `ObservableArray<T>`            | ❓                    |
