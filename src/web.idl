@@ -14,3 +14,4 @@ enum GPUPowerPreference {
     "low-power",
     "high-performance",
 };
+typedef long MyLong;

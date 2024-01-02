@@ -28,9 +28,18 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
             Definition::PartialInterfaceMixin(_) => todo!(),
             Definition::PartialDictionary(_) => todo!(),
             Definition::PartialNamespace(_) => todo!(),
-            Definition::Typedef(_) => todo!(),
             Definition::IncludesStatement(_) => todo!(),
             Definition::Implements(_) => todo!(),
+            Definition::Typedef(wi_type) => {
+                let wit_type = wi2w_type(&mut resolve, &wi_type.type_.type_).unwrap();
+                let resource = wit_parser::TypeDef {
+                    name: Some(wi_type.identifier.0.to_string().to_case(Kebab)),
+                    kind: wit_parser::TypeDefKind::Type(wit_type),
+                    owner: wit_parser::TypeOwner::Interface(interface_id),
+                    docs: Default::default(),
+                };
+                add_type(&mut resolve, resource)?;
+            }
             Definition::Interface(interface) => {
                 let resource = wit_parser::TypeDef {
                     name: Some(interface.identifier.0.to_string().to_case(Kebab)),

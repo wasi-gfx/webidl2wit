@@ -90,7 +90,10 @@ impl ToWitSyntax for wit_parser::Resolve {
                     wit_parser::TypeDefKind::List(_) => todo!(),
                     wit_parser::TypeDefKind::Future(_) => todo!(),
                     wit_parser::TypeDefKind::Stream(_) => todo!(),
-                    wit_parser::TypeDefKind::Type(_) => todo!(),
+                    wit_parser::TypeDefKind::Type(type_) => {
+                        let type_ = type_.to_wit_syntax(resolve)?;
+                        output.add_line(indentation, &format!("type {name} = {type_};"));
+                    }
                     wit_parser::TypeDefKind::Unknown => panic!("Found unresolved type."),
                     wit_parser::TypeDefKind::Enum(e) => {
                         output.add_line(
