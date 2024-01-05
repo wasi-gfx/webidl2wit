@@ -4,7 +4,7 @@ use convert_case::{Case, Casing};
 use itertools::Itertools;
 use wit_parser::Resolve;
 
-use crate::to_wit::ToWitSyntax;
+use crate::to_wit::inline_type_name;
 
 use super::{add_type, get_type_id};
 
@@ -42,7 +42,7 @@ pub fn wi2w_type(
 
             let variant_name = cases
                 .iter()
-                .map(|type_| type_.to_wit_syntax(resolve).unwrap())
+                .map(|type_| inline_type_name(type_, resolve).unwrap())
                 .collect_vec()
                 .join("-or-");
             let type_id = add_type(
@@ -53,7 +53,7 @@ pub fn wi2w_type(
                         cases: cases
                             .into_iter()
                             .map(|case| wit_parser::Case {
-                                name: case.to_wit_syntax(&resolve).unwrap(),
+                                name: inline_type_name(&case, &resolve).unwrap(),
                                 ty: Some(case),
                                 docs: Default::default(),
                             })

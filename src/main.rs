@@ -1,3 +1,5 @@
+#![feature(assert_matches)]
+
 use crate::to_wit::ToWitSyntax;
 
 mod to_wit;
