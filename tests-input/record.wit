@@ -1,0 +1,6 @@
+record gpu-color-dict {
+    r: float64,
+    g: float64,
+    b: float64,
+    a: float64,
+}

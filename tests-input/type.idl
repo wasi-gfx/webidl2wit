@@ -1,0 +1,14 @@
+typedef [EnforceRange] unsigned long GPUBufferDynamicOffset;
+typedef [EnforceRange] unsigned long GPUStencilValue;
+typedef [EnforceRange] unsigned long GPUSampleMask;
+typedef [EnforceRange] long GPUDepthBias;
+
+typedef [EnforceRange] unsigned long long GPUSize64;
+typedef [EnforceRange] unsigned long GPUIntegerCoordinate;
+typedef [EnforceRange] unsigned long GPUIndex32;
+typedef [EnforceRange] unsigned long GPUSize32;
+typedef [EnforceRange] long GPUSignedOffset32;
+
+typedef unsigned long long GPUSize64Out;
+typedef unsigned long GPUIntegerCoordinateOut;
+typedef unsigned long GPUSize32Out;

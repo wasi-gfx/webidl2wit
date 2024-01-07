@@ -1,0 +1,4 @@
+enum gpu-power-preference {
+    low-power,
+    high-performance,
+}

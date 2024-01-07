@@ -1,0 +1,807 @@
+record gpu-object-descriptor-base {
+    label: string,
+}
+resource gpu-supported-limits {
+    max-texture-dimension1-d: func() -> u32;
+    max-texture-dimension2-d: func() -> u32;
+    max-texture-dimension3-d: func() -> u32;
+    max-texture-array-layers: func() -> u32;
+    max-bind-groups: func() -> u32;
+    max-bind-groups-plus-vertex-buffers: func() -> u32;
+    max-bindings-per-bind-group: func() -> u32;
+    max-dynamic-uniform-buffers-per-pipeline-layout: func() -> u32;
+    max-dynamic-storage-buffers-per-pipeline-layout: func() -> u32;
+    max-sampled-textures-per-shader-stage: func() -> u32;
+    max-samplers-per-shader-stage: func() -> u32;
+    max-storage-buffers-per-shader-stage: func() -> u32;
+    max-storage-textures-per-shader-stage: func() -> u32;
+    max-uniform-buffers-per-shader-stage: func() -> u32;
+    max-uniform-buffer-binding-size: func() -> u64;
+    max-storage-buffer-binding-size: func() -> u64;
+    min-uniform-buffer-offset-alignment: func() -> u32;
+    min-storage-buffer-offset-alignment: func() -> u32;
+    max-vertex-buffers: func() -> u32;
+    max-buffer-size: func() -> u64;
+    max-vertex-attributes: func() -> u32;
+    max-vertex-buffer-array-stride: func() -> u32;
+    max-inter-stage-shader-components: func() -> u32;
+    max-inter-stage-shader-variables: func() -> u32;
+    max-color-attachments: func() -> u32;
+    max-color-attachment-bytes-per-sample: func() -> u32;
+    max-compute-workgroup-storage-size: func() -> u32;
+    max-compute-invocations-per-workgroup: func() -> u32;
+    max-compute-workgroup-size-x: func() -> u32;
+    max-compute-workgroup-size-y: func() -> u32;
+    max-compute-workgroup-size-z: func() -> u32;
+    max-compute-workgroups-per-dimension: func() -> u32;
+}
+resource gpu-supported-features {
+}
+resource wgsl-language-features {
+}
+resource gpu-adapter-info {
+    vendor: func() -> string;
+    architecture: func() -> string;
+    device: func() -> string;
+    description: func() -> string;
+}
+resource gpu {
+    request-adapter: func(options: gpu-request-adapter-options) -> gpu-adapter;
+    get-preferred-canvas-format: func() -> gpu-texture-format;
+    wgsl-language-features: func() -> wgsl-language-features;
+}
+resource gpu-adapter {
+    is-fallback-adapter: func() -> bool;
+    request-device: func(descriptor: gpu-device-descriptor) -> gpu-device;
+    request-adapter-info: func() -> gpu-adapter-info;
+}
+record gpu-request-adapter-options {
+    power-preference: gpu-power-preference,
+    force-fallback-adapter: bool,
+}
+enum gpu-texture-format {
+    r8unorm,
+    r8snorm,
+    r8uint,
+    r8sint,
+    r16uint,
+    r16sint,
+    r16float,
+    rg8unorm,
+    rg8snorm,
+    rg8uint,
+    rg8sint,
+    r32uint,
+    r32sint,
+    r32float,
+    rg16uint,
+    rg16sint,
+    rg16float,
+    rgba8unorm,
+    rgba8unorm-srgb,
+    rgba8snorm,
+    rgba8uint,
+    rgba8sint,
+    bgra8unorm,
+    bgra8unorm-srgb,
+    rgb9e5ufloat,
+    rgb10a2uint,
+    rgb10a2unorm,
+    rg11b10ufloat,
+    rg32uint,
+    rg32sint,
+    rg32float,
+    rgba16uint,
+    rgba16sint,
+    rgba16float,
+    rgba32uint,
+    rgba32sint,
+    rgba32float,
+    stencil8,
+    depth16unorm,
+    depth24plus,
+    depth24plus-stencil8,
+    depth32float,
+    depth32float-stencil8,
+    bc1-rgba-unorm,
+    bc1-rgba-unorm-srgb,
+    bc2-rgba-unorm,
+    bc2-rgba-unorm-srgb,
+    bc3-rgba-unorm,
+    bc3-rgba-unorm-srgb,
+    bc4-r-unorm,
+    bc4-r-snorm,
+    bc5-rg-unorm,
+    bc5-rg-snorm,
+    bc6h-rgb-ufloat,
+    bc6h-rgb-float,
+    bc7-rgba-unorm,
+    bc7-rgba-unorm-srgb,
+    etc2-rgb8unorm,
+    etc2-rgb8unorm-srgb,
+    etc2-rgb8a1unorm,
+    etc2-rgb8a1unorm-srgb,
+    etc2-rgba8unorm,
+    etc2-rgba8unorm-srgb,
+    eac-r11unorm,
+    eac-r11snorm,
+    eac-rg11unorm,
+    eac-rg11snorm,
+    astc4x4-unorm,
+    astc4x4-unorm-srgb,
+    astc5x4-unorm,
+    astc5x4-unorm-srgb,
+    astc5x5-unorm,
+    astc5x5-unorm-srgb,
+    astc6x5-unorm,
+    astc6x5-unorm-srgb,
+    astc6x6-unorm,
+    astc6x6-unorm-srgb,
+    astc8x5-unorm,
+    astc8x5-unorm-srgb,
+    astc8x6-unorm,
+    astc8x6-unorm-srgb,
+    astc8x8-unorm,
+    astc8x8-unorm-srgb,
+    astc10x5-unorm,
+    astc10x5-unorm-srgb,
+    astc10x6-unorm,
+    astc10x6-unorm-srgb,
+    astc10x8-unorm,
+    astc10x8-unorm-srgb,
+    astc10x10-unorm,
+    astc10x10-unorm-srgb,
+    astc12x10-unorm,
+    astc12x10-unorm-srgb,
+    astc12x12-unorm,
+    astc12x12-unorm-srgb,
+}
+enum gpu-power-preference {
+    low-power,
+    high-performance,
+}
+resource gpu-device {
+    features: func() -> gpu-supported-features;
+    limits: func() -> gpu-supported-limits;
+    queue: func() -> gpu-queue;
+    create-buffer: func(descriptor: gpu-buffer-descriptor) -> gpu-buffer;
+    create-texture: func(descriptor: gpu-texture-descriptor) -> gpu-texture;
+    create-sampler: func(descriptor: gpu-sampler-descriptor) -> gpu-sampler;
+    import-external-texture: func(descriptor: gpu-external-texture-descriptor) -> gpu-external-texture;
+    create-bind-group-layout: func(descriptor: gpu-bind-group-layout-descriptor) -> gpu-bind-group-layout;
+    create-pipeline-layout: func(descriptor: gpu-pipeline-layout-descriptor) -> gpu-pipeline-layout;
+    create-bind-group: func(descriptor: gpu-bind-group-descriptor) -> gpu-bind-group;
+    create-shader-module: func(descriptor: gpu-shader-module-descriptor) -> gpu-shader-module;
+    create-compute-pipeline: func(descriptor: gpu-compute-pipeline-descriptor) -> gpu-compute-pipeline;
+    create-render-pipeline: func(descriptor: gpu-render-pipeline-descriptor) -> gpu-render-pipeline;
+    create-compute-pipeline-async: func(descriptor: gpu-compute-pipeline-descriptor) -> gpu-compute-pipeline;
+    create-render-pipeline-async: func(descriptor: gpu-render-pipeline-descriptor) -> gpu-render-pipeline;
+    create-command-encoder: func(descriptor: gpu-command-encoder-descriptor) -> gpu-command-encoder;
+    create-render-bundle-encoder: func(descriptor: gpu-render-bundle-encoder-descriptor) -> gpu-render-bundle-encoder;
+    create-query-set: func(descriptor: gpu-query-set-descriptor) -> gpu-query-set;
+}
+record gpu-device-descriptor {
+    required-features: list<gpu-feature-name>,
+    default-queue: gpu-queue-descriptor,
+}
+enum gpu-feature-name {
+    depth-clip-control,
+    depth32float-stencil8,
+    texture-compression-bc,
+    texture-compression-etc2,
+    texture-compression-astc,
+    timestamp-query,
+    indirect-first-instance,
+    shader-f16,
+    rg11b10ufloat-renderable,
+    bgra8unorm-storage,
+    float32-filterable,
+}
+record gpu-queue-descriptor {
+}
+resource gpu-queue {
+    submit: func(command-buffers: list<gpu-command-buffer>);
+    on-submitted-work-done: func();
+    write-buffer: func(buffer: gpu-buffer, buffer-offset: gpu-size64, data-offset: gpu-size64, size: gpu-size64);
+    write-texture: func(destination: gpu-image-copy-texture, data-layout: gpu-image-data-layout, size: gpu-extent3-d);
+    copy-external-image-to-texture: func(source: gpu-image-copy-external-image, destination: gpu-image-copy-texture-tagged, copy-size: gpu-extent3-d);
+}
+resource gpu-buffer {
+    size: func() -> gpu-size64-out;
+    map-state: func() -> gpu-buffer-map-state;
+    unmap: func();
+}
+record gpu-buffer-descriptor {
+    size: gpu-size64,
+    mapped-at-creation: bool,
+}
+resource gpu-texture {
+    create-view: func(descriptor: gpu-texture-view-descriptor) -> gpu-texture-view;
+    width: func() -> gpu-integer-coordinate-out;
+    height: func() -> gpu-integer-coordinate-out;
+    depth-or-array-layers: func() -> gpu-integer-coordinate-out;
+    mip-level-count: func() -> gpu-integer-coordinate-out;
+    sample-count: func() -> gpu-size32-out;
+    format: func() -> gpu-texture-format;
+}
+record gpu-texture-descriptor {
+    size: gpu-extent3-d,
+    mip-level-count: gpu-integer-coordinate,
+    sample-count: gpu-size32,
+    format: gpu-texture-format,
+    view-formats: list<gpu-texture-format>,
+}
+resource gpu-sampler {
+}
+record gpu-sampler-descriptor {
+    address-mode-u: gpu-address-mode,
+    address-mode-v: gpu-address-mode,
+    address-mode-w: gpu-address-mode,
+    mag-filter: gpu-filter-mode,
+    min-filter: gpu-filter-mode,
+    mipmap-filter: gpu-mipmap-filter-mode,
+    lod-min-clamp: float32,
+    lod-max-clamp: float32,
+    compare: gpu-compare-function,
+    max-anisotropy: u16,
+}
+resource gpu-external-texture {
+}
+record gpu-external-texture-descriptor {
+}
+resource gpu-bind-group-layout {
+}
+record gpu-bind-group-layout-descriptor {
+    entries: list<gpu-bind-group-layout-entry>,
+}
+resource gpu-pipeline-layout {
+}
+record gpu-pipeline-layout-descriptor {
+    bind-group-layouts: list<gpu-bind-group-layout>,
+}
+resource gpu-bind-group {
+}
+record gpu-bind-group-descriptor {
+    layout: gpu-bind-group-layout,
+    entries: list<gpu-bind-group-entry>,
+}
+resource gpu-shader-module {
+    get-compilation-info: func() -> gpu-compilation-info;
+}
+record gpu-shader-module-descriptor {
+    code: string,
+    compilation-hints: list<gpu-shader-module-compilation-hint>,
+}
+resource gpu-compute-pipeline {
+}
+record gpu-compute-pipeline-descriptor {
+    compute: gpu-programmable-stage,
+}
+resource gpu-render-pipeline {
+}
+record gpu-render-pipeline-descriptor {
+    vertex: gpu-vertex-state,
+    primitive: gpu-primitive-state,
+    depth-stencil: gpu-depth-stencil-state,
+    multisample: gpu-multisample-state,
+    fragment: gpu-fragment-state,
+}
+resource gpu-command-encoder {
+    begin-render-pass: func(descriptor: gpu-render-pass-descriptor) -> gpu-render-pass-encoder;
+    begin-compute-pass: func(descriptor: gpu-compute-pass-descriptor) -> gpu-compute-pass-encoder;
+    copy-buffer-to-buffer: func(source: gpu-buffer, source-offset: gpu-size64, destination: gpu-buffer, destination-offset: gpu-size64, size: gpu-size64);
+    copy-buffer-to-texture: func(source: gpu-image-copy-buffer, destination: gpu-image-copy-texture, copy-size: gpu-extent3-d);
+    copy-texture-to-buffer: func(source: gpu-image-copy-texture, destination: gpu-image-copy-buffer, copy-size: gpu-extent3-d);
+    copy-texture-to-texture: func(source: gpu-image-copy-texture, destination: gpu-image-copy-texture, copy-size: gpu-extent3-d);
+    clear-buffer: func(buffer: gpu-buffer, offset: gpu-size64, size: gpu-size64);
+    resolve-query-set: func(query-set: gpu-query-set, first-query: gpu-size32, query-count: gpu-size32, destination: gpu-buffer, destination-offset: gpu-size64);
+}
+record gpu-command-encoder-descriptor {
+}
+resource gpu-render-bundle-encoder {
+    finish: func(descriptor: gpu-render-bundle-descriptor) -> gpu-render-bundle;
+}
+record gpu-render-bundle-encoder-descriptor {
+    depth-read-only: bool,
+    stencil-read-only: bool,
+}
+resource gpu-query-set {
+    destroy: func();
+    %type: func() -> gpu-query-type;
+    count: func() -> gpu-size32-out;
+}
+record gpu-query-set-descriptor {
+    %type: gpu-query-type,
+    count: gpu-size32,
+}
+type gpu-size64-out = u64;
+enum gpu-buffer-map-state {
+    unmapped,
+    pending,
+    mapped,
+}
+type gpu-size64 = u64;
+resource gpu-texture-view {
+}
+record gpu-texture-view-descriptor {
+    format: gpu-texture-format,
+    aspect: gpu-texture-aspect,
+    base-mip-level: gpu-integer-coordinate,
+    mip-level-count: gpu-integer-coordinate,
+    base-array-layer: gpu-integer-coordinate,
+    array-layer-count: gpu-integer-coordinate,
+}
+type gpu-integer-coordinate-out = u32;
+type gpu-size32-out = u32;
+type gpu-extent3-d = gpu-extent3-d-dict-or-list-gpu-integer-coordinate;
+type gpu-integer-coordinate = u32;
+type gpu-size32 = u32;
+enum gpu-texture-aspect {
+    all,
+    stencil-only,
+    depth-only,
+}
+enum gpu-address-mode {
+    clamp-to-edge,
+    repeat,
+    mirror-repeat,
+}
+enum gpu-filter-mode {
+    nearest,
+    linear,
+}
+enum gpu-mipmap-filter-mode {
+    nearest,
+    linear,
+}
+enum gpu-compare-function {
+    never,
+    less,
+    equal,
+    less-equal,
+    greater,
+    not-equal,
+    greater-equal,
+    always,
+}
+record gpu-bind-group-layout-entry {
+    binding: gpu-index32,
+    buffer: gpu-buffer-binding-layout,
+    sampler: gpu-sampler-binding-layout,
+    texture: gpu-texture-binding-layout,
+    storage-texture: gpu-storage-texture-binding-layout,
+    external-texture: gpu-external-texture-binding-layout,
+}
+type gpu-index32 = u32;
+record gpu-buffer-binding-layout {
+    %type: gpu-buffer-binding-type,
+    has-dynamic-offset: bool,
+    min-binding-size: gpu-size64,
+}
+record gpu-sampler-binding-layout {
+    %type: gpu-sampler-binding-type,
+}
+record gpu-texture-binding-layout {
+    sample-type: gpu-texture-sample-type,
+    multisampled: bool,
+}
+record gpu-storage-texture-binding-layout {
+    access: gpu-storage-texture-access,
+    format: gpu-texture-format,
+}
+record gpu-external-texture-binding-layout {
+}
+enum gpu-buffer-binding-type {
+    uniform,
+    storage,
+    read-only-storage,
+}
+enum gpu-sampler-binding-type {
+    filtering,
+    non-filtering,
+    comparison,
+}
+enum gpu-texture-sample-type {
+    float,
+    unfilterable-float,
+    depth,
+    sint,
+    uint,
+}
+enum gpu-storage-texture-access {
+    write-only,
+    read-only,
+    read-write,
+}
+record gpu-bind-group-entry {
+    binding: gpu-index32,
+    %resource: gpu-binding-resource,
+}
+record gpu-buffer-binding {
+    buffer: gpu-buffer,
+    offset: gpu-size64,
+    size: gpu-size64,
+}
+variant gpu-buffer-binding-or-gpu-external-texture-or-gpu-sampler-or-gpu-texture-view {
+    gpu-buffer-binding(gpu-buffer-binding),
+    gpu-external-texture(gpu-external-texture),
+    gpu-sampler(gpu-sampler),
+    gpu-texture-view(gpu-texture-view),
+}
+type gpu-binding-resource = gpu-buffer-binding-or-gpu-external-texture-or-gpu-sampler-or-gpu-texture-view;
+resource gpu-compilation-info {
+}
+record gpu-shader-module-compilation-hint {
+    entry-point: string,
+    layout: gpu-auto-layout-mode-or-gpu-pipeline-layout,
+}
+enum gpu-auto-layout-mode {
+    auto,
+}
+variant gpu-auto-layout-mode-or-gpu-pipeline-layout {
+    gpu-auto-layout-mode(gpu-auto-layout-mode),
+    gpu-pipeline-layout(gpu-pipeline-layout),
+}
+enum gpu-compilation-message-type {
+    error,
+    warning,
+    info,
+}
+resource gpu-compilation-message {
+    line-num: func() -> u64;
+    line-pos: func() -> u64;
+    offset: func() -> u64;
+    length: func() -> u64;
+}
+resource gpu-pipeline-error {
+}
+record gpu-pipeline-error-init {
+    reason: gpu-pipeline-error-reason,
+}
+enum gpu-pipeline-error-reason {
+    validation,
+    internal,
+}
+record gpu-pipeline-descriptor-base {
+    layout: gpu-auto-layout-mode-or-gpu-pipeline-layout,
+}
+record gpu-programmable-stage {
+    module: gpu-shader-module,
+    entry-point: string,
+}
+type gpu-pipeline-constant-value = float64;
+record gpu-vertex-state {
+    buffers: list<gpu-vertex-buffer-layout>,
+}
+record gpu-primitive-state {
+    topology: gpu-primitive-topology,
+    strip-index-format: gpu-index-format,
+    front-face: gpu-front-face,
+    cull-mode: gpu-cull-mode,
+    unclipped-depth: bool,
+}
+record gpu-depth-stencil-state {
+    format: gpu-texture-format,
+    depth-write-enabled: bool,
+    depth-compare: gpu-compare-function,
+    stencil-front: gpu-stencil-face-state,
+    stencil-back: gpu-stencil-face-state,
+    stencil-read-mask: gpu-stencil-value,
+    stencil-write-mask: gpu-stencil-value,
+    depth-bias: gpu-depth-bias,
+    depth-bias-slope-scale: float32,
+    depth-bias-clamp: float32,
+}
+record gpu-multisample-state {
+    count: gpu-size32,
+    mask: gpu-sample-mask,
+    alpha-to-coverage-enabled: bool,
+}
+record gpu-fragment-state {
+    targets: list<gpu-color-target-state>,
+}
+enum gpu-primitive-topology {
+    point-list,
+    line-list,
+    line-strip,
+    triangle-list,
+    triangle-strip,
+}
+enum gpu-index-format {
+    uint16,
+    uint32,
+}
+enum gpu-front-face {
+    ccw,
+    cw,
+}
+enum gpu-cull-mode {
+    none,
+    front,
+    back,
+}
+type gpu-sample-mask = u32;
+record gpu-color-target-state {
+    format: gpu-texture-format,
+    blend: gpu-blend-state,
+}
+record gpu-blend-state {
+    color: gpu-blend-component,
+    alpha: gpu-blend-component,
+}
+record gpu-blend-component {
+    operation: gpu-blend-operation,
+    src-factor: gpu-blend-factor,
+    dst-factor: gpu-blend-factor,
+}
+enum gpu-blend-operation {
+    add,
+    subtract,
+    reverse-subtract,
+    min,
+    max,
+}
+enum gpu-blend-factor {
+    zero,
+    one,
+    src,
+    one-minus-src,
+    src-alpha,
+    one-minus-src-alpha,
+    dst,
+    one-minus-dst,
+    dst-alpha,
+    one-minus-dst-alpha,
+    src-alpha-saturated,
+    constant,
+    one-minus-constant,
+}
+record gpu-stencil-face-state {
+    compare: gpu-compare-function,
+    fail-op: gpu-stencil-operation,
+    depth-fail-op: gpu-stencil-operation,
+    pass-op: gpu-stencil-operation,
+}
+type gpu-stencil-value = u32;
+type gpu-depth-bias = s32;
+enum gpu-stencil-operation {
+    keep,
+    zero,
+    replace,
+    invert,
+    increment-clamp,
+    decrement-clamp,
+    increment-wrap,
+    decrement-wrap,
+}
+enum gpu-vertex-format {
+    uint8x2,
+    uint8x4,
+    sint8x2,
+    sint8x4,
+    unorm8x2,
+    unorm8x4,
+    snorm8x2,
+    snorm8x4,
+    uint16x2,
+    uint16x4,
+    sint16x2,
+    sint16x4,
+    unorm16x2,
+    unorm16x4,
+    snorm16x2,
+    snorm16x4,
+    float16x2,
+    float16x4,
+    %float32,
+    float32x2,
+    float32x3,
+    float32x4,
+    uint32,
+    uint32x2,
+    uint32x3,
+    uint32x4,
+    sint32,
+    sint32x2,
+    sint32x3,
+    sint32x4,
+    unorm1010102,
+}
+enum gpu-vertex-step-mode {
+    vertex,
+    instance,
+}
+record gpu-vertex-buffer-layout {
+    array-stride: gpu-size64,
+    step-mode: gpu-vertex-step-mode,
+    attributes: list<gpu-vertex-attribute>,
+}
+record gpu-vertex-attribute {
+    format: gpu-vertex-format,
+    offset: gpu-size64,
+    shader-location: gpu-index32,
+}
+record gpu-image-data-layout {
+    offset: gpu-size64,
+    bytes-per-row: gpu-size32,
+    rows-per-image: gpu-size32,
+}
+record gpu-image-copy-buffer {
+    buffer: gpu-buffer,
+}
+type gpu-origin3-d = gpu-origin3-d-dict-or-list-gpu-integer-coordinate;
+record gpu-image-copy-texture {
+    texture: gpu-texture,
+    mip-level: gpu-integer-coordinate,
+    origin: gpu-origin3-d,
+    aspect: gpu-texture-aspect,
+}
+record gpu-image-copy-texture-tagged {
+    premultiplied-alpha: bool,
+}
+type gpu-origin2-d = gpu-origin2-d-dict-or-list-gpu-integer-coordinate;
+record gpu-image-copy-external-image {
+    origin: gpu-origin2-d,
+    flip-y: bool,
+}
+resource gpu-command-buffer {
+}
+record gpu-command-buffer-descriptor {
+}
+resource gpu-render-pass-encoder {
+    end: func();
+    set-viewport: func(x: float32, y: float32, width: float32, height: float32, min-depth: float32, max-depth: float32);
+    set-scissor-rect: func(x: gpu-integer-coordinate, y: gpu-integer-coordinate, width: gpu-integer-coordinate, height: gpu-integer-coordinate);
+    set-blend-constant: func(color: gpu-color);
+    set-stencil-reference: func(reference: gpu-stencil-value);
+    begin-occlusion-query: func(query-index: gpu-size32);
+    end-occlusion-query: func();
+    execute-bundles: func(bundles: list<gpu-render-bundle>);
+}
+record gpu-render-pass-descriptor {
+    color-attachments: list<gpu-render-pass-color-attachment>,
+    depth-stencil-attachment: gpu-render-pass-depth-stencil-attachment,
+    occlusion-query-set: gpu-query-set,
+    timestamp-writes: gpu-render-pass-timestamp-writes,
+    max-draw-count: gpu-size64,
+}
+resource gpu-compute-pass-encoder {
+    set-pipeline: func(pipeline: gpu-compute-pipeline);
+    dispatch-workgroups: func(workgroup-count-x: gpu-size32, workgroup-count-y: gpu-size32, workgroup-count-z: gpu-size32);
+    dispatch-workgroups-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
+}
+record gpu-compute-pass-descriptor {
+    timestamp-writes: gpu-compute-pass-timestamp-writes,
+}
+record gpu-compute-pass-timestamp-writes {
+    query-set: gpu-query-set,
+    beginning-of-pass-write-index: gpu-size32,
+    end-of-pass-write-index: gpu-size32,
+}
+type gpu-color = gpu-color-dict-or-list-float64;
+resource gpu-render-bundle {
+}
+record gpu-render-pass-timestamp-writes {
+    query-set: gpu-query-set,
+    beginning-of-pass-write-index: gpu-size32,
+    end-of-pass-write-index: gpu-size32,
+}
+record gpu-render-pass-color-attachment {
+    view: gpu-texture-view,
+    depth-slice: gpu-integer-coordinate,
+    resolve-target: gpu-texture-view,
+    clear-value: gpu-color,
+    load-op: gpu-load-op,
+    store-op: gpu-store-op,
+}
+record gpu-render-pass-depth-stencil-attachment {
+    view: gpu-texture-view,
+    depth-clear-value: float32,
+    depth-load-op: gpu-load-op,
+    depth-store-op: gpu-store-op,
+    depth-read-only: bool,
+    stencil-clear-value: gpu-stencil-value,
+    stencil-load-op: gpu-load-op,
+    stencil-store-op: gpu-store-op,
+    stencil-read-only: bool,
+}
+enum gpu-load-op {
+    load,
+    clear,
+}
+enum gpu-store-op {
+    store,
+    discard,
+}
+record gpu-render-pass-layout {
+    color-formats: list<gpu-texture-format>,
+    depth-stencil-format: gpu-texture-format,
+    sample-count: gpu-size32,
+}
+record gpu-render-bundle-descriptor {
+}
+enum gpu-query-type {
+    occlusion,
+    timestamp,
+}
+resource gpu-canvas-context {
+    configure: func(configuration: gpu-canvas-configuration);
+    unconfigure: func();
+    get-current-texture: func() -> gpu-texture;
+}
+record gpu-canvas-configuration {
+    device: gpu-device,
+    format: gpu-texture-format,
+    view-formats: list<gpu-texture-format>,
+    alpha-mode: gpu-canvas-alpha-mode,
+}
+enum gpu-canvas-alpha-mode {
+    opaque,
+    premultiplied,
+}
+enum gpu-device-lost-reason {
+    unknown,
+    destroyed,
+}
+resource gpu-device-lost-info {
+    reason: func() -> gpu-device-lost-reason;
+}
+resource gpu-error {
+    message: func() -> string;
+}
+resource gpu-validation-error {
+}
+resource gpu-out-of-memory-error {
+}
+resource gpu-internal-error {
+}
+enum gpu-error-filter {
+    validation,
+    out-of-memory,
+    internal,
+}
+resource gpu-uncaptured-error-event {
+    constructor(%type: string, gpu-uncaptured-error-event-init-dict: gpu-uncaptured-error-event-init);
+    error: func() -> gpu-error;
+}
+record gpu-uncaptured-error-event-init {
+    error: gpu-error,
+}
+type gpu-buffer-dynamic-offset = u32;
+type gpu-signed-offset32 = s32;
+record gpu-color-dict {
+    r: float64,
+    g: float64,
+    b: float64,
+    a: float64,
+}
+variant gpu-color-dict-or-list-float64 {
+    gpu-color-dict(gpu-color-dict),
+    list-float64(list<float64>),
+}
+record gpu-origin2-d-dict {
+    x: gpu-integer-coordinate,
+    y: gpu-integer-coordinate,
+}
+variant gpu-origin2-d-dict-or-list-gpu-integer-coordinate {
+    gpu-origin2-d-dict(gpu-origin2-d-dict),
+    list-gpu-integer-coordinate(list<gpu-integer-coordinate>),
+}
+record gpu-origin3-d-dict {
+    x: gpu-integer-coordinate,
+    y: gpu-integer-coordinate,
+    z: gpu-integer-coordinate,
+}
+variant gpu-origin3-d-dict-or-list-gpu-integer-coordinate {
+    gpu-origin3-d-dict(gpu-origin3-d-dict),
+    list-gpu-integer-coordinate(list<gpu-integer-coordinate>),
+}
+record gpu-extent3-d-dict {
+    width: gpu-integer-coordinate,
+    height: gpu-integer-coordinate,
+    depth-or-array-layers: gpu-integer-coordinate,
+}
+variant gpu-extent3-d-dict-or-list-gpu-integer-coordinate {
+    gpu-extent3-d-dict(gpu-extent3-d-dict),
+    list-gpu-integer-coordinate(list<gpu-integer-coordinate>),
+}

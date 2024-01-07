@@ -1,0 +1,6 @@
+dictionary GPUColorDict {
+    required double r;
+    required double g;
+    double b;
+    double a;
+};
