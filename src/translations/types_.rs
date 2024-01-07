@@ -45,28 +45,37 @@ pub fn wi2w_type(
                 .map(|type_| inline_type_name(type_, resolve).unwrap())
                 .collect_vec()
                 .join("-or-");
-            let type_id = add_type(
-                resolve,
-                wit_parser::TypeDef {
-                    name: Some(variant_name),
-                    kind: wit_parser::TypeDefKind::Variant(wit_parser::Variant {
-                        cases: cases
-                            .into_iter()
-                            .map(|case| {
-                                let name = inline_type_name(&case, &resolve).unwrap();
-                                let name = format!("%{name}");
-                                wit_parser::Case {
-                                    name,
-                                    ty: Some(case),
-                                    docs: Default::default(),
-                                }
-                            })
-                            .collect_vec(),
-                    }),
-                    owner: wit_parser::TypeOwner::None,
-                    docs: Default::default(),
-                },
-            )?;
+
+            let type_id = match resolve
+                .types
+                .iter()
+                .find(|(_, t)| t.name.as_ref() == Some(&variant_name))
+            {
+                Some((type_id, _)) => type_id,
+                None => add_type(
+                    resolve,
+                    wit_parser::TypeDef {
+                        name: Some(variant_name),
+                        kind: wit_parser::TypeDefKind::Variant(wit_parser::Variant {
+                            cases: cases
+                                .into_iter()
+                                .map(|case| {
+                                    let name = inline_type_name(&case, &resolve).unwrap();
+                                    let name = format!("%{name}");
+                                    wit_parser::Case {
+                                        name,
+                                        ty: Some(case),
+                                        docs: Default::default(),
+                                    }
+                                })
+                                .collect_vec(),
+                        }),
+                        owner: wit_parser::TypeOwner::None,
+                        docs: Default::default(),
+                    },
+                )?,
+            };
+
             Ok(wit_parser::Type::Id(type_id))
         }
     }
