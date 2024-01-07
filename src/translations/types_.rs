@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::BTreeMap;
 
 use itertools::Itertools;
 use wit_parser::Resolve;
@@ -27,24 +27,26 @@ pub fn wi2w_type(
                 .iter()
                 .map(|type_| match type_ {
                     weedle::types::UnionMemberType::Single(type_) => {
-                        wi_non_any2w(resolve, &type_.type_).unwrap()
+                        let type_ = wi_non_any2w(resolve, &type_.type_).unwrap();
+                        let type_name = inline_type_name(&type_, resolve).unwrap();
+                        let type_name = clean_generic(type_name);
+                        (type_name, type_)
                     }
                     weedle::types::UnionMemberType::Union(_) => todo!(),
                 })
-                .collect::<HashSet<_>>();
+                .collect::<BTreeMap<_, _>>();
 
             // Only create `Variant` if there's more than one type.
             if cases.len() == 1 {
-                let type_ = cases.into_iter().next().unwrap();
+                let (_, type_) = cases.into_iter().next().unwrap();
                 return Ok(type_);
             }
 
             let variant_name = cases
                 .iter()
-                .map(|type_| inline_type_name(type_, resolve).unwrap())
+                .map(|(name, _)| name.to_owned())
                 .collect_vec()
                 .join("-or-");
-            let variant_name = clean_generic(variant_name);
 
             let type_id = match resolve
                 .types
@@ -59,14 +61,10 @@ pub fn wi2w_type(
                         kind: wit_parser::TypeDefKind::Variant(wit_parser::Variant {
                             cases: cases
                                 .into_iter()
-                                .map(|case| {
-                                    let name = inline_type_name(&case, &resolve).unwrap();
-                                    let name = clean_generic(name);
-                                    wit_parser::Case {
-                                        name,
-                                        ty: Some(case),
-                                        docs: Default::default(),
-                                    }
+                                .map(|(name, case)| wit_parser::Case {
+                                    name,
+                                    ty: Some(case),
+                                    docs: Default::default(),
                                 })
                                 .collect_vec(),
                         }),
@@ -157,7 +155,7 @@ fn wi_non_any2w(
 }
 
 fn clean_generic(mut s: String) -> String {
-    while s.contains("<") {
+    if s.contains("<") {
         s = s.replace("<", "-");
         s = s.replace(">", "")
     }
