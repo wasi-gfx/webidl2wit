@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use convert_case::{Case, Casing};
 use itertools::Itertools;
 use wit_parser::Resolve;
 
@@ -45,6 +44,7 @@ pub fn wi2w_type(
                 .map(|type_| inline_type_name(type_, resolve).unwrap())
                 .collect_vec()
                 .join("-or-");
+            let variant_name = clean_generic(variant_name);
 
             let type_id = match resolve
                 .types
@@ -61,7 +61,7 @@ pub fn wi2w_type(
                                 .into_iter()
                                 .map(|case| {
                                     let name = inline_type_name(&case, &resolve).unwrap();
-                                    let name = format!("%{name}");
+                                    let name = clean_generic(name);
                                     wit_parser::Case {
                                         name,
                                         ty: Some(case),
@@ -109,7 +109,7 @@ fn wi_non_any2w(
             weedle::types::FloatingPointType::Double(_) => wit_parser::Type::Float64,
         },
         weedle::types::NonAnyType::Identifier(ident) => {
-            let type_id = get_type_id(resolve, ident.type_.0.to_string().to_case(Case::Kebab));
+            let type_id = get_type_id(resolve, super::ident_name(ident.type_.0));
             wit_parser::Type::Id(type_id)
         }
         weedle::types::NonAnyType::Promise(promise) => {
@@ -154,4 +154,12 @@ fn wi_non_any2w(
         weedle::types::NonAnyType::FrozenArrayType(_) => todo!(),
         weedle::types::NonAnyType::RecordType(_) => todo!(),
     })
+}
+
+fn clean_generic(mut s: String) -> String {
+    while s.contains("<") {
+        s = s.replace("<", "-");
+        s = s.replace(">", "")
+    }
+    s
 }

@@ -1,4 +1,4 @@
-use convert_case::{Case::Kebab, Casing};
+use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
 use weedle::{Definition, Definitions as WebIdlDefinitions};
 use wit_parser::Resolve;
@@ -33,7 +33,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
             Definition::Typedef(wi_type) => {
                 let wit_type = wi2w_type(&mut resolve, &wi_type.type_.type_).unwrap();
                 let resource = wit_parser::TypeDef {
-                    name: Some(wi_type.identifier.0.to_string().to_case(Kebab)),
+                    name: Some(ident_name(wi_type.identifier.0)),
                     kind: wit_parser::TypeDefKind::Type(wit_type),
                     owner: wit_parser::TypeOwner::Interface(interface_id),
                     docs: Default::default(),
@@ -42,7 +42,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
             }
             Definition::Interface(interface) => {
                 let resource = wit_parser::TypeDef {
-                    name: Some(interface.identifier.0.to_string().to_case(Kebab)),
+                    name: Some(ident_name(interface.identifier.0)),
                     kind: wit_parser::TypeDefKind::Resource,
                     owner: wit_parser::TypeOwner::Interface(interface_id),
                     docs: Default::default(),
@@ -58,7 +58,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                         weedle::interface::InterfaceMember::Setlike(_) => todo!(),
                         weedle::interface::InterfaceMember::Stringifier(_) => todo!(),
                         weedle::interface::InterfaceMember::Attribute(attr) => {
-                            let attr_name = attr.identifier.0.to_string().to_case(Kebab);
+                            let attr_name = ident_name(&attr.identifier.0);
                             let attr_type = wi2w_type(&mut resolve, &attr.type_.type_)?;
                             let method_kind = match attr.modifier {
                                 Some(weedle::interface::StringifierOrInheritOrStatic::Static(
@@ -102,8 +102,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                                 .insert("function_name".to_string(), function);
                         }
                         weedle::interface::InterfaceMember::Operation(operation) => {
-                            let function_name =
-                                operation.identifier.unwrap().0.to_string().to_case(Kebab);
+                            let function_name = ident_name(operation.identifier.unwrap().0);
                             let function = wit_parser::Function {
                                 name: function_name.to_string(),
                                 kind: wit_parser::FunctionKind::Method(resource_id),
@@ -131,14 +130,14 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .body
                     .iter()
                     .map(|mem| wit_parser::Field {
-                        name: mem.identifier.0.to_string().to_case(Kebab),
+                        name: ident_name(mem.identifier.0),
                         ty: wi2w_type(&mut resolve, &mem.type_).unwrap(),
                         docs: Default::default(),
                     })
                     .collect_vec();
                 let record = wit_parser::Record { fields };
                 let out = wit_parser::TypeDef {
-                    name: Some(dict.identifier.0.to_string().to_case(Kebab)),
+                    name: Some(ident_name(dict.identifier.0)),
                     kind: wit_parser::TypeDefKind::Record(record),
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
@@ -152,13 +151,13 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .list
                     .iter()
                     .map(|case| wit_parser::EnumCase {
-                        name: case.0.to_string().to_case(Kebab),
+                        name: ident_name(case.0),
                         docs: Default::default(),
                     })
                     .collect_vec();
                 let out = wit_parser::Enum { cases };
                 let out = wit_parser::TypeDef {
-                    name: Some(e.identifier.0.to_string().to_case(Kebab)),
+                    name: Some(ident_name(e.identifier.0)),
                     kind: wit_parser::TypeDefKind::Enum(out),
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
@@ -219,10 +218,24 @@ fn function_args(
         .map(|arg| match arg {
             weedle::argument::Argument::Variadic(_) => todo!(),
             weedle::argument::Argument::Single(arg) => {
-                let name = arg.identifier.0.to_string().to_case(Kebab);
+                let name = ident_name(arg.identifier.0);
                 let type_ = wi2w_type(&mut resolve, &arg.type_.type_).unwrap();
                 (name, type_)
             }
         })
         .collect_vec())
+}
+
+pub(super) fn ident_name(src: &str) -> String {
+    // doing to_pascal_case first to get rid of all dashes. E.g. "A-1" should turn into "a1" and not "a-1".
+    let output = src.to_pascal_case().to_kebab_case();
+    match output.as_str() {
+        "u8" | "u16" | "u32" | "u64" | "s8" | "s16" | "s32" | "s64" | "float32" | "float64"
+        | "char" | "bool" | "string" | "tuple" | "list" | "option" | "result" | "use" | "type"
+        | "resource" | "func" | "record" | "enum" | "flags" | "variant" | "static"
+        | "interface" | "world" | "import" | "export" | "package" => {
+            format!("%{output}")
+        }
+        _ => output,
+    }
 }
