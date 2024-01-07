@@ -153,13 +153,13 @@ fn type_def_kind_standalone(
                     FunctionKind::Freestanding => unreachable!(),
                     FunctionKind::Method(_) => {
                         format!("{INDENTATION}{func_name}: func({params}){return_};\n")
-                    },
+                    }
                     FunctionKind::Static(_) => {
                         format!("{INDENTATION}{func_name}: static func({params}){return_};\n")
-                    },
+                    }
                     FunctionKind::Constructor(_) => {
                         format!("{INDENTATION}constructor({params});\n")
-                    },
+                    }
                 };
                 output += &declaration;
             }

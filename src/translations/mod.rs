@@ -97,8 +97,10 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                                 results: wit_parser::Results::Named(Default::default()),
                             };
                             let interface = resolve.interfaces.get_mut(interface_id).unwrap();
-                            interface.functions.insert("function_name".to_string(), function);
-                        },
+                            interface
+                                .functions
+                                .insert("function_name".to_string(), function);
+                        }
                         weedle::interface::InterfaceMember::Operation(operation) => {
                             let function_name =
                                 operation.identifier.unwrap().0.to_string().to_case(Kebab);
@@ -207,7 +209,10 @@ pub fn get_type_id(resolve: &mut Resolve, type_name: String) -> wit_parser::Type
     }
 }
 
-fn function_args(args: &weedle::argument::ArgumentList, mut resolve: &mut Resolve) -> anyhow::Result<wit_parser::Params> {
+fn function_args(
+    args: &weedle::argument::ArgumentList,
+    mut resolve: &mut Resolve,
+) -> anyhow::Result<wit_parser::Params> {
     Ok(args
         .list
         .iter()
@@ -215,8 +220,7 @@ fn function_args(args: &weedle::argument::ArgumentList, mut resolve: &mut Resolv
             weedle::argument::Argument::Variadic(_) => todo!(),
             weedle::argument::Argument::Single(arg) => {
                 let name = arg.identifier.0.to_string().to_case(Kebab);
-                let type_ =
-                    wi2w_type(&mut resolve, &arg.type_.type_).unwrap();
+                let type_ = wi2w_type(&mut resolve, &arg.type_.type_).unwrap();
                 (name, type_)
             }
         })
