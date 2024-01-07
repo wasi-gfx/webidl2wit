@@ -39,6 +39,8 @@ impl ToWitSyntax for Resolve {
     }
 }
 
+// this function is also from `translations`, where not all types are known yet. So make `pub` and allow `TypeDefKind::Unknown` in `inline_type_rep`.
+// might make sense to have a separate function in translations, not sure.
 pub fn inline_type_name(type_: &Type, resolve: &Resolve) -> anyhow::Result<String> {
     Ok(String::from(match type_ {
         Type::Bool => "bool",
@@ -64,7 +66,9 @@ fn inline_type_rep(type_id: &TypeId, resolve: &Resolve) -> anyhow::Result<String
     let type_def = resolve.types.get(*type_id).context("Can't find type.")?;
     Ok(match &type_def.name {
         Some(name) => {
-            asset_type_def_kind_named(&type_def.kind);
+            if !matches!(type_def.kind, TypeDefKind::Unknown) {
+                asset_type_def_kind_named(&type_def.kind);
+            }
             name.clone()
         }
         None => {
