@@ -52,7 +52,6 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                 for member in interface.members.body {
                     match member {
                         weedle::interface::InterfaceMember::Const(_) => todo!(),
-                        weedle::interface::InterfaceMember::Constructor(_) => todo!(),
                         weedle::interface::InterfaceMember::Iterable(_) => todo!(),
                         weedle::interface::InterfaceMember::AsyncIterable(_) => todo!(),
                         weedle::interface::InterfaceMember::Maplike(_) => todo!(),
@@ -89,27 +88,23 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                                 interface.functions.insert(setter_name, setter);
                             }
                         }
+                        weedle::interface::InterfaceMember::Constructor(constructor) => {
+                            let function = wit_parser::Function {
+                                name: String::new(),
+                                kind: wit_parser::FunctionKind::Constructor(resource_id),
+                                params: function_args(&constructor.args.body, &mut resolve)?,
+                                docs: Default::default(),
+                                results: wit_parser::Results::Named(Default::default()),
+                            };
+                            let interface = resolve.interfaces.get_mut(interface_id).unwrap();
+                            interface.functions.insert("function_name".to_string(), function);
+                        },
                         weedle::interface::InterfaceMember::Operation(operation) => {
                             let function_name =
                                 operation.identifier.unwrap().0.to_string().to_case(Kebab);
                             let function = wit_parser::Function {
                                 name: function_name.to_string(),
                                 kind: wit_parser::FunctionKind::Method(resource_id),
-                                params: operation
-                                    .args
-                                    .body
-                                    .list
-                                    .iter()
-                                    .map(|arg| match arg {
-                                        weedle::argument::Argument::Variadic(_) => todo!(),
-                                        weedle::argument::Argument::Single(arg) => {
-                                            let name = arg.identifier.0.to_string().to_case(Kebab);
-                                            let type_ =
-                                                wi2w_type(&mut resolve, &arg.type_.type_).unwrap();
-                                            (name, type_)
-                                        }
-                                    })
-                                    .collect_vec(),
                                 results: match &operation.return_type {
                                     weedle::types::ReturnType::Undefined(_) => {
                                         wit_parser::Results::Named(Default::default())
@@ -119,6 +114,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                                         wit_parser::Results::Anon(type_)
                                     }
                                 },
+                                params: function_args(&operation.args.body, &mut resolve)?,
                                 docs: Default::default(),
                             };
                             let interface = resolve.interfaces.get_mut(interface_id).unwrap();
@@ -209,4 +205,20 @@ pub fn get_type_id(resolve: &mut Resolve, type_name: String) -> wit_parser::Type
             docs: Default::default(),
         }),
     }
+}
+
+fn function_args(args: &weedle::argument::ArgumentList, mut resolve: &mut Resolve) -> anyhow::Result<wit_parser::Params> {
+    Ok(args
+        .list
+        .iter()
+        .map(|arg| match arg {
+            weedle::argument::Argument::Variadic(_) => todo!(),
+            weedle::argument::Argument::Single(arg) => {
+                let name = arg.identifier.0.to_string().to_case(Kebab);
+                let type_ =
+                    wi2w_type(&mut resolve, &arg.type_.type_).unwrap();
+                (name, type_)
+            }
+        })
+        .collect_vec())
 }

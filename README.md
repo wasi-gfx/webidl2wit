@@ -37,6 +37,7 @@ If you have any thoughts, please use the [discussion about this table](https://g
 | `dictionary`                    | `record`              |
 | `enum`                          | `enum`                |
 | `callback`                      | `func`                |
+| `constructor`                   | `constructor`         |
 | `T?` (optional)                 | `option<T>`           |
 | `sequence<T>`                   | `list<T>`             |
 | `record<K, V>`                  | ❓                    |

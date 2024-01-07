@@ -15,7 +15,7 @@ impl ToWitSyntax for Resolve {
         let mut output = OutputBuilder::new();
         let indentation = 0;
 
-        for (_, type_def) in &self.types {
+        for (type_id, type_def) in &self.types {
             match &type_def.name {
                 None => {
                     asset_type_def_kind_inline(&type_def.kind);
@@ -23,8 +23,13 @@ impl ToWitSyntax for Resolve {
                 }
                 Some(name) => {
                     asset_type_def_kind_named(&type_def.kind);
-                    let val =
-                        type_def_kind_standalone(&type_def.kind, name, resolve, &type_def.owner)?;
+                    let val = type_def_kind_standalone(
+                        type_id,
+                        &type_def.kind,
+                        name,
+                        resolve,
+                        &type_def.owner,
+                    )?;
                     output.add_lines(indentation, &val);
                 }
             }
@@ -82,6 +87,7 @@ fn type_def_kind_inline(type_def_kind: &TypeDefKind, resolve: &Resolve) -> anyho
     }))
 }
 fn type_def_kind_standalone(
+    type_id: TypeId,
     type_def_kind: &TypeDefKind,
     name: &String,
     resolve: &Resolve,
@@ -110,6 +116,13 @@ fn type_def_kind_standalone(
             let interface = resolve.interfaces.get(interface_id).unwrap();
 
             for (func_name, function) in &interface.functions {
+                if !matches!(
+                    function.kind,
+                    FunctionKind::Constructor(id) | FunctionKind::Static(id) | FunctionKind::Method(id) if id == type_id
+                ) {
+                    continue;
+                }
+
                 let return_ = match &function.results {
                     wit_parser::Results::Named(returns) => {
                         if returns.is_empty() {
@@ -136,13 +149,19 @@ fn type_def_kind_standalone(
                     })
                     .collect_vec()
                     .join(", ");
-                let static_ = match function.kind {
-                    FunctionKind::Freestanding => todo!(),
-                    FunctionKind::Method(_) => String::new(),
-                    FunctionKind::Static(_) => String::from(" static"),
-                    FunctionKind::Constructor(_) => todo!(),
+                let declaration = match function.kind {
+                    FunctionKind::Freestanding => unreachable!(),
+                    FunctionKind::Method(_) => {
+                        format!("{INDENTATION}{func_name}: func({params}){return_};\n")
+                    },
+                    FunctionKind::Static(_) => {
+                        format!("{INDENTATION}{func_name}: static func({params}){return_};\n")
+                    },
+                    FunctionKind::Constructor(_) => {
+                        format!("{INDENTATION}constructor({params});\n")
+                    },
                 };
-                output += &format!("{INDENTATION}{func_name}{static_}: func({params}){return_};\n");
+                output += &declaration;
             }
 
             output += &format!("}}\n");

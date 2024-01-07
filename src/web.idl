@@ -1,4 +1,5 @@
 interface GPUAdapterInfo {
+    constructor(double radius);
     long requestAdapter(optional GPURequestAdapterOptions options = {});
     readonly attribute DOMString foo;
     attribute DOMString bar;
@@ -7,6 +8,9 @@ interface GPUAdapterInfo {
     undefined withList(sequence<long> w);
     undefined union((long or double) num);
     undefined unionSame((DOMString or ByteString) val);
+};
+interface OnlyFoo {
+    long foo();
 };
 dictionary GPURequestAdapterOptions {
     GPUPowerPreference powerPreference;
