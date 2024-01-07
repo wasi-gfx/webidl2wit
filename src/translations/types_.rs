@@ -52,10 +52,14 @@ pub fn wi2w_type(
                     kind: wit_parser::TypeDefKind::Variant(wit_parser::Variant {
                         cases: cases
                             .into_iter()
-                            .map(|case| wit_parser::Case {
-                                name: inline_type_name(&case, &resolve).unwrap(),
-                                ty: Some(case),
-                                docs: Default::default(),
+                            .map(|case| {
+                                let name = inline_type_name(&case, &resolve).unwrap();
+                                let name = format!("%{name}");
+                                wit_parser::Case {
+                                    name,
+                                    ty: Some(case),
+                                    docs: Default::default(),
+                                }
                             })
                             .collect_vec(),
                     }),
