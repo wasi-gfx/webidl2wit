@@ -43,3 +43,15 @@ interface GPUSupportedLimits {
     readonly attribute unsigned long maxComputeWorkgroupSizeZ;
     readonly attribute unsigned long maxComputeWorkgroupsPerDimension;
 };
+
+interface mixin SomeMixin {
+    undefined interfaceMixinMethod(long param);
+    attribute USVString label;
+};
+
+GPUBuffer includes SomeMixin;
+GPUSupportedLimits includes SomeMixin;
+
+partial interface GPUBuffer {
+    undefined partialInterfaceMethod(long filter);
+};

@@ -51,6 +51,8 @@ resource gpu {
     wgsl-language-features: func() -> wgsl-language-features;
 }
 resource gpu-adapter {
+    features: func() -> gpu-supported-features;
+    limits: func() -> gpu-supported-limits;
     is-fallback-adapter: func() -> bool;
     request-device: func(descriptor: gpu-device-descriptor) -> gpu-device;
     request-adapter-info: func() -> gpu-adapter-info;
@@ -164,6 +166,7 @@ resource gpu-device {
     features: func() -> gpu-supported-features;
     limits: func() -> gpu-supported-limits;
     queue: func() -> gpu-queue;
+    destroy: func();
     create-buffer: func(descriptor: gpu-buffer-descriptor) -> gpu-buffer;
     create-texture: func(descriptor: gpu-texture-descriptor) -> gpu-texture;
     create-sampler: func(descriptor: gpu-sampler-descriptor) -> gpu-sampler;
@@ -210,6 +213,7 @@ resource gpu-buffer {
     size: func() -> gpu-size64-out;
     map-state: func() -> gpu-buffer-map-state;
     unmap: func();
+    destroy: func();
 }
 record gpu-buffer-descriptor {
     size: gpu-size64,
@@ -217,6 +221,7 @@ record gpu-buffer-descriptor {
 }
 resource gpu-texture {
     create-view: func(descriptor: gpu-texture-view-descriptor) -> gpu-texture-view;
+    destroy: func();
     width: func() -> gpu-integer-coordinate-out;
     height: func() -> gpu-integer-coordinate-out;
     depth-or-array-layers: func() -> gpu-integer-coordinate-out;
@@ -295,6 +300,7 @@ resource gpu-command-encoder {
     copy-texture-to-texture: func(source: gpu-image-copy-texture, destination: gpu-image-copy-texture, copy-size: gpu-extent3-d);
     clear-buffer: func(buffer: gpu-buffer, offset: gpu-size64, size: gpu-size64);
     resolve-query-set: func(query-set: gpu-query-set, first-query: gpu-size32, query-count: gpu-size32, destination: gpu-buffer, destination-offset: gpu-size64);
+    finish: func(descriptor: gpu-command-buffer-descriptor) -> gpu-command-buffer;
 }
 record gpu-command-encoder-descriptor {
 }
@@ -448,12 +454,16 @@ enum gpu-compilation-message-type {
     info,
 }
 resource gpu-compilation-message {
+    message: func() -> string;
+    %type: func() -> gpu-compilation-message-type;
     line-num: func() -> u64;
     line-pos: func() -> u64;
     offset: func() -> u64;
     length: func() -> u64;
 }
 resource gpu-pipeline-error {
+    constructor(message: string, options: gpu-pipeline-error-init);
+    reason: func() -> gpu-pipeline-error-reason;
 }
 record gpu-pipeline-error-init {
     reason: gpu-pipeline-error-reason,
@@ -649,7 +659,6 @@ resource gpu-command-buffer {
 record gpu-command-buffer-descriptor {
 }
 resource gpu-render-pass-encoder {
-    end: func();
     set-viewport: func(x: float32, y: float32, width: float32, height: float32, min-depth: float32, max-depth: float32);
     set-scissor-rect: func(x: gpu-integer-coordinate, y: gpu-integer-coordinate, width: gpu-integer-coordinate, height: gpu-integer-coordinate);
     set-blend-constant: func(color: gpu-color);
@@ -657,6 +666,7 @@ resource gpu-render-pass-encoder {
     begin-occlusion-query: func(query-index: gpu-size32);
     end-occlusion-query: func();
     execute-bundles: func(bundles: list<gpu-render-bundle>);
+    end: func();
 }
 record gpu-render-pass-descriptor {
     color-attachments: list<gpu-render-pass-color-attachment>,
@@ -669,6 +679,7 @@ resource gpu-compute-pass-encoder {
     set-pipeline: func(pipeline: gpu-compute-pipeline);
     dispatch-workgroups: func(workgroup-count-x: gpu-size32, workgroup-count-y: gpu-size32, workgroup-count-z: gpu-size32);
     dispatch-workgroups-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
+    end: func();
 }
 record gpu-compute-pass-descriptor {
     timestamp-writes: gpu-compute-pass-timestamp-writes,
@@ -745,15 +756,19 @@ enum gpu-device-lost-reason {
 }
 resource gpu-device-lost-info {
     reason: func() -> gpu-device-lost-reason;
+    message: func() -> string;
 }
 resource gpu-error {
     message: func() -> string;
 }
 resource gpu-validation-error {
+    constructor(message: string);
 }
 resource gpu-out-of-memory-error {
+    constructor(message: string);
 }
 resource gpu-internal-error {
+    constructor(message: string);
 }
 enum gpu-error-filter {
     validation,

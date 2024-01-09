@@ -4,6 +4,10 @@ resource gpu-pipeline-error {
 resource gpu-buffer {
     unmap: func();
     destroy: func();
+    interface-mixin-method: func(param: s32);
+    label: func() -> string;
+    set-label: func(label: string);
+    partial-interface-method: func(filter: s32);
 }
 resource gpu-supported-limits {
     max-texture-dimension1-d: func() -> u32;
@@ -38,4 +42,7 @@ resource gpu-supported-limits {
     max-compute-workgroup-size-y: func() -> u32;
     max-compute-workgroup-size-z: func() -> u32;
     max-compute-workgroups-per-dimension: func() -> u32;
+    interface-mixin-method: func(param: s32);
+    label: func() -> string;
+    set-label: func(label: string);
 }

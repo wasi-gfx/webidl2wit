@@ -120,6 +120,7 @@ fn type_def_kind_standalone(
             let interface = resolve.interfaces.get(interface_id).unwrap();
 
             for (func_name, function) in &interface.functions {
+                let func_name = clean_func_name(&func_name);
                 if !matches!(
                     function.kind,
                     FunctionKind::Constructor(id) | FunctionKind::Static(id) | FunctionKind::Method(id) if id == type_id
@@ -223,6 +224,15 @@ fn asset_type_def_kind_named(type_def_kind: &TypeDefKind) {
             | TypeDefKind::Type(_)
             | TypeDefKind::Resource
     )
+}
+
+fn clean_func_name(name: &str) -> &str {
+    const CONSTRUCTOR: &str = "[constructor]";
+    if name.starts_with(CONSTRUCTOR) {
+        return &name[CONSTRUCTOR.len()..];
+    }
+    let dot_pos = name.chars().position(|c| c == '.').unwrap();
+    &name[dot_pos + 1..]
 }
 
 #[derive(Default)]
