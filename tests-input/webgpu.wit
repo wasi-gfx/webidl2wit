@@ -182,6 +182,11 @@ resource gpu-device {
     create-command-encoder: func(descriptor: gpu-command-encoder-descriptor) -> gpu-command-encoder;
     create-render-bundle-encoder: func(descriptor: gpu-render-bundle-encoder-descriptor) -> gpu-render-bundle-encoder;
     create-query-set: func(descriptor: gpu-query-set-descriptor) -> gpu-query-set;
+    label: func() -> string;
+    set-label: func(label: string);
+    lost: func() -> gpu-device-lost-info;
+    push-error-scope: func(filter: gpu-error-filter);
+    pop-error-scope: func() -> gpu-error;
 }
 record gpu-device-descriptor {
     required-features: list<gpu-feature-name>,
@@ -208,12 +213,16 @@ resource gpu-queue {
     write-buffer: func(buffer: gpu-buffer, buffer-offset: gpu-size64, data-offset: gpu-size64, size: gpu-size64);
     write-texture: func(destination: gpu-image-copy-texture, data-layout: gpu-image-data-layout, size: gpu-extent3-d);
     copy-external-image-to-texture: func(source: gpu-image-copy-external-image, destination: gpu-image-copy-texture-tagged, copy-size: gpu-extent3-d);
+    label: func() -> string;
+    set-label: func(label: string);
 }
 resource gpu-buffer {
     size: func() -> gpu-size64-out;
     map-state: func() -> gpu-buffer-map-state;
     unmap: func();
     destroy: func();
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-buffer-descriptor {
     size: gpu-size64,
@@ -228,6 +237,8 @@ resource gpu-texture {
     mip-level-count: func() -> gpu-integer-coordinate-out;
     sample-count: func() -> gpu-size32-out;
     format: func() -> gpu-texture-format;
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-texture-descriptor {
     size: gpu-extent3-d,
@@ -237,6 +248,8 @@ record gpu-texture-descriptor {
     view-formats: list<gpu-texture-format>,
 }
 resource gpu-sampler {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-sampler-descriptor {
     address-mode-u: gpu-address-mode,
@@ -251,20 +264,28 @@ record gpu-sampler-descriptor {
     max-anisotropy: u16,
 }
 resource gpu-external-texture {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-external-texture-descriptor {
 }
 resource gpu-bind-group-layout {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-bind-group-layout-descriptor {
     entries: list<gpu-bind-group-layout-entry>,
 }
 resource gpu-pipeline-layout {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-pipeline-layout-descriptor {
     bind-group-layouts: list<gpu-bind-group-layout>,
 }
 resource gpu-bind-group {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-bind-group-descriptor {
     layout: gpu-bind-group-layout,
@@ -272,17 +293,23 @@ record gpu-bind-group-descriptor {
 }
 resource gpu-shader-module {
     get-compilation-info: func() -> gpu-compilation-info;
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-shader-module-descriptor {
     code: string,
     compilation-hints: list<gpu-shader-module-compilation-hint>,
 }
 resource gpu-compute-pipeline {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-compute-pipeline-descriptor {
     compute: gpu-programmable-stage,
 }
 resource gpu-render-pipeline {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-render-pipeline-descriptor {
     vertex: gpu-vertex-state,
@@ -301,11 +328,26 @@ resource gpu-command-encoder {
     clear-buffer: func(buffer: gpu-buffer, offset: gpu-size64, size: gpu-size64);
     resolve-query-set: func(query-set: gpu-query-set, first-query: gpu-size32, query-count: gpu-size32, destination: gpu-buffer, destination-offset: gpu-size64);
     finish: func(descriptor: gpu-command-buffer-descriptor) -> gpu-command-buffer;
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-command-encoder-descriptor {
 }
 resource gpu-render-bundle-encoder {
     finish: func(descriptor: gpu-render-bundle-descriptor) -> gpu-render-bundle;
+    label: func() -> string;
+    set-label: func(label: string);
+    push-debug-group: func(group-label: string);
+    pop-debug-group: func();
+    insert-debug-marker: func(marker-label: string);
+    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: list<gpu-buffer-dynamic-offset>);
+    set-pipeline: func(pipeline: gpu-render-pipeline);
+    set-index-buffer: func(buffer: gpu-buffer, index-format: gpu-index-format, offset: gpu-size64, size: gpu-size64);
+    set-vertex-buffer: func(slot: gpu-index32, buffer: gpu-buffer, offset: gpu-size64, size: gpu-size64);
+    draw: func(vertex-count: gpu-size32, instance-count: gpu-size32, first-vertex: gpu-size32, first-instance: gpu-size32);
+    draw-indexed: func(index-count: gpu-size32, instance-count: gpu-size32, first-index: gpu-size32, base-vertex: gpu-signed-offset32, first-instance: gpu-size32);
+    draw-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
+    draw-indexed-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
 }
 record gpu-render-bundle-encoder-descriptor {
     depth-read-only: bool,
@@ -315,6 +357,8 @@ resource gpu-query-set {
     destroy: func();
     %type: func() -> gpu-query-type;
     count: func() -> gpu-size32-out;
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-query-set-descriptor {
     %type: gpu-query-type,
@@ -328,6 +372,8 @@ enum gpu-buffer-map-state {
 }
 type gpu-size64 = u64;
 resource gpu-texture-view {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-texture-view-descriptor {
     format: gpu-texture-format,
@@ -655,6 +701,8 @@ record gpu-image-copy-external-image {
     flip-y: bool,
 }
 resource gpu-command-buffer {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-command-buffer-descriptor {
 }
@@ -667,6 +715,12 @@ resource gpu-render-pass-encoder {
     end-occlusion-query: func();
     execute-bundles: func(bundles: list<gpu-render-bundle>);
     end: func();
+    label: func() -> string;
+    set-label: func(label: string);
+    push-debug-group: func(group-label: string);
+    pop-debug-group: func();
+    insert-debug-marker: func(marker-label: string);
+    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: list<gpu-buffer-dynamic-offset>);
 }
 record gpu-render-pass-descriptor {
     color-attachments: list<gpu-render-pass-color-attachment>,
@@ -680,10 +734,17 @@ resource gpu-compute-pass-encoder {
     dispatch-workgroups: func(workgroup-count-x: gpu-size32, workgroup-count-y: gpu-size32, workgroup-count-z: gpu-size32);
     dispatch-workgroups-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
     end: func();
+    label: func() -> string;
+    set-label: func(label: string);
+    push-debug-group: func(group-label: string);
+    pop-debug-group: func();
+    insert-debug-marker: func(marker-label: string);
+    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: list<gpu-buffer-dynamic-offset>);
 }
 record gpu-compute-pass-descriptor {
     timestamp-writes: gpu-compute-pass-timestamp-writes,
 }
+type gpu-buffer-dynamic-offset = u32;
 record gpu-compute-pass-timestamp-writes {
     query-set: gpu-query-set,
     beginning-of-pass-write-index: gpu-size32,
@@ -691,6 +752,8 @@ record gpu-compute-pass-timestamp-writes {
 }
 type gpu-color = gpu-color-dict-or-list-float64;
 resource gpu-render-bundle {
+    label: func() -> string;
+    set-label: func(label: string);
 }
 record gpu-render-pass-timestamp-writes {
     query-set: gpu-query-set,
@@ -731,6 +794,7 @@ record gpu-render-pass-layout {
 }
 record gpu-render-bundle-descriptor {
 }
+type gpu-signed-offset32 = s32;
 enum gpu-query-type {
     occlusion,
     timestamp,
@@ -782,8 +846,6 @@ resource gpu-uncaptured-error-event {
 record gpu-uncaptured-error-event-init {
     error: gpu-error,
 }
-type gpu-buffer-dynamic-offset = u32;
-type gpu-signed-offset32 = s32;
 record gpu-color-dict {
     r: float64,
     g: float64,

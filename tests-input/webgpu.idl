@@ -11,9 +11,9 @@
 
 // **** This file is auto-generated. Do not edit. ****
 
-// interface mixin GPUObjectBase {
-//     attribute USVString label;
-// };
+interface mixin GPUObjectBase {
+    attribute USVString label;
+};
 
 dictionary GPUObjectDescriptorBase {
     USVString label = "";
@@ -73,9 +73,9 @@ interface GPUAdapterInfo {
     readonly attribute DOMString description;
 };
 
-// interface mixin NavigatorGPU {
-//     [SameObject, SecureContext] readonly attribute GPU gpu;
-// };
+interface mixin NavigatorGPU {
+    [SameObject, SecureContext] readonly attribute GPU gpu;
+};
 // Navigator includes NavigatorGPU;
 // WorkerNavigator includes NavigatorGPU;
 
@@ -156,7 +156,7 @@ interface GPUDevice : EventTarget {
 
     GPUQuerySet createQuerySet(GPUQuerySetDescriptor descriptor);
 };
-// GPUDevice includes GPUObjectBase;
+GPUDevice includes GPUObjectBase;
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUBuffer {
@@ -171,7 +171,7 @@ interface GPUBuffer {
 
     undefined destroy();
 };
-// GPUBuffer includes GPUObjectBase;
+GPUBuffer includes GPUObjectBase;
 
 enum GPUBufferMapState {
     "unmapped",
@@ -223,7 +223,7 @@ interface GPUTexture {
     readonly attribute GPUTextureFormat format;
     // readonly attribute GPUFlagsConstant usage;
 };
-// GPUTexture includes GPUObjectBase;
+GPUTexture includes GPUObjectBase;
 
 dictionary GPUTextureDescriptor
          : GPUObjectDescriptorBase {
@@ -255,7 +255,7 @@ dictionary GPUTextureDescriptor
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUTextureView {
 };
-// GPUTextureView includes GPUObjectBase;
+GPUTextureView includes GPUObjectBase;
 
 dictionary GPUTextureViewDescriptor
          : GPUObjectDescriptorBase {
@@ -407,7 +407,7 @@ enum GPUTextureFormat {
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUExternalTexture {
 };
-// GPUExternalTexture includes GPUObjectBase;
+GPUExternalTexture includes GPUObjectBase;
 
 dictionary GPUExternalTextureDescriptor
          : GPUObjectDescriptorBase {
@@ -418,7 +418,7 @@ dictionary GPUExternalTextureDescriptor
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUSampler {
 };
-// GPUSampler includes GPUObjectBase;
+GPUSampler includes GPUObjectBase;
 
 dictionary GPUSamplerDescriptor
          : GPUObjectDescriptorBase {
@@ -464,7 +464,7 @@ enum GPUCompareFunction {
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUBindGroupLayout {
 };
-// GPUBindGroupLayout includes GPUObjectBase;
+GPUBindGroupLayout includes GPUObjectBase;
 
 dictionary GPUBindGroupLayoutDescriptor
          : GPUObjectDescriptorBase {
@@ -544,7 +544,7 @@ dictionary GPUExternalTextureBindingLayout {
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUBindGroup {
 };
-// GPUBindGroup includes GPUObjectBase;
+GPUBindGroup includes GPUObjectBase;
 
 dictionary GPUBindGroupDescriptor
          : GPUObjectDescriptorBase {
@@ -568,7 +568,7 @@ dictionary GPUBufferBinding {
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUPipelineLayout {
 };
-// GPUPipelineLayout includes GPUObjectBase;
+GPUPipelineLayout includes GPUObjectBase;
 
 dictionary GPUPipelineLayoutDescriptor
          : GPUObjectDescriptorBase {
@@ -579,7 +579,7 @@ dictionary GPUPipelineLayoutDescriptor
 interface GPUShaderModule {
     Promise<GPUCompilationInfo> getCompilationInfo();
 };
-// GPUShaderModule includes GPUObjectBase;
+GPUShaderModule includes GPUObjectBase;
 
 dictionary GPUShaderModuleDescriptor
          : GPUObjectDescriptorBase {
@@ -638,9 +638,9 @@ dictionary GPUPipelineDescriptorBase
     required (GPUPipelineLayout or GPUAutoLayoutMode) layout;
 };
 
-// interface mixin GPUPipelineBase {
-//     [NewObject] GPUBindGroupLayout getBindGroupLayout(unsigned long index);
-// };
+interface mixin GPUPipelineBase {
+    [NewObject] GPUBindGroupLayout getBindGroupLayout(unsigned long index);
+};
 
 dictionary GPUProgrammableStage {
     required GPUShaderModule module;
@@ -653,7 +653,7 @@ typedef double GPUPipelineConstantValue; // May represent WGSL’s bool, f32, i3
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUComputePipeline {
 };
-// GPUComputePipeline includes GPUObjectBase;
+GPUComputePipeline includes GPUObjectBase;
 // GPUComputePipeline includes GPUPipelineBase;
 
 dictionary GPUComputePipelineDescriptor
@@ -664,7 +664,7 @@ dictionary GPUComputePipelineDescriptor
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPURenderPipeline {
 };
-// GPURenderPipeline includes GPUObjectBase;
+GPURenderPipeline includes GPUObjectBase;
 // GPURenderPipeline includes GPUPipelineBase;
 
 dictionary GPURenderPipelineDescriptor
@@ -906,14 +906,14 @@ dictionary GPUImageCopyExternalImage {
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUCommandBuffer {
 };
-// GPUCommandBuffer includes GPUObjectBase;
+GPUCommandBuffer includes GPUObjectBase;
 
 dictionary GPUCommandBufferDescriptor
          : GPUObjectDescriptorBase {
 };
 
-// interface mixin GPUCommandsMixin {
-// };
+interface mixin GPUCommandsMixin {
+};
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUCommandEncoder {
@@ -956,29 +956,29 @@ interface GPUCommandEncoder {
 
     GPUCommandBuffer finish(optional GPUCommandBufferDescriptor descriptor = {});
 };
-// GPUCommandEncoder includes GPUObjectBase;
-// GPUCommandEncoder includes GPUCommandsMixin;
+GPUCommandEncoder includes GPUObjectBase;
+GPUCommandEncoder includes GPUCommandsMixin;
 // GPUCommandEncoder includes GPUDebugCommandsMixin;
 
 dictionary GPUCommandEncoderDescriptor
          : GPUObjectDescriptorBase {
 };
 
-// interface mixin GPUBindingCommandsMixin {
-//     undefined setBindGroup(GPUIndex32 index, GPUBindGroup? bindGroup,
-//         optional sequence<GPUBufferDynamicOffset> dynamicOffsets = []);
+interface mixin GPUBindingCommandsMixin {
+    undefined setBindGroup(GPUIndex32 index, GPUBindGroup? bindGroup,
+        optional sequence<GPUBufferDynamicOffset> dynamicOffsets = []);
 
-//     undefined setBindGroup(GPUIndex32 index, GPUBindGroup? bindGroup,
-//         Uint32Array dynamicOffsetsData,
-//         GPUSize64 dynamicOffsetsDataStart,
-//         GPUSize32 dynamicOffsetsDataLength);
-// };
+    // undefined setBindGroup(GPUIndex32 index, GPUBindGroup? bindGroup,
+    //     Uint32Array dynamicOffsetsData,
+    //     GPUSize64 dynamicOffsetsDataStart,
+    //     GPUSize32 dynamicOffsetsDataLength);
+};
 
-// interface mixin GPUDebugCommandsMixin {
-//     undefined pushDebugGroup(USVString groupLabel);
-//     undefined popDebugGroup();
-//     undefined insertDebugMarker(USVString markerLabel);
-// };
+interface mixin GPUDebugCommandsMixin {
+    undefined pushDebugGroup(USVString groupLabel);
+    undefined popDebugGroup();
+    undefined insertDebugMarker(USVString markerLabel);
+};
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUComputePassEncoder {
@@ -988,10 +988,10 @@ interface GPUComputePassEncoder {
 
     undefined end();
 };
-// GPUComputePassEncoder includes GPUObjectBase;
-// GPUComputePassEncoder includes GPUCommandsMixin;
-// GPUComputePassEncoder includes GPUDebugCommandsMixin;
-// GPUComputePassEncoder includes GPUBindingCommandsMixin;
+GPUComputePassEncoder includes GPUObjectBase;
+GPUComputePassEncoder includes GPUCommandsMixin;
+GPUComputePassEncoder includes GPUDebugCommandsMixin;
+GPUComputePassEncoder includes GPUBindingCommandsMixin;
 
 dictionary GPUComputePassTimestampWrites {
     required GPUQuerySet querySet;
@@ -1022,10 +1022,10 @@ interface GPURenderPassEncoder {
     undefined executeBundles(sequence<GPURenderBundle> bundles);
     undefined end();
 };
-// GPURenderPassEncoder includes GPUObjectBase;
-// GPURenderPassEncoder includes GPUCommandsMixin;
-// GPURenderPassEncoder includes GPUDebugCommandsMixin;
-// GPURenderPassEncoder includes GPUBindingCommandsMixin;
+GPURenderPassEncoder includes GPUObjectBase;
+GPURenderPassEncoder includes GPUCommandsMixin;
+GPURenderPassEncoder includes GPUDebugCommandsMixin;
+GPURenderPassEncoder includes GPUBindingCommandsMixin;
 // GPURenderPassEncoder includes GPURenderCommandsMixin;
 
 dictionary GPURenderPassTimestampWrites {
@@ -1084,27 +1084,27 @@ dictionary GPURenderPassLayout
     GPUSize32 sampleCount = 1;
 };
 
-// interface mixin GPURenderCommandsMixin {
-//     undefined setPipeline(GPURenderPipeline pipeline);
+interface mixin GPURenderCommandsMixin {
+    undefined setPipeline(GPURenderPipeline pipeline);
 
-//     undefined setIndexBuffer(GPUBuffer buffer, GPUIndexFormat indexFormat, optional GPUSize64 offset = 0, optional GPUSize64 size);
-//     undefined setVertexBuffer(GPUIndex32 slot, GPUBuffer? buffer, optional GPUSize64 offset = 0, optional GPUSize64 size);
+    undefined setIndexBuffer(GPUBuffer buffer, GPUIndexFormat indexFormat, optional GPUSize64 offset = 0, optional GPUSize64 size);
+    undefined setVertexBuffer(GPUIndex32 slot, GPUBuffer? buffer, optional GPUSize64 offset = 0, optional GPUSize64 size);
 
-//     undefined draw(GPUSize32 vertexCount, optional GPUSize32 instanceCount = 1,
-//         optional GPUSize32 firstVertex = 0, optional GPUSize32 firstInstance = 0);
-//     undefined drawIndexed(GPUSize32 indexCount, optional GPUSize32 instanceCount = 1,
-//         optional GPUSize32 firstIndex = 0,
-//         optional GPUSignedOffset32 baseVertex = 0,
-//         optional GPUSize32 firstInstance = 0);
+    undefined draw(GPUSize32 vertexCount, optional GPUSize32 instanceCount = 1,
+        optional GPUSize32 firstVertex = 0, optional GPUSize32 firstInstance = 0);
+    undefined drawIndexed(GPUSize32 indexCount, optional GPUSize32 instanceCount = 1,
+        optional GPUSize32 firstIndex = 0,
+        optional GPUSignedOffset32 baseVertex = 0,
+        optional GPUSize32 firstInstance = 0);
 
-//     undefined drawIndirect(GPUBuffer indirectBuffer, GPUSize64 indirectOffset);
-//     undefined drawIndexedIndirect(GPUBuffer indirectBuffer, GPUSize64 indirectOffset);
-// };
+    undefined drawIndirect(GPUBuffer indirectBuffer, GPUSize64 indirectOffset);
+    undefined drawIndexedIndirect(GPUBuffer indirectBuffer, GPUSize64 indirectOffset);
+};
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPURenderBundle {
 };
-// GPURenderBundle includes GPUObjectBase;
+GPURenderBundle includes GPUObjectBase;
 
 dictionary GPURenderBundleDescriptor
          : GPUObjectDescriptorBase {
@@ -1114,11 +1114,11 @@ dictionary GPURenderBundleDescriptor
 interface GPURenderBundleEncoder {
     GPURenderBundle finish(optional GPURenderBundleDescriptor descriptor = {});
 };
-// GPURenderBundleEncoder includes GPUObjectBase;
-// GPURenderBundleEncoder includes GPUCommandsMixin;
-// GPURenderBundleEncoder includes GPUDebugCommandsMixin;
-// GPURenderBundleEncoder includes GPUBindingCommandsMixin;
-// GPURenderBundleEncoder includes GPURenderCommandsMixin;
+GPURenderBundleEncoder includes GPUObjectBase;
+GPURenderBundleEncoder includes GPUCommandsMixin;
+GPURenderBundleEncoder includes GPUDebugCommandsMixin;
+GPURenderBundleEncoder includes GPUBindingCommandsMixin;
+GPURenderBundleEncoder includes GPURenderCommandsMixin;
 
 dictionary GPURenderBundleEncoderDescriptor
          : GPURenderPassLayout {
@@ -1154,7 +1154,7 @@ interface GPUQueue {
         GPUImageCopyTextureTagged destination,
         GPUExtent3D copySize);
 };
-// GPUQueue includes GPUObjectBase;
+GPUQueue includes GPUObjectBase;
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUQuerySet {
@@ -1163,7 +1163,7 @@ interface GPUQuerySet {
     readonly attribute GPUQueryType type;
     readonly attribute GPUSize32Out count;
 };
-// GPUQuerySet includes GPUObjectBase;
+GPUQuerySet includes GPUObjectBase;
 
 dictionary GPUQuerySetDescriptor
          : GPUObjectDescriptorBase {
@@ -1211,9 +1211,9 @@ interface GPUDeviceLostInfo {
     readonly attribute DOMString message;
 };
 
-// partial interface GPUDevice {
-//     readonly attribute Promise<GPUDeviceLostInfo> lost;
-// };
+partial interface GPUDevice {
+    readonly attribute Promise<GPUDeviceLostInfo> lost;
+};
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUError {
@@ -1244,10 +1244,10 @@ enum GPUErrorFilter {
     "internal",
 };
 
-// partial interface GPUDevice {
-//     undefined pushErrorScope(GPUErrorFilter filter);
-//     Promise<GPUError?> popErrorScope();
-// };
+partial interface GPUDevice {
+    undefined pushErrorScope(GPUErrorFilter filter);
+    Promise<GPUError?> popErrorScope();
+};
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUUncapturedErrorEvent : Event {
@@ -1262,10 +1262,10 @@ dictionary GPUUncapturedErrorEventInit : EventInit {
     required GPUError error;
 };
 
-// partial interface GPUDevice {
-//     [Exposed=(Window, DedicatedWorker)]
-//     attribute EventHandler onuncapturederror;
-// };
+partial interface GPUDevice {
+    // [Exposed=(Window, DedicatedWorker)]
+    // attribute EventHandler onuncapturederror;
+};
 
 typedef [EnforceRange] unsigned long GPUBufferDynamicOffset;
 typedef [EnforceRange] unsigned long GPUStencilValue;
