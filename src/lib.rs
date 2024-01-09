@@ -7,6 +7,7 @@ pub mod translations;
 mod tests {
     use super::*;
     use crate::to_wit::ToWitSyntax;
+    use pretty_assertions::assert_eq;
     use std::{fs, path::Path};
 
     fn compare(path: &str) {
@@ -14,7 +15,9 @@ mod tests {
             format!(
                 "
                 package foo:bar;
-                interface biz {{{wit}}}
+                interface biz {{
+                {wit}
+                }}
             "
             )
         }
