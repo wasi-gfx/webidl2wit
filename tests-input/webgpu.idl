@@ -161,11 +161,11 @@ GPUDevice includes GPUObjectBase;
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUBuffer {
     readonly attribute GPUSize64Out size;
-    // readonly attribute GPUFlagsConstant usage;
+    readonly attribute GPUFlagsConstant usage;
 
     readonly attribute GPUBufferMapState mapState;
 
-    // undefined mapAsync(GPUMapModeFlags mode, optional GPUSize64 offset = 0, optional GPUSize64 size);
+    undefined mapAsync(GPUMapModeFlags mode, optional GPUSize64 offset = 0, optional GPUSize64 size);
     // ArrayBuffer getMappedRange(optional GPUSize64 offset = 0, optional GPUSize64 size);
     undefined unmap();
 
@@ -182,11 +182,11 @@ enum GPUBufferMapState {
 dictionary GPUBufferDescriptor
          : GPUObjectDescriptorBase {
     required GPUSize64 size;
-    // required GPUBufferUsageFlags usage;
+    required GPUBufferUsageFlags usage;
     boolean mappedAtCreation = false;
 };
 
-// typedef [EnforceRange] unsigned long GPUBufferUsageFlags;
+typedef [EnforceRange] unsigned long GPUBufferUsageFlags;
 // [Exposed=(Window, DedicatedWorker), SecureContext]
 // namespace GPUBufferUsage {
 //     const GPUFlagsConstant MAP_READ      = 0x0001;
@@ -201,7 +201,7 @@ dictionary GPUBufferDescriptor
 //     const GPUFlagsConstant QUERY_RESOLVE = 0x0200;
 // };
 
-// typedef [EnforceRange] unsigned long GPUMapModeFlags;
+typedef [EnforceRange] unsigned long GPUMapModeFlags;
 // [Exposed=(Window, DedicatedWorker), SecureContext]
 // namespace GPUMapMode {
 //     const GPUFlagsConstant READ  = 0x0001;
@@ -221,7 +221,7 @@ interface GPUTexture {
     readonly attribute GPUSize32Out sampleCount;
     // readonly attribute GPUTextureDimension dimension;
     readonly attribute GPUTextureFormat format;
-    // readonly attribute GPUFlagsConstant usage;
+    readonly attribute GPUFlagsConstant usage;
 };
 GPUTexture includes GPUObjectBase;
 
@@ -232,7 +232,7 @@ dictionary GPUTextureDescriptor
     GPUSize32 sampleCount = 1;
     // GPUTextureDimension dimension = "2d";
     required GPUTextureFormat format;
-    // required GPUTextureUsageFlags usage;
+    required GPUTextureUsageFlags usage;
     sequence<GPUTextureFormat> viewFormats = [];
 };
 
@@ -242,7 +242,7 @@ dictionary GPUTextureDescriptor
 //     "3d",
 // };
 
-// typedef [EnforceRange] unsigned long GPUTextureUsageFlags;
+typedef [EnforceRange] unsigned long GPUTextureUsageFlags;
 // [Exposed=(Window, DedicatedWorker), SecureContext]
 // namespace GPUTextureUsage {
 //     const GPUFlagsConstant COPY_SRC          = 0x01;
@@ -473,7 +473,7 @@ dictionary GPUBindGroupLayoutDescriptor
 
 dictionary GPUBindGroupLayoutEntry {
     required GPUIndex32 binding;
-    // required GPUShaderStageFlags visibility;
+    required GPUShaderStageFlags visibility;
 
     GPUBufferBindingLayout buffer;
     GPUSamplerBindingLayout sampler;
@@ -482,7 +482,7 @@ dictionary GPUBindGroupLayoutEntry {
     GPUExternalTextureBindingLayout externalTexture;
 };
 
-// typedef [EnforceRange] unsigned long GPUShaderStageFlags;
+typedef [EnforceRange] unsigned long GPUShaderStageFlags;
 // [Exposed=(Window, DedicatedWorker), SecureContext]
 // namespace GPUShaderStage {
 //     const GPUFlagsConstant VERTEX   = 0x1;
@@ -654,7 +654,7 @@ typedef double GPUPipelineConstantValue; // May represent WGSL’s bool, f32, i3
 interface GPUComputePipeline {
 };
 GPUComputePipeline includes GPUObjectBase;
-// GPUComputePipeline includes GPUPipelineBase;
+GPUComputePipeline includes GPUPipelineBase;
 
 dictionary GPUComputePipelineDescriptor
          : GPUPipelineDescriptorBase {
@@ -665,7 +665,7 @@ dictionary GPUComputePipelineDescriptor
 interface GPURenderPipeline {
 };
 GPURenderPipeline includes GPUObjectBase;
-// GPURenderPipeline includes GPUPipelineBase;
+GPURenderPipeline includes GPUPipelineBase;
 
 dictionary GPURenderPipelineDescriptor
          : GPUPipelineDescriptorBase {
@@ -720,7 +720,7 @@ dictionary GPUColorTargetState {
     required GPUTextureFormat format;
 
     GPUBlendState blend;
-    // GPUColorWriteFlags writeMask = 0xF;  // GPUColorWrite.ALL
+    GPUColorWriteFlags writeMask = 0xF;  // GPUColorWrite.ALL
 };
 
 dictionary GPUBlendState {
@@ -728,7 +728,7 @@ dictionary GPUBlendState {
     required GPUBlendComponent alpha;
 };
 
-// typedef [EnforceRange] unsigned long GPUColorWriteFlags;
+typedef [EnforceRange] unsigned long GPUColorWriteFlags;
 // [Exposed=(Window, DedicatedWorker), SecureContext]
 // namespace GPUColorWrite {
 //     const GPUFlagsConstant RED   = 0x1;
@@ -1194,7 +1194,7 @@ enum GPUCanvasAlphaMode {
 dictionary GPUCanvasConfiguration {
     required GPUDevice device;
     required GPUTextureFormat format;
-    // GPUTextureUsageFlags usage = 0x10;  // GPUTextureUsage.RENDER_ATTACHMENT
+    GPUTextureUsageFlags usage = 0x10;  // GPUTextureUsage.RENDER_ATTACHMENT
     sequence<GPUTextureFormat> viewFormats = [];
     // PredefinedColorSpace colorSpace = "srgb";
     GPUCanvasAlphaMode alphaMode = "opaque";
@@ -1282,7 +1282,7 @@ typedef unsigned long long GPUSize64Out;
 typedef unsigned long GPUIntegerCoordinateOut;
 typedef unsigned long GPUSize32Out;
 
-// typedef unsigned long GPUFlagsConstant;
+typedef unsigned long GPUFlagsConstant;
 
 dictionary GPUColorDict {
     required double r;

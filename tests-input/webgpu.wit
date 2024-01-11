@@ -218,7 +218,9 @@ resource gpu-queue {
 }
 resource gpu-buffer {
     size: func() -> gpu-size64-out;
+    usage: func() -> gpu-flags-constant;
     map-state: func() -> gpu-buffer-map-state;
+    map-async: func(mode: gpu-map-mode-flags, offset: gpu-size64, size: gpu-size64);
     unmap: func();
     destroy: func();
     label: func() -> string;
@@ -226,6 +228,7 @@ resource gpu-buffer {
 }
 record gpu-buffer-descriptor {
     size: gpu-size64,
+    usage: gpu-buffer-usage-flags,
     mapped-at-creation: bool,
 }
 resource gpu-texture {
@@ -237,6 +240,7 @@ resource gpu-texture {
     mip-level-count: func() -> gpu-integer-coordinate-out;
     sample-count: func() -> gpu-size32-out;
     format: func() -> gpu-texture-format;
+    usage: func() -> gpu-flags-constant;
     label: func() -> string;
     set-label: func(label: string);
 }
@@ -245,6 +249,7 @@ record gpu-texture-descriptor {
     mip-level-count: gpu-integer-coordinate,
     sample-count: gpu-size32,
     format: gpu-texture-format,
+    usage: gpu-texture-usage-flags,
     view-formats: list<gpu-texture-format>,
 }
 resource gpu-sampler {
@@ -303,6 +308,7 @@ record gpu-shader-module-descriptor {
 resource gpu-compute-pipeline {
     label: func() -> string;
     set-label: func(label: string);
+    get-bind-group-layout: func(index: u32) -> gpu-bind-group-layout;
 }
 record gpu-compute-pipeline-descriptor {
     compute: gpu-programmable-stage,
@@ -310,6 +316,7 @@ record gpu-compute-pipeline-descriptor {
 resource gpu-render-pipeline {
     label: func() -> string;
     set-label: func(label: string);
+    get-bind-group-layout: func(index: u32) -> gpu-bind-group-layout;
 }
 record gpu-render-pipeline-descriptor {
     vertex: gpu-vertex-state,
@@ -365,12 +372,15 @@ record gpu-query-set-descriptor {
     count: gpu-size32,
 }
 type gpu-size64-out = u64;
+type gpu-flags-constant = u32;
 enum gpu-buffer-map-state {
     unmapped,
     pending,
     mapped,
 }
+type gpu-map-mode-flags = u32;
 type gpu-size64 = u64;
+type gpu-buffer-usage-flags = u32;
 resource gpu-texture-view {
     label: func() -> string;
     set-label: func(label: string);
@@ -388,6 +398,7 @@ type gpu-size32-out = u32;
 type gpu-extent3-d = gpu-extent3-d-dict-or-list-gpu-integer-coordinate;
 type gpu-integer-coordinate = u32;
 type gpu-size32 = u32;
+type gpu-texture-usage-flags = u32;
 enum gpu-texture-aspect {
     all,
     stencil-only,
@@ -418,6 +429,7 @@ enum gpu-compare-function {
 }
 record gpu-bind-group-layout-entry {
     binding: gpu-index32,
+    visibility: gpu-shader-stage-flags,
     buffer: gpu-buffer-binding-layout,
     sampler: gpu-sampler-binding-layout,
     texture: gpu-texture-binding-layout,
@@ -425,6 +437,7 @@ record gpu-bind-group-layout-entry {
     external-texture: gpu-external-texture-binding-layout,
 }
 type gpu-index32 = u32;
+type gpu-shader-stage-flags = u32;
 record gpu-buffer-binding-layout {
     %type: gpu-buffer-binding-type,
     has-dynamic-offset: bool,
@@ -580,11 +593,13 @@ type gpu-sample-mask = u32;
 record gpu-color-target-state {
     format: gpu-texture-format,
     blend: gpu-blend-state,
+    write-mask: gpu-color-write-flags,
 }
 record gpu-blend-state {
     color: gpu-blend-component,
     alpha: gpu-blend-component,
 }
+type gpu-color-write-flags = u32;
 record gpu-blend-component {
     operation: gpu-blend-operation,
     src-factor: gpu-blend-factor,
@@ -807,6 +822,7 @@ resource gpu-canvas-context {
 record gpu-canvas-configuration {
     device: gpu-device,
     format: gpu-texture-format,
+    usage: gpu-texture-usage-flags,
     view-formats: list<gpu-texture-format>,
     alpha-mode: gpu-canvas-alpha-mode,
 }
