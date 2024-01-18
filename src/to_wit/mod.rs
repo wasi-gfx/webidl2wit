@@ -85,7 +85,10 @@ fn type_def_kind_inline(type_def_kind: &TypeDefKind, resolve: &Resolve) -> anyho
             format!("list<{type_name}>")
         }
         TypeDefKind::Tuple(_) => todo!(),
-        TypeDefKind::Option(_) => todo!(),
+        TypeDefKind::Option(type_) => {
+            let type_name = inline_type_name(type_, resolve)?;
+            format!("option<{type_name}>")
+        }
         TypeDefKind::Result(_) => todo!(),
         _ => unreachable!(),
     }))

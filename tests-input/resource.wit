@@ -1,5 +1,5 @@
 resource gpu-pipeline-error {
-    constructor(message: string);
+    constructor(message: option<string>);
 }
 resource gpu-buffer {
     unmap: func();

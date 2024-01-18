@@ -67,7 +67,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
             }
             Definition::Implements(_) => todo!(),
             Definition::Typedef(wi_type) => {
-                let wit_type = wi2w_type(&mut resolve, &wi_type.type_.type_).unwrap();
+                let wit_type = wi2w_type(&mut resolve, &wi_type.type_.type_, false).unwrap();
                 let resource = wit_parser::TypeDef {
                     name: Some(ident_name(wi_type.identifier.0)),
                     kind: wit_parser::TypeDefKind::Type(wit_type),
@@ -99,7 +99,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .iter()
                     .map(|mem| wit_parser::Field {
                         name: ident_name(mem.identifier.0),
-                        ty: wi2w_type(&mut resolve, &mem.type_).unwrap(),
+                        ty: wi2w_type(&mut resolve, &mem.type_, mem.required.is_none()).unwrap(),
                         docs: Default::default(),
                     })
                     .collect_vec();
@@ -187,7 +187,8 @@ fn function_args(
             weedle::argument::Argument::Variadic(_) => todo!(),
             weedle::argument::Argument::Single(arg) => {
                 let name = ident_name(arg.identifier.0);
-                let type_ = wi2w_type(&mut resolve, &arg.type_.type_).unwrap();
+                let optional = arg.optional.is_some();
+                let type_ = wi2w_type(&mut resolve, &arg.type_.type_, optional).unwrap();
                 (name, type_)
             }
         })
@@ -272,7 +273,7 @@ fn interface_members_to_functions<'a>(
             weedle::interface::InterfaceMember::Stringifier(_) => todo!(),
             weedle::interface::InterfaceMember::Attribute(attr) => {
                 let attr_name = ident_name(&attr.identifier.0);
-                let attr_type = wi2w_type(&mut resolve, &attr.type_.type_)?;
+                let attr_type = wi2w_type(&mut resolve, &attr.type_.type_, false)?;
                 let method_kind = match attr.modifier {
                     Some(weedle::interface::StringifierOrInheritOrStatic::Static(_)) => {
                         wit_parser::FunctionKind::Static(resource_id)
@@ -335,7 +336,7 @@ fn interface_members_to_functions<'a>(
                             wit_parser::Results::Named(Default::default())
                         }
                         weedle::types::ReturnType::Type(type_) => {
-                            let type_ = wi2w_type(&mut resolve, &type_).unwrap();
+                            let type_ = wi2w_type(&mut resolve, &type_, false).unwrap();
                             wit_parser::Results::Anon(type_)
                         }
                     },

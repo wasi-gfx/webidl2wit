@@ -1,5 +1,5 @@
 record gpu-object-descriptor-base {
-    label: string,
+    label: option<string>,
 }
 resource gpu-supported-limits {
     max-texture-dimension1-d: func() -> u32;
@@ -46,7 +46,7 @@ resource gpu-adapter-info {
     description: func() -> string;
 }
 resource gpu {
-    request-adapter: func(options: gpu-request-adapter-options) -> gpu-adapter;
+    request-adapter: func(options: option<gpu-request-adapter-options>) -> gpu-adapter;
     get-preferred-canvas-format: func() -> gpu-texture-format;
     wgsl-language-features: func() -> wgsl-language-features;
 }
@@ -54,12 +54,12 @@ resource gpu-adapter {
     features: func() -> gpu-supported-features;
     limits: func() -> gpu-supported-limits;
     is-fallback-adapter: func() -> bool;
-    request-device: func(descriptor: gpu-device-descriptor) -> gpu-device;
+    request-device: func(descriptor: option<gpu-device-descriptor>) -> gpu-device;
     request-adapter-info: func() -> gpu-adapter-info;
 }
 record gpu-request-adapter-options {
-    power-preference: gpu-power-preference,
-    force-fallback-adapter: bool,
+    power-preference: option<gpu-power-preference>,
+    force-fallback-adapter: option<bool>,
 }
 enum gpu-texture-format {
     r8unorm,
@@ -169,7 +169,7 @@ resource gpu-device {
     destroy: func();
     create-buffer: func(descriptor: gpu-buffer-descriptor) -> gpu-buffer;
     create-texture: func(descriptor: gpu-texture-descriptor) -> gpu-texture;
-    create-sampler: func(descriptor: gpu-sampler-descriptor) -> gpu-sampler;
+    create-sampler: func(descriptor: option<gpu-sampler-descriptor>) -> gpu-sampler;
     import-external-texture: func(descriptor: gpu-external-texture-descriptor) -> gpu-external-texture;
     create-bind-group-layout: func(descriptor: gpu-bind-group-layout-descriptor) -> gpu-bind-group-layout;
     create-pipeline-layout: func(descriptor: gpu-pipeline-layout-descriptor) -> gpu-pipeline-layout;
@@ -179,7 +179,7 @@ resource gpu-device {
     create-render-pipeline: func(descriptor: gpu-render-pipeline-descriptor) -> gpu-render-pipeline;
     create-compute-pipeline-async: func(descriptor: gpu-compute-pipeline-descriptor) -> gpu-compute-pipeline;
     create-render-pipeline-async: func(descriptor: gpu-render-pipeline-descriptor) -> gpu-render-pipeline;
-    create-command-encoder: func(descriptor: gpu-command-encoder-descriptor) -> gpu-command-encoder;
+    create-command-encoder: func(descriptor: option<gpu-command-encoder-descriptor>) -> gpu-command-encoder;
     create-render-bundle-encoder: func(descriptor: gpu-render-bundle-encoder-descriptor) -> gpu-render-bundle-encoder;
     create-query-set: func(descriptor: gpu-query-set-descriptor) -> gpu-query-set;
     label: func() -> string;
@@ -189,8 +189,8 @@ resource gpu-device {
     pop-error-scope: func() -> gpu-error;
 }
 record gpu-device-descriptor {
-    required-features: list<gpu-feature-name>,
-    default-queue: gpu-queue-descriptor,
+    required-features: option<list<gpu-feature-name>>,
+    default-queue: option<gpu-queue-descriptor>,
 }
 enum gpu-feature-name {
     depth-clip-control,
@@ -210,7 +210,7 @@ record gpu-queue-descriptor {
 resource gpu-queue {
     submit: func(command-buffers: list<gpu-command-buffer>);
     on-submitted-work-done: func();
-    write-buffer: func(buffer: gpu-buffer, buffer-offset: gpu-size64, data-offset: gpu-size64, size: gpu-size64);
+    write-buffer: func(buffer: gpu-buffer, buffer-offset: gpu-size64, data-offset: option<gpu-size64>, size: option<gpu-size64>);
     write-texture: func(destination: gpu-image-copy-texture, data-layout: gpu-image-data-layout, size: gpu-extent3-d);
     copy-external-image-to-texture: func(source: gpu-image-copy-external-image, destination: gpu-image-copy-texture-tagged, copy-size: gpu-extent3-d);
     label: func() -> string;
@@ -220,7 +220,7 @@ resource gpu-buffer {
     size: func() -> gpu-size64-out;
     usage: func() -> gpu-flags-constant;
     map-state: func() -> gpu-buffer-map-state;
-    map-async: func(mode: gpu-map-mode-flags, offset: gpu-size64, size: gpu-size64);
+    map-async: func(mode: gpu-map-mode-flags, offset: option<gpu-size64>, size: option<gpu-size64>);
     unmap: func();
     destroy: func();
     label: func() -> string;
@@ -229,10 +229,10 @@ resource gpu-buffer {
 record gpu-buffer-descriptor {
     size: gpu-size64,
     usage: gpu-buffer-usage-flags,
-    mapped-at-creation: bool,
+    mapped-at-creation: option<bool>,
 }
 resource gpu-texture {
-    create-view: func(descriptor: gpu-texture-view-descriptor) -> gpu-texture-view;
+    create-view: func(descriptor: option<gpu-texture-view-descriptor>) -> gpu-texture-view;
     destroy: func();
     width: func() -> gpu-integer-coordinate-out;
     height: func() -> gpu-integer-coordinate-out;
@@ -246,27 +246,27 @@ resource gpu-texture {
 }
 record gpu-texture-descriptor {
     size: gpu-extent3-d,
-    mip-level-count: gpu-integer-coordinate,
-    sample-count: gpu-size32,
+    mip-level-count: option<gpu-integer-coordinate>,
+    sample-count: option<gpu-size32>,
     format: gpu-texture-format,
     usage: gpu-texture-usage-flags,
-    view-formats: list<gpu-texture-format>,
+    view-formats: option<list<gpu-texture-format>>,
 }
 resource gpu-sampler {
     label: func() -> string;
     set-label: func(label: string);
 }
 record gpu-sampler-descriptor {
-    address-mode-u: gpu-address-mode,
-    address-mode-v: gpu-address-mode,
-    address-mode-w: gpu-address-mode,
-    mag-filter: gpu-filter-mode,
-    min-filter: gpu-filter-mode,
-    mipmap-filter: gpu-mipmap-filter-mode,
-    lod-min-clamp: float32,
-    lod-max-clamp: float32,
-    compare: gpu-compare-function,
-    max-anisotropy: u16,
+    address-mode-u: option<gpu-address-mode>,
+    address-mode-v: option<gpu-address-mode>,
+    address-mode-w: option<gpu-address-mode>,
+    mag-filter: option<gpu-filter-mode>,
+    min-filter: option<gpu-filter-mode>,
+    mipmap-filter: option<gpu-mipmap-filter-mode>,
+    lod-min-clamp: option<float32>,
+    lod-max-clamp: option<float32>,
+    compare: option<gpu-compare-function>,
+    max-anisotropy: option<u16>,
 }
 resource gpu-external-texture {
     label: func() -> string;
@@ -303,7 +303,7 @@ resource gpu-shader-module {
 }
 record gpu-shader-module-descriptor {
     code: string,
-    compilation-hints: list<gpu-shader-module-compilation-hint>,
+    compilation-hints: option<list<gpu-shader-module-compilation-hint>>,
 }
 resource gpu-compute-pipeline {
     label: func() -> string;
@@ -320,45 +320,45 @@ resource gpu-render-pipeline {
 }
 record gpu-render-pipeline-descriptor {
     vertex: gpu-vertex-state,
-    primitive: gpu-primitive-state,
-    depth-stencil: gpu-depth-stencil-state,
-    multisample: gpu-multisample-state,
-    fragment: gpu-fragment-state,
+    primitive: option<gpu-primitive-state>,
+    depth-stencil: option<gpu-depth-stencil-state>,
+    multisample: option<gpu-multisample-state>,
+    fragment: option<gpu-fragment-state>,
 }
 resource gpu-command-encoder {
     begin-render-pass: func(descriptor: gpu-render-pass-descriptor) -> gpu-render-pass-encoder;
-    begin-compute-pass: func(descriptor: gpu-compute-pass-descriptor) -> gpu-compute-pass-encoder;
+    begin-compute-pass: func(descriptor: option<gpu-compute-pass-descriptor>) -> gpu-compute-pass-encoder;
     copy-buffer-to-buffer: func(source: gpu-buffer, source-offset: gpu-size64, destination: gpu-buffer, destination-offset: gpu-size64, size: gpu-size64);
     copy-buffer-to-texture: func(source: gpu-image-copy-buffer, destination: gpu-image-copy-texture, copy-size: gpu-extent3-d);
     copy-texture-to-buffer: func(source: gpu-image-copy-texture, destination: gpu-image-copy-buffer, copy-size: gpu-extent3-d);
     copy-texture-to-texture: func(source: gpu-image-copy-texture, destination: gpu-image-copy-texture, copy-size: gpu-extent3-d);
-    clear-buffer: func(buffer: gpu-buffer, offset: gpu-size64, size: gpu-size64);
+    clear-buffer: func(buffer: gpu-buffer, offset: option<gpu-size64>, size: option<gpu-size64>);
     resolve-query-set: func(query-set: gpu-query-set, first-query: gpu-size32, query-count: gpu-size32, destination: gpu-buffer, destination-offset: gpu-size64);
-    finish: func(descriptor: gpu-command-buffer-descriptor) -> gpu-command-buffer;
+    finish: func(descriptor: option<gpu-command-buffer-descriptor>) -> gpu-command-buffer;
     label: func() -> string;
     set-label: func(label: string);
 }
 record gpu-command-encoder-descriptor {
 }
 resource gpu-render-bundle-encoder {
-    finish: func(descriptor: gpu-render-bundle-descriptor) -> gpu-render-bundle;
+    finish: func(descriptor: option<gpu-render-bundle-descriptor>) -> gpu-render-bundle;
     label: func() -> string;
     set-label: func(label: string);
     push-debug-group: func(group-label: string);
     pop-debug-group: func();
     insert-debug-marker: func(marker-label: string);
-    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: list<gpu-buffer-dynamic-offset>);
+    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
     set-pipeline: func(pipeline: gpu-render-pipeline);
-    set-index-buffer: func(buffer: gpu-buffer, index-format: gpu-index-format, offset: gpu-size64, size: gpu-size64);
-    set-vertex-buffer: func(slot: gpu-index32, buffer: gpu-buffer, offset: gpu-size64, size: gpu-size64);
-    draw: func(vertex-count: gpu-size32, instance-count: gpu-size32, first-vertex: gpu-size32, first-instance: gpu-size32);
-    draw-indexed: func(index-count: gpu-size32, instance-count: gpu-size32, first-index: gpu-size32, base-vertex: gpu-signed-offset32, first-instance: gpu-size32);
+    set-index-buffer: func(buffer: gpu-buffer, index-format: gpu-index-format, offset: option<gpu-size64>, size: option<gpu-size64>);
+    set-vertex-buffer: func(slot: gpu-index32, buffer: gpu-buffer, offset: option<gpu-size64>, size: option<gpu-size64>);
+    draw: func(vertex-count: gpu-size32, instance-count: option<gpu-size32>, first-vertex: option<gpu-size32>, first-instance: option<gpu-size32>);
+    draw-indexed: func(index-count: gpu-size32, instance-count: option<gpu-size32>, first-index: option<gpu-size32>, base-vertex: option<gpu-signed-offset32>, first-instance: option<gpu-size32>);
     draw-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
     draw-indexed-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
 }
 record gpu-render-bundle-encoder-descriptor {
-    depth-read-only: bool,
-    stencil-read-only: bool,
+    depth-read-only: option<bool>,
+    stencil-read-only: option<bool>,
 }
 resource gpu-query-set {
     destroy: func();
@@ -386,12 +386,12 @@ resource gpu-texture-view {
     set-label: func(label: string);
 }
 record gpu-texture-view-descriptor {
-    format: gpu-texture-format,
-    aspect: gpu-texture-aspect,
-    base-mip-level: gpu-integer-coordinate,
-    mip-level-count: gpu-integer-coordinate,
-    base-array-layer: gpu-integer-coordinate,
-    array-layer-count: gpu-integer-coordinate,
+    format: option<gpu-texture-format>,
+    aspect: option<gpu-texture-aspect>,
+    base-mip-level: option<gpu-integer-coordinate>,
+    mip-level-count: option<gpu-integer-coordinate>,
+    base-array-layer: option<gpu-integer-coordinate>,
+    array-layer-count: option<gpu-integer-coordinate>,
 }
 type gpu-integer-coordinate-out = u32;
 type gpu-size32-out = u32;
@@ -430,28 +430,28 @@ enum gpu-compare-function {
 record gpu-bind-group-layout-entry {
     binding: gpu-index32,
     visibility: gpu-shader-stage-flags,
-    buffer: gpu-buffer-binding-layout,
-    sampler: gpu-sampler-binding-layout,
-    texture: gpu-texture-binding-layout,
-    storage-texture: gpu-storage-texture-binding-layout,
-    external-texture: gpu-external-texture-binding-layout,
+    buffer: option<gpu-buffer-binding-layout>,
+    sampler: option<gpu-sampler-binding-layout>,
+    texture: option<gpu-texture-binding-layout>,
+    storage-texture: option<gpu-storage-texture-binding-layout>,
+    external-texture: option<gpu-external-texture-binding-layout>,
 }
 type gpu-index32 = u32;
 type gpu-shader-stage-flags = u32;
 record gpu-buffer-binding-layout {
-    %type: gpu-buffer-binding-type,
-    has-dynamic-offset: bool,
-    min-binding-size: gpu-size64,
+    %type: option<gpu-buffer-binding-type>,
+    has-dynamic-offset: option<bool>,
+    min-binding-size: option<gpu-size64>,
 }
 record gpu-sampler-binding-layout {
-    %type: gpu-sampler-binding-type,
+    %type: option<gpu-sampler-binding-type>,
 }
 record gpu-texture-binding-layout {
-    sample-type: gpu-texture-sample-type,
-    multisampled: bool,
+    sample-type: option<gpu-texture-sample-type>,
+    multisampled: option<bool>,
 }
 record gpu-storage-texture-binding-layout {
-    access: gpu-storage-texture-access,
+    access: option<gpu-storage-texture-access>,
     format: gpu-texture-format,
 }
 record gpu-external-texture-binding-layout {
@@ -484,8 +484,8 @@ record gpu-bind-group-entry {
 }
 record gpu-buffer-binding {
     buffer: gpu-buffer,
-    offset: gpu-size64,
-    size: gpu-size64,
+    offset: option<gpu-size64>,
+    size: option<gpu-size64>,
 }
 variant gpu-buffer-binding-or-gpu-external-texture-or-gpu-sampler-or-gpu-texture-view {
     gpu-buffer-binding(gpu-buffer-binding),
@@ -521,7 +521,7 @@ resource gpu-compilation-message {
     length: func() -> u64;
 }
 resource gpu-pipeline-error {
-    constructor(message: string, options: gpu-pipeline-error-init);
+    constructor(message: option<string>, options: gpu-pipeline-error-init);
     reason: func() -> gpu-pipeline-error-reason;
 }
 record gpu-pipeline-error-init {
@@ -536,35 +536,35 @@ record gpu-pipeline-descriptor-base {
 }
 record gpu-programmable-stage {
     module: gpu-shader-module,
-    entry-point: string,
+    entry-point: option<string>,
 }
 type gpu-pipeline-constant-value = float64;
 record gpu-vertex-state {
-    buffers: list<gpu-vertex-buffer-layout>,
+    buffers: option<list<gpu-vertex-buffer-layout>>,
 }
 record gpu-primitive-state {
-    topology: gpu-primitive-topology,
-    strip-index-format: gpu-index-format,
-    front-face: gpu-front-face,
-    cull-mode: gpu-cull-mode,
-    unclipped-depth: bool,
+    topology: option<gpu-primitive-topology>,
+    strip-index-format: option<gpu-index-format>,
+    front-face: option<gpu-front-face>,
+    cull-mode: option<gpu-cull-mode>,
+    unclipped-depth: option<bool>,
 }
 record gpu-depth-stencil-state {
     format: gpu-texture-format,
-    depth-write-enabled: bool,
-    depth-compare: gpu-compare-function,
-    stencil-front: gpu-stencil-face-state,
-    stencil-back: gpu-stencil-face-state,
-    stencil-read-mask: gpu-stencil-value,
-    stencil-write-mask: gpu-stencil-value,
-    depth-bias: gpu-depth-bias,
-    depth-bias-slope-scale: float32,
-    depth-bias-clamp: float32,
+    depth-write-enabled: option<bool>,
+    depth-compare: option<gpu-compare-function>,
+    stencil-front: option<gpu-stencil-face-state>,
+    stencil-back: option<gpu-stencil-face-state>,
+    stencil-read-mask: option<gpu-stencil-value>,
+    stencil-write-mask: option<gpu-stencil-value>,
+    depth-bias: option<gpu-depth-bias>,
+    depth-bias-slope-scale: option<float32>,
+    depth-bias-clamp: option<float32>,
 }
 record gpu-multisample-state {
-    count: gpu-size32,
-    mask: gpu-sample-mask,
-    alpha-to-coverage-enabled: bool,
+    count: option<gpu-size32>,
+    mask: option<gpu-sample-mask>,
+    alpha-to-coverage-enabled: option<bool>,
 }
 record gpu-fragment-state {
     targets: list<gpu-color-target-state>,
@@ -592,8 +592,8 @@ enum gpu-cull-mode {
 type gpu-sample-mask = u32;
 record gpu-color-target-state {
     format: gpu-texture-format,
-    blend: gpu-blend-state,
-    write-mask: gpu-color-write-flags,
+    blend: option<gpu-blend-state>,
+    write-mask: option<gpu-color-write-flags>,
 }
 record gpu-blend-state {
     color: gpu-blend-component,
@@ -601,9 +601,9 @@ record gpu-blend-state {
 }
 type gpu-color-write-flags = u32;
 record gpu-blend-component {
-    operation: gpu-blend-operation,
-    src-factor: gpu-blend-factor,
-    dst-factor: gpu-blend-factor,
+    operation: option<gpu-blend-operation>,
+    src-factor: option<gpu-blend-factor>,
+    dst-factor: option<gpu-blend-factor>,
 }
 enum gpu-blend-operation {
     add,
@@ -628,10 +628,10 @@ enum gpu-blend-factor {
     one-minus-constant,
 }
 record gpu-stencil-face-state {
-    compare: gpu-compare-function,
-    fail-op: gpu-stencil-operation,
-    depth-fail-op: gpu-stencil-operation,
-    pass-op: gpu-stencil-operation,
+    compare: option<gpu-compare-function>,
+    fail-op: option<gpu-stencil-operation>,
+    depth-fail-op: option<gpu-stencil-operation>,
+    pass-op: option<gpu-stencil-operation>,
 }
 type gpu-stencil-value = u32;
 type gpu-depth-bias = s32;
@@ -684,7 +684,7 @@ enum gpu-vertex-step-mode {
 }
 record gpu-vertex-buffer-layout {
     array-stride: gpu-size64,
-    step-mode: gpu-vertex-step-mode,
+    step-mode: option<gpu-vertex-step-mode>,
     attributes: list<gpu-vertex-attribute>,
 }
 record gpu-vertex-attribute {
@@ -693,9 +693,9 @@ record gpu-vertex-attribute {
     shader-location: gpu-index32,
 }
 record gpu-image-data-layout {
-    offset: gpu-size64,
-    bytes-per-row: gpu-size32,
-    rows-per-image: gpu-size32,
+    offset: option<gpu-size64>,
+    bytes-per-row: option<gpu-size32>,
+    rows-per-image: option<gpu-size32>,
 }
 record gpu-image-copy-buffer {
     buffer: gpu-buffer,
@@ -703,17 +703,17 @@ record gpu-image-copy-buffer {
 type gpu-origin3-d = gpu-origin3-d-dict-or-list-gpu-integer-coordinate;
 record gpu-image-copy-texture {
     texture: gpu-texture,
-    mip-level: gpu-integer-coordinate,
-    origin: gpu-origin3-d,
-    aspect: gpu-texture-aspect,
+    mip-level: option<gpu-integer-coordinate>,
+    origin: option<gpu-origin3-d>,
+    aspect: option<gpu-texture-aspect>,
 }
 record gpu-image-copy-texture-tagged {
-    premultiplied-alpha: bool,
+    premultiplied-alpha: option<bool>,
 }
 type gpu-origin2-d = gpu-origin2-d-dict-or-list-gpu-integer-coordinate;
 record gpu-image-copy-external-image {
-    origin: gpu-origin2-d,
-    flip-y: bool,
+    origin: option<gpu-origin2-d>,
+    flip-y: option<bool>,
 }
 resource gpu-command-buffer {
     label: func() -> string;
@@ -735,18 +735,18 @@ resource gpu-render-pass-encoder {
     push-debug-group: func(group-label: string);
     pop-debug-group: func();
     insert-debug-marker: func(marker-label: string);
-    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: list<gpu-buffer-dynamic-offset>);
+    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
 }
 record gpu-render-pass-descriptor {
     color-attachments: list<gpu-render-pass-color-attachment>,
-    depth-stencil-attachment: gpu-render-pass-depth-stencil-attachment,
-    occlusion-query-set: gpu-query-set,
-    timestamp-writes: gpu-render-pass-timestamp-writes,
-    max-draw-count: gpu-size64,
+    depth-stencil-attachment: option<gpu-render-pass-depth-stencil-attachment>,
+    occlusion-query-set: option<gpu-query-set>,
+    timestamp-writes: option<gpu-render-pass-timestamp-writes>,
+    max-draw-count: option<gpu-size64>,
 }
 resource gpu-compute-pass-encoder {
     set-pipeline: func(pipeline: gpu-compute-pipeline);
-    dispatch-workgroups: func(workgroup-count-x: gpu-size32, workgroup-count-y: gpu-size32, workgroup-count-z: gpu-size32);
+    dispatch-workgroups: func(workgroup-count-x: gpu-size32, workgroup-count-y: option<gpu-size32>, workgroup-count-z: option<gpu-size32>);
     dispatch-workgroups-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
     end: func();
     label: func() -> string;
@@ -754,16 +754,16 @@ resource gpu-compute-pass-encoder {
     push-debug-group: func(group-label: string);
     pop-debug-group: func();
     insert-debug-marker: func(marker-label: string);
-    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: list<gpu-buffer-dynamic-offset>);
+    set-bind-group: func(index: gpu-index32, bind-group: gpu-bind-group, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
 }
 record gpu-compute-pass-descriptor {
-    timestamp-writes: gpu-compute-pass-timestamp-writes,
+    timestamp-writes: option<gpu-compute-pass-timestamp-writes>,
 }
 type gpu-buffer-dynamic-offset = u32;
 record gpu-compute-pass-timestamp-writes {
     query-set: gpu-query-set,
-    beginning-of-pass-write-index: gpu-size32,
-    end-of-pass-write-index: gpu-size32,
+    beginning-of-pass-write-index: option<gpu-size32>,
+    end-of-pass-write-index: option<gpu-size32>,
 }
 type gpu-color = gpu-color-dict-or-list-float64;
 resource gpu-render-bundle {
@@ -772,27 +772,27 @@ resource gpu-render-bundle {
 }
 record gpu-render-pass-timestamp-writes {
     query-set: gpu-query-set,
-    beginning-of-pass-write-index: gpu-size32,
-    end-of-pass-write-index: gpu-size32,
+    beginning-of-pass-write-index: option<gpu-size32>,
+    end-of-pass-write-index: option<gpu-size32>,
 }
 record gpu-render-pass-color-attachment {
     view: gpu-texture-view,
-    depth-slice: gpu-integer-coordinate,
-    resolve-target: gpu-texture-view,
-    clear-value: gpu-color,
+    depth-slice: option<gpu-integer-coordinate>,
+    resolve-target: option<gpu-texture-view>,
+    clear-value: option<gpu-color>,
     load-op: gpu-load-op,
     store-op: gpu-store-op,
 }
 record gpu-render-pass-depth-stencil-attachment {
     view: gpu-texture-view,
-    depth-clear-value: float32,
-    depth-load-op: gpu-load-op,
-    depth-store-op: gpu-store-op,
-    depth-read-only: bool,
-    stencil-clear-value: gpu-stencil-value,
-    stencil-load-op: gpu-load-op,
-    stencil-store-op: gpu-store-op,
-    stencil-read-only: bool,
+    depth-clear-value: option<float32>,
+    depth-load-op: option<gpu-load-op>,
+    depth-store-op: option<gpu-store-op>,
+    depth-read-only: option<bool>,
+    stencil-clear-value: option<gpu-stencil-value>,
+    stencil-load-op: option<gpu-load-op>,
+    stencil-store-op: option<gpu-store-op>,
+    stencil-read-only: option<bool>,
 }
 enum gpu-load-op {
     load,
@@ -804,8 +804,8 @@ enum gpu-store-op {
 }
 record gpu-render-pass-layout {
     color-formats: list<gpu-texture-format>,
-    depth-stencil-format: gpu-texture-format,
-    sample-count: gpu-size32,
+    depth-stencil-format: option<gpu-texture-format>,
+    sample-count: option<gpu-size32>,
 }
 record gpu-render-bundle-descriptor {
 }
@@ -822,9 +822,9 @@ resource gpu-canvas-context {
 record gpu-canvas-configuration {
     device: gpu-device,
     format: gpu-texture-format,
-    usage: gpu-texture-usage-flags,
-    view-formats: list<gpu-texture-format>,
-    alpha-mode: gpu-canvas-alpha-mode,
+    usage: option<gpu-texture-usage-flags>,
+    view-formats: option<list<gpu-texture-format>>,
+    alpha-mode: option<gpu-canvas-alpha-mode>,
 }
 enum gpu-canvas-alpha-mode {
     opaque,
@@ -873,17 +873,17 @@ variant gpu-color-dict-or-list-float64 {
     list-float64(list<float64>),
 }
 record gpu-origin2-d-dict {
-    x: gpu-integer-coordinate,
-    y: gpu-integer-coordinate,
+    x: option<gpu-integer-coordinate>,
+    y: option<gpu-integer-coordinate>,
 }
 variant gpu-origin2-d-dict-or-list-gpu-integer-coordinate {
     gpu-origin2-d-dict(gpu-origin2-d-dict),
     list-gpu-integer-coordinate(list<gpu-integer-coordinate>),
 }
 record gpu-origin3-d-dict {
-    x: gpu-integer-coordinate,
-    y: gpu-integer-coordinate,
-    z: gpu-integer-coordinate,
+    x: option<gpu-integer-coordinate>,
+    y: option<gpu-integer-coordinate>,
+    z: option<gpu-integer-coordinate>,
 }
 variant gpu-origin3-d-dict-or-list-gpu-integer-coordinate {
     gpu-origin3-d-dict(gpu-origin3-d-dict),
@@ -891,8 +891,8 @@ variant gpu-origin3-d-dict-or-list-gpu-integer-coordinate {
 }
 record gpu-extent3-d-dict {
     width: gpu-integer-coordinate,
-    height: gpu-integer-coordinate,
-    depth-or-array-layers: gpu-integer-coordinate,
+    height: option<gpu-integer-coordinate>,
+    depth-or-array-layers: option<gpu-integer-coordinate>,
 }
 variant gpu-extent3-d-dict-or-list-gpu-integer-coordinate {
     gpu-extent3-d-dict(gpu-extent3-d-dict),

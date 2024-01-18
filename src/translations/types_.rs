@@ -10,10 +10,11 @@ use super::{add_type, get_type_id};
 pub fn wi2w_type(
     resolve: &mut Resolve,
     wi: &weedle::types::Type,
+    optional: bool,
 ) -> anyhow::Result<wit_parser::Type> {
     match wi {
         weedle::types::Type::Single(weedle::types::SingleType::NonAny(type_)) => {
-            wi_non_any2w(resolve, type_)
+            wi_non_any2w(resolve, type_, optional)
         }
         weedle::types::Type::Single(weedle::types::SingleType::Any(_any)) => todo!(),
         weedle::types::Type::Union(union) => {
@@ -27,7 +28,7 @@ pub fn wi2w_type(
                 .iter()
                 .map(|type_| match type_ {
                     weedle::types::UnionMemberType::Single(type_) => {
-                        let type_ = wi_non_any2w(resolve, &type_.type_).unwrap();
+                        let type_ = wi_non_any2w(resolve, &type_.type_, false).unwrap();
                         let type_name = inline_type_name(&type_, resolve).unwrap();
                         let type_name = clean_generic(type_name);
                         (type_name, type_)
@@ -82,8 +83,9 @@ pub fn wi2w_type(
 fn wi_non_any2w(
     resolve: &mut Resolve,
     wi: &weedle::types::NonAnyType,
+    optional: bool,
 ) -> anyhow::Result<wit_parser::Type> {
-    Ok(match wi {
+    let type_ = match wi {
         weedle::types::NonAnyType::Boolean(_) => wit_parser::Type::Bool,
         weedle::types::NonAnyType::ByteString(_) => wit_parser::Type::String,
         weedle::types::NonAnyType::DOMString(_) => wit_parser::Type::String,
@@ -114,11 +116,11 @@ fn wi_non_any2w(
             // use wit_parser::TypeDefKind::Future instead?
             match &*promise.generics.body {
                 weedle::types::ReturnType::Undefined(_) => todo!(),
-                weedle::types::ReturnType::Type(type_) => wi2w_type(resolve, type_)?,
+                weedle::types::ReturnType::Type(type_) => wi2w_type(resolve, type_, false)?,
             }
         }
         weedle::types::NonAnyType::Sequence(seq) => {
-            let type_ = wi2w_type(resolve, &*seq.type_.generics.body)?;
+            let type_ = wi2w_type(resolve, &*seq.type_.generics.body, seq.q_mark.is_some())?;
             let type_id = add_type(
                 resolve,
                 wit_parser::TypeDef {
@@ -151,6 +153,22 @@ fn wi_non_any2w(
         weedle::types::NonAnyType::BufferSource(_) => todo!(),
         weedle::types::NonAnyType::FrozenArrayType(_) => todo!(),
         weedle::types::NonAnyType::RecordType(_) => todo!(),
+    };
+
+    Ok(match optional {
+        false => type_,
+        true => {
+            let type_id = add_type(
+                resolve,
+                wit_parser::TypeDef {
+                    name: None,
+                    kind: wit_parser::TypeDefKind::Option(type_),
+                    owner: wit_parser::TypeOwner::None,
+                    docs: Default::default(),
+                },
+            )?;
+            wit_parser::Type::Id(type_id)
+        }
     })
 }
 
