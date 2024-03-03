@@ -11,10 +11,11 @@ pub fn wi2w_type(
     resolve: &mut Resolve,
     wi: &weedle::types::Type,
     optional: bool,
+    interface_id: wit_parser::InterfaceId,
 ) -> anyhow::Result<wit_parser::Type> {
     match wi {
         weedle::types::Type::Single(weedle::types::SingleType::NonAny(type_)) => {
-            wi_non_any2w(resolve, type_, optional)
+            wi_non_any2w(resolve, type_, optional, interface_id)
         }
         weedle::types::Type::Single(weedle::types::SingleType::Any(_any)) => todo!(),
         weedle::types::Type::Union(union) => {
@@ -28,7 +29,8 @@ pub fn wi2w_type(
                 .iter()
                 .map(|type_| match type_ {
                     weedle::types::UnionMemberType::Single(type_) => {
-                        let type_ = wi_non_any2w(resolve, &type_.type_, false).unwrap();
+                        let type_ =
+                            wi_non_any2w(resolve, &type_.type_, false, interface_id).unwrap();
                         let type_name = inline_type_name(&type_, resolve).unwrap();
                         let type_name = clean_generic(type_name);
                         (type_name, type_)
@@ -72,6 +74,7 @@ pub fn wi2w_type(
                         owner: wit_parser::TypeOwner::None,
                         docs: Default::default(),
                     },
+                    interface_id,
                 )?,
             };
 
@@ -84,6 +87,7 @@ fn wi_non_any2w(
     resolve: &mut Resolve,
     wi: &weedle::types::NonAnyType,
     optional: bool,
+    interface_id: wit_parser::InterfaceId,
 ) -> anyhow::Result<wit_parser::Type> {
     let type_ = match wi {
         weedle::types::NonAnyType::Boolean(_) => wit_parser::Type::Bool,
@@ -109,18 +113,25 @@ fn wi_non_any2w(
             weedle::types::FloatingPointType::Double(_) => wit_parser::Type::Float64,
         },
         weedle::types::NonAnyType::Identifier(ident) => {
-            let type_id = get_type_id(resolve, super::ident_name(ident.type_.0));
+            let type_id = get_type_id(resolve, interface_id, super::ident_name(ident.type_.0));
             wit_parser::Type::Id(type_id)
         }
         weedle::types::NonAnyType::Promise(promise) => {
             // use wit_parser::TypeDefKind::Future instead?
             match &*promise.generics.body {
                 weedle::types::ReturnType::Undefined(_) => todo!(),
-                weedle::types::ReturnType::Type(type_) => wi2w_type(resolve, type_, false)?,
+                weedle::types::ReturnType::Type(type_) => {
+                    wi2w_type(resolve, type_, false, interface_id)?
+                }
             }
         }
         weedle::types::NonAnyType::Sequence(seq) => {
-            let type_ = wi2w_type(resolve, &*seq.type_.generics.body, seq.q_mark.is_some())?;
+            let type_ = wi2w_type(
+                resolve,
+                &*seq.type_.generics.body,
+                seq.q_mark.is_some(),
+                interface_id,
+            )?;
             let type_id = add_type(
                 resolve,
                 wit_parser::TypeDef {
@@ -129,6 +140,7 @@ fn wi_non_any2w(
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
                 },
+                interface_id,
             )?;
 
             wit_parser::Type::Id(type_id)
@@ -166,6 +178,7 @@ fn wi_non_any2w(
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
                 },
+                interface_id,
             )?;
             wit_parser::Type::Id(type_id)
         }

@@ -1,4 +1,8 @@
-enum gpu-power-preference {
-    low-power,
-    high-performance,
+package my-namespace:my-package;
+
+interface my-interface {
+    enum gpu-power-preference {
+        low-power,
+        high-performance,
+    }
 }

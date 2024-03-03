@@ -1,6 +1,10 @@
-record gpu-color-dict {
-    r: float64,
-    g: float64,
-    b: option<float64>,
-    a: option<float64>,
+package my-namespace:my-package;
+
+interface my-interface {
+    record gpu-color-dict {
+        r: float64,
+        g: float64,
+        b: option<float64>,
+        a: option<float64>,
+    }
 }

@@ -10,17 +10,90 @@ use crate::translations::types_::wi2w_type;
 
 mod types_;
 
-pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
+pub use wit_parser::PackageName;
+
+/// conversion options.
+#[derive(Clone, Debug)]
+pub struct ConversionOptions {
+    /// Name of package for generated wit.
+    pub package_name: wit_parser::PackageName,
+    /// Name of world ot interface of generated wit.
+    pub world_or_interface: WorldOrInterface,
+    // /// Overrides of webidl.
+    // pub overrides: Vec<>,
+}
+impl Default for ConversionOptions {
+    fn default() -> Self {
+        Self {
+            package_name: wit_parser::PackageName {
+                name: "my-package".into(),
+                namespace: "my-namespace".into(),
+                version: None,
+            },
+            world_or_interface: WorldOrInterface::world(None),
+            // overrides: vec![],
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum WorldOrInterface {
+    World(String),
+    Interface(String),
+}
+impl WorldOrInterface {
+    pub fn world(name: Option<String>) -> Self {
+        Self::World(name.unwrap_or("my-world".into()))
+    }
+    pub fn interface(name: Option<String>) -> Self {
+        Self::Interface(name.unwrap_or("my-interface".into()))
+    }
+}
+
+pub fn webidl_to_wit(
+    webidl: WebIdlDefinitions,
+    options: ConversionOptions,
+) -> anyhow::Result<Resolve> {
     let mut resolve: Resolve = Default::default();
     let mut mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'_>>> = HashMap::new();
-    let interface = wit_parser::Interface {
-        name: Some("main_interface".to_string()),
-        types: Default::default(),
-        functions: Default::default(),
+    let package_id = resolve.packages.alloc(wit_parser::Package {
+        name: options.package_name.clone(),
         docs: Default::default(),
-        package: Default::default(),
+        interfaces: Default::default(),
+        worlds: Default::default(),
+    });
+    resolve
+        .package_names
+        .insert(options.package_name, package_id);
+    let package = resolve.packages.get_mut(package_id).unwrap();
+    let interface_id = match options.world_or_interface {
+        WorldOrInterface::World(_world_name) => {
+            // let world = wit_parser::World {
+            //     name: world_name,
+            //     package: Some(package_id),
+            //     docs: Default::default(),
+            //     imports: Default::default(),
+            //     exports: Default::default(),
+            //     includes: Default::default(),
+            //     include_names: Default::default(),
+            // };
+            // let world_id = resolve.worlds.alloc(world);
+            // world_id
+            todo!()
+        }
+        WorldOrInterface::Interface(interface_name) => {
+            let interface = wit_parser::Interface {
+                name: Some(interface_name.clone()),
+                package: Some(package_id),
+                types: Default::default(),
+                functions: Default::default(),
+                docs: Default::default(),
+            };
+            let interface_id = resolve.interfaces.alloc(interface);
+            package.interfaces.insert(interface_name, interface_id);
+            interface_id
+        }
     };
-    let interface_id = resolve.interfaces.alloc(interface);
 
     for item in webidl {
         match item {
@@ -67,14 +140,15 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
             }
             Definition::Implements(_) => todo!(),
             Definition::Typedef(wi_type) => {
-                let wit_type = wi2w_type(&mut resolve, &wi_type.type_.type_, false).unwrap();
+                let wit_type =
+                    wi2w_type(&mut resolve, &wi_type.type_.type_, false, interface_id).unwrap();
                 let resource = wit_parser::TypeDef {
                     name: Some(ident_name(wi_type.identifier.0)),
                     kind: wit_parser::TypeDefKind::Type(wit_type),
                     owner: wit_parser::TypeOwner::Interface(interface_id),
                     docs: Default::default(),
                 };
-                add_type(&mut resolve, resource)?;
+                add_type(&mut resolve, resource, interface_id)?;
             }
             Definition::Interface(interface) => {
                 let resource = wit_parser::TypeDef {
@@ -83,7 +157,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     owner: wit_parser::TypeOwner::Interface(interface_id),
                     docs: Default::default(),
                 };
-                let resource_id = add_type(&mut resolve, resource)?;
+                let resource_id = add_type(&mut resolve, resource, interface_id)?;
 
                 interface_members_to_functions(
                     &mut resolve,
@@ -99,7 +173,13 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     .iter()
                     .map(|mem| wit_parser::Field {
                         name: ident_name(mem.identifier.0),
-                        ty: wi2w_type(&mut resolve, &mem.type_, mem.required.is_none()).unwrap(),
+                        ty: wi2w_type(
+                            &mut resolve,
+                            &mem.type_,
+                            mem.required.is_none(),
+                            interface_id,
+                        )
+                        .unwrap(),
                         docs: Default::default(),
                     })
                     .collect_vec();
@@ -110,7 +190,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
                 };
-                add_type(&mut resolve, out)?;
+                add_type(&mut resolve, out, interface_id)?;
             }
             Definition::Enum(e) => {
                 let cases = e
@@ -130,7 +210,7 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
                     owner: wit_parser::TypeOwner::None,
                     docs: Default::default(),
                 };
-                add_type(&mut resolve, out)?;
+                add_type(&mut resolve, out, interface_id)?;
             }
         }
     }
@@ -141,7 +221,9 @@ pub fn webidl_to_wit(webidl: WebIdlDefinitions) -> anyhow::Result<Resolve> {
 pub fn add_type(
     resolve: &mut Resolve,
     type_def: wit_parser::TypeDef,
+    interface_id: InterfaceId,
 ) -> anyhow::Result<wit_parser::TypeId> {
+    let interface = resolve.interfaces.get_mut(interface_id).unwrap();
     if let Some((id, td)) = resolve
         .types
         .iter()
@@ -154,12 +236,20 @@ pub fn add_type(
         td.owner = type_def.owner;
         td.docs = type_def.docs;
         Ok(id)
+        // TODO: add to interface/world if not yet inside
     } else {
-        Ok(resolve.types.alloc(type_def))
+        let type_name = type_def.name.clone().unwrap_or_default();
+        let type_id = resolve.types.alloc(type_def);
+        interface.types.insert(type_name, type_id);
+        Ok(type_id)
     }
 }
 
-pub fn get_type_id(resolve: &mut Resolve, type_name: String) -> wit_parser::TypeId {
+pub fn get_type_id(
+    resolve: &mut Resolve,
+    interface_id: InterfaceId,
+    type_name: String,
+) -> wit_parser::TypeId {
     let type_ = resolve
         .types
         .iter()
@@ -167,18 +257,24 @@ pub fn get_type_id(resolve: &mut Resolve, type_name: String) -> wit_parser::Type
 
     match type_ {
         Some((type_id, _)) => type_id,
-        None => resolve.types.alloc(wit_parser::TypeDef {
-            name: Some(type_name),
-            kind: wit_parser::TypeDefKind::Unknown,
-            owner: wit_parser::TypeOwner::None,
-            docs: Default::default(),
-        }),
+        None => {
+            let type_id = resolve.types.alloc(wit_parser::TypeDef {
+                name: Some(type_name.clone()),
+                kind: wit_parser::TypeDefKind::Unknown,
+                owner: wit_parser::TypeOwner::None,
+                docs: Default::default(),
+            });
+            let interface = resolve.interfaces.get_mut(interface_id).unwrap();
+            interface.types.insert(type_name, type_id);
+            type_id
+        }
     }
 }
 
 fn function_args(
     args: &weedle::argument::ArgumentList,
     mut resolve: &mut Resolve,
+    interface_id: InterfaceId,
 ) -> anyhow::Result<wit_parser::Params> {
     Ok(args
         .list
@@ -188,7 +284,8 @@ fn function_args(
             weedle::argument::Argument::Single(arg) => {
                 let name = ident_name(arg.identifier.0);
                 let optional = arg.optional.is_some();
-                let type_ = wi2w_type(&mut resolve, &arg.type_.type_, optional).unwrap();
+                let type_ =
+                    wi2w_type(&mut resolve, &arg.type_.type_, optional, interface_id).unwrap();
                 (name, type_)
             }
         })
@@ -273,7 +370,7 @@ fn interface_members_to_functions<'a>(
             weedle::interface::InterfaceMember::Stringifier(_) => todo!(),
             weedle::interface::InterfaceMember::Attribute(attr) => {
                 let attr_name = ident_name(&attr.identifier.0);
-                let attr_type = wi2w_type(&mut resolve, &attr.type_.type_, false)?;
+                let attr_type = wi2w_type(&mut resolve, &attr.type_.type_, false, interface_id)?;
                 let method_kind = match attr.modifier {
                     Some(weedle::interface::StringifierOrInheritOrStatic::Static(_)) => {
                         wit_parser::FunctionKind::Static(resource_id)
@@ -319,7 +416,7 @@ fn interface_members_to_functions<'a>(
                 let function = wit_parser::Function {
                     name: name.clone(),
                     kind: wit_parser::FunctionKind::Constructor(resource_id),
-                    params: function_args(&constructor.args.body, &mut resolve)?,
+                    params: function_args(&constructor.args.body, &mut resolve, interface_id)?,
                     docs: Default::default(),
                     results: wit_parser::Results::Named(Default::default()),
                 };
@@ -336,11 +433,12 @@ fn interface_members_to_functions<'a>(
                             wit_parser::Results::Named(Default::default())
                         }
                         weedle::types::ReturnType::Type(type_) => {
-                            let type_ = wi2w_type(&mut resolve, &type_, false).unwrap();
+                            let type_ =
+                                wi2w_type(&mut resolve, &type_, false, interface_id).unwrap();
                             wit_parser::Results::Anon(type_)
                         }
                     },
-                    params: function_args(&operation.args.body, &mut resolve)?,
+                    params: function_args(&operation.args.body, &mut resolve, interface_id)?,
                     docs: Default::default(),
                 };
                 functions.insert(function_name, function);

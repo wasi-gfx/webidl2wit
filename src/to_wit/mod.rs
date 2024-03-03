@@ -2,7 +2,9 @@ use std::assert_matches::assert_matches;
 
 use anyhow::Context;
 use itertools::Itertools;
-use wit_parser::{FunctionKind, Resolve, Type, TypeDefKind, TypeId, TypeOwner};
+use wit_parser::{
+    FunctionKind, InterfaceId, Package, Resolve, Type, TypeDefKind, TypeId, TypeOwner,
+};
 
 const INDENTATION: &str = "    ";
 
@@ -13,30 +15,65 @@ pub trait ToWitSyntax {
 impl ToWitSyntax for Resolve {
     fn to_wit_syntax(&self, resolve: &Resolve) -> anyhow::Result<String> {
         let mut output = OutputBuilder::new();
-        let indentation = 0;
-
-        for (type_id, type_def) in &self.types {
-            match &type_def.name {
-                None => {
-                    asset_type_def_kind_inline(&type_def.kind);
-                    // unnamed/inlined types don't need to be in output.
-                }
-                Some(name) => {
-                    asset_type_def_kind_named(&type_def.kind);
-                    let val = type_def_kind_standalone(
-                        type_id,
-                        &type_def.kind,
-                        name,
-                        resolve,
-                        &type_def.owner,
-                    )?;
-                    output.add_lines(indentation, &val);
-                }
-            }
+        for (_, package_def) in &resolve.packages {
+            add_package(resolve, &mut output, package_def)?;
         }
 
         Ok(output.to_string())
     }
+}
+
+fn add_package(
+    resolve: &Resolve,
+    output: &mut OutputBuilder,
+    package_def: &Package,
+) -> anyhow::Result<()> {
+    output.add_lines(&format!("package {};", package_def.name));
+    output.add_empty_line();
+    for (_, interface_id) in &package_def.interfaces {
+        add_interface(resolve, output, *interface_id)?;
+    }
+    Ok(())
+}
+
+fn add_interface(
+    resolve: &Resolve,
+    output: &mut OutputBuilder,
+    interface_id: InterfaceId,
+) -> anyhow::Result<()> {
+    let interface_def = resolve.interfaces.get(interface_id).unwrap();
+    output.add_lines(&format!(
+        "interface {} {{",
+        interface_def
+            .name
+            .as_ref()
+            .map(|n| n.as_str())
+            .unwrap_or_default()
+    ));
+    output.indent();
+    for (_, type_id) in &interface_def.types {
+        let type_def = resolve.types.get(*type_id).unwrap();
+        match &type_def.name {
+            None => {
+                asset_type_def_kind_inline(&type_def.kind);
+                // unnamed/inlined types don't need to be in output.
+            }
+            Some(name) => {
+                asset_type_def_kind_named(&type_def.kind);
+                let val = type_def_kind_standalone(
+                    *type_id,
+                    &type_def.kind,
+                    name,
+                    resolve,
+                    &type_def.owner,
+                )?;
+                output.add_lines(&val);
+            }
+        }
+    }
+    output.outdent();
+    output.add_lines(&format!("}}"));
+    Ok(())
 }
 
 // this function is also from `translations`, where not all types are known yet. So make `pub` and allow `TypeDefKind::Unknown` in `inline_type_rep`.
@@ -241,6 +278,7 @@ fn clean_func_name(name: &str) -> &str {
 #[derive(Default)]
 struct OutputBuilder {
     val: String,
+    indentation: usize,
 }
 impl ToString for OutputBuilder {
     fn to_string(&self) -> String {
@@ -255,12 +293,23 @@ impl OutputBuilder {
     //     let indentation = std::iter::repeat(INDENTATION).take(indentation).join("");
     //     self.val += &format!("{indentation}{s}\n");
     // }
-    pub fn add_lines(&mut self, indentation: usize, s: &str) {
-        let indentation = std::iter::repeat(INDENTATION).take(indentation).join("");
+    pub fn add_lines(&mut self, s: &str) {
+        let indentation = std::iter::repeat(INDENTATION)
+            .take(self.indentation)
+            .join("");
         let s = s
             .lines()
             .map(|line| format!("{indentation}{line}\n"))
             .join("");
         self.val += &format!("{s}");
+    }
+    pub fn add_empty_line(&mut self) {
+        self.val += "\n";
+    }
+    pub fn indent(&mut self) {
+        self.indentation += 1;
+    }
+    pub fn outdent(&mut self) {
+        self.indentation -= 1;
     }
 }

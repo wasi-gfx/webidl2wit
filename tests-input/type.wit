@@ -1,12 +1,16 @@
-type gpu-buffer-dynamic-offset = u32;
-type gpu-stencil-value = u32;
-type gpu-sample-mask = u32;
-type gpu-depth-bias = s32;
-type gpu-size64 = u64;
-type gpu-integer-coordinate = u32;
-type gpu-index32 = u32;
-type gpu-size32 = u32;
-type gpu-signed-offset32 = s32;
-type gpu-size64-out = u64;
-type gpu-integer-coordinate-out = u32;
-type gpu-size32-out = u32;
+package my-namespace:my-package;
+
+interface my-interface {
+    type gpu-buffer-dynamic-offset = u32;
+    type gpu-stencil-value = u32;
+    type gpu-sample-mask = u32;
+    type gpu-depth-bias = s32;
+    type gpu-size64 = u64;
+    type gpu-integer-coordinate = u32;
+    type gpu-index32 = u32;
+    type gpu-size32 = u32;
+    type gpu-signed-offset32 = s32;
+    type gpu-size64-out = u64;
+    type gpu-integer-coordinate-out = u32;
+    type gpu-size32-out = u32;
+}

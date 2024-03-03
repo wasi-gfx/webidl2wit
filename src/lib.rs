@@ -6,31 +6,29 @@ pub mod translations;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::to_wit::ToWitSyntax;
+    use crate::{to_wit::ToWitSyntax, translations::ConversionOptions};
     use pretty_assertions::assert_eq;
     use std::{fs, path::Path};
 
     fn compare(path: &str) {
-        fn add_interface(wit: &str) -> String {
-            format!(
-                "
-                package foo:bar;
-                interface biz {{
-                {wit}
-                }}
-            "
-            )
-        }
         let webidl_input =
             fs::read_to_string(Path::new(&format!("./tests-input/{path}.idl"))).unwrap();
         let wit_input =
             fs::read_to_string(Path::new(&format!("./tests-input/{path}.wit"))).unwrap();
-        let wit_input = add_interface(&wit_input);
 
         let webidl_ast = weedle::parse(&webidl_input).unwrap();
-        let wit_ast = translations::webidl_to_wit(webidl_ast).unwrap();
+        // let wit_ast = translations::webidl_to_wit(webidl_ast, Default::default()).unwrap();
+        let wit_ast = translations::webidl_to_wit(
+            webidl_ast,
+            ConversionOptions {
+                world_or_interface: translations::WorldOrInterface::Interface(
+                    "my-interface".into(),
+                ),
+                ..Default::default()
+            },
+        )
+        .unwrap();
         let wit_output = wit_ast.to_wit_syntax(&wit_ast).unwrap();
-        let wit_output = add_interface(&wit_output);
 
         assert_eq!(wit_input, wit_output)
     }
