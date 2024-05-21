@@ -4,9 +4,7 @@ use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
 use weedle::{Definition, Definitions as WebIdlDefinitions};
 
-use crate::translations::types_::wi2w_type;
-
-mod types_;
+use crate::types_::wi2w_type;
 
 /// conversion options.
 #[derive(Clone, Debug)]
