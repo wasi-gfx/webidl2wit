@@ -1,21 +1,18 @@
 use std::collections::BTreeMap;
 
 use itertools::Itertools;
-use wit_parser::Resolve;
 
-use crate::to_wit::inline_type_name;
+use super::ident_name;
 
-use super::{add_type, get_type_id};
-
+// WebIdl 2 Wit
 pub fn wi2w_type(
-    resolve: &mut Resolve,
+    interface: &mut wit_encoder::Interface,
     wi: &weedle::types::Type,
     optional: bool,
-    interface_id: wit_parser::InterfaceId,
-) -> anyhow::Result<wit_parser::Type> {
+) -> anyhow::Result<wit_encoder::Type> {
     match wi {
         weedle::types::Type::Single(weedle::types::SingleType::NonAny(type_)) => {
-            wi_non_any2w(resolve, type_, optional, interface_id)
+            wi_non_any2w(interface, type_, optional)
         }
         weedle::types::Type::Single(weedle::types::SingleType::Any(_any)) => todo!(),
         weedle::types::Type::Union(union) => {
@@ -29,9 +26,8 @@ pub fn wi2w_type(
                 .iter()
                 .map(|type_| match type_ {
                     weedle::types::UnionMemberType::Single(type_) => {
-                        let type_ =
-                            wi_non_any2w(resolve, &type_.type_, false, interface_id).unwrap();
-                        let type_name = inline_type_name(&type_, resolve).unwrap();
+                        let type_ = wi_non_any2w(interface, &type_.type_, false).unwrap();
+                        let type_name = type_.to_string();
                         let type_name = clean_generic(type_name);
                         (type_name, type_)
                     }
@@ -50,100 +46,70 @@ pub fn wi2w_type(
                 .map(|(name, _)| name.to_owned())
                 .collect_vec()
                 .join("-or-");
+            let variant_name = ident_name(&variant_name);
 
-            let type_id = match resolve
-                .types
+            if interface
+                .type_defs()
                 .iter()
-                .find(|(_, t)| t.name.as_ref() == Some(&variant_name))
+                .all(|dt| dt.name() != &variant_name)
             {
-                Some((type_id, _)) => type_id,
-                None => add_type(
-                    resolve,
-                    wit_parser::TypeDef {
-                        name: Some(variant_name),
-                        kind: wit_parser::TypeDefKind::Variant(wit_parser::Variant {
-                            cases: cases
-                                .into_iter()
-                                .map(|(name, case)| wit_parser::Case {
-                                    name,
-                                    ty: Some(case),
-                                    docs: Default::default(),
-                                })
-                                .collect_vec(),
-                        }),
-                        owner: wit_parser::TypeOwner::None,
-                        docs: Default::default(),
-                    },
-                    interface_id,
-                )?,
-            };
+                interface.type_def({
+                    let cases = cases
+                        .into_iter()
+                        .map(|(name, case)| wit_encoder::VariantCase::value(name, case))
+                        .collect_vec();
+                    let variant = wit_encoder::TypeDef::variant(variant_name.clone(), cases);
+                    variant
+                });
+            }
 
-            Ok(wit_parser::Type::Id(type_id))
+            Ok(wit_encoder::Type::named(variant_name))
         }
     }
 }
 
+// WebIdl non any 2 Wit
 fn wi_non_any2w(
-    resolve: &mut Resolve,
+    interface: &mut wit_encoder::Interface,
     wi: &weedle::types::NonAnyType,
     optional: bool,
-    interface_id: wit_parser::InterfaceId,
-) -> anyhow::Result<wit_parser::Type> {
+) -> anyhow::Result<wit_encoder::Type> {
     let type_ = match wi {
-        weedle::types::NonAnyType::Boolean(_) => wit_parser::Type::Bool,
-        weedle::types::NonAnyType::ByteString(_) => wit_parser::Type::String,
-        weedle::types::NonAnyType::DOMString(_) => wit_parser::Type::String,
-        weedle::types::NonAnyType::USVString(_) => wit_parser::Type::String,
+        weedle::types::NonAnyType::Boolean(_) => wit_encoder::Type::Bool,
+        weedle::types::NonAnyType::ByteString(_) => wit_encoder::Type::String,
+        weedle::types::NonAnyType::DOMString(_) => wit_encoder::Type::String,
+        weedle::types::NonAnyType::USVString(_) => wit_encoder::Type::String,
         weedle::types::NonAnyType::Integer(int) => match int.type_ {
             weedle::types::IntegerType::LongLong(int) => match int.unsigned {
-                Some(_) => wit_parser::Type::U64,
-                None => wit_parser::Type::S64,
+                Some(_) => wit_encoder::Type::U64,
+                None => wit_encoder::Type::S64,
             },
             weedle::types::IntegerType::Long(int) => match int.unsigned {
-                Some(_) => wit_parser::Type::U32,
-                None => wit_parser::Type::S32,
+                Some(_) => wit_encoder::Type::U32,
+                None => wit_encoder::Type::S32,
             },
             weedle::types::IntegerType::Short(int) => match int.unsigned {
-                Some(_) => wit_parser::Type::U16,
-                None => wit_parser::Type::S16,
+                Some(_) => wit_encoder::Type::U16,
+                None => wit_encoder::Type::S16,
             },
         },
         weedle::types::NonAnyType::FloatingPoint(float) => match float.type_ {
-            weedle::types::FloatingPointType::Float(_) => wit_parser::Type::Float32,
-            weedle::types::FloatingPointType::Double(_) => wit_parser::Type::Float64,
+            weedle::types::FloatingPointType::Float(_) => wit_encoder::Type::F32,
+            weedle::types::FloatingPointType::Double(_) => wit_encoder::Type::F64,
         },
         weedle::types::NonAnyType::Identifier(ident) => {
-            let type_id = get_type_id(resolve, interface_id, super::ident_name(ident.type_.0));
-            wit_parser::Type::Id(type_id)
+            wit_encoder::Type::named(ident_name(ident.type_.0))
         }
         weedle::types::NonAnyType::Promise(promise) => {
-            // use wit_parser::TypeDefKind::Future instead?
+            // use wit_encoder::TypeDefKind::Future instead?
             match &*promise.generics.body {
                 weedle::types::ReturnType::Undefined(_) => todo!(),
-                weedle::types::ReturnType::Type(type_) => {
-                    wi2w_type(resolve, type_, false, interface_id)?
-                }
+                weedle::types::ReturnType::Type(type_) => wi2w_type(interface, type_, false)?,
             }
         }
         weedle::types::NonAnyType::Sequence(seq) => {
-            let type_ = wi2w_type(
-                resolve,
-                &*seq.type_.generics.body,
-                seq.q_mark.is_some(),
-                interface_id,
-            )?;
-            let type_id = add_type(
-                resolve,
-                wit_parser::TypeDef {
-                    name: None,
-                    kind: wit_parser::TypeDefKind::List(type_),
-                    owner: wit_parser::TypeOwner::None,
-                    docs: Default::default(),
-                },
-                interface_id,
-            )?;
-
-            wit_parser::Type::Id(type_id)
+            let type_ = wi2w_type(interface, &*seq.type_.generics.body, seq.q_mark.is_some())?;
+            wit_encoder::Type::list(type_)
         }
         weedle::types::NonAnyType::Error(_) => todo!(),
         weedle::types::NonAnyType::Byte(_) => todo!(),
@@ -169,19 +135,7 @@ fn wi_non_any2w(
 
     Ok(match optional {
         false => type_,
-        true => {
-            let type_id = add_type(
-                resolve,
-                wit_parser::TypeDef {
-                    name: None,
-                    kind: wit_parser::TypeDefKind::Option(type_),
-                    owner: wit_parser::TypeOwner::None,
-                    docs: Default::default(),
-                },
-                interface_id,
-            )?;
-            wit_parser::Type::Id(type_id)
-        }
+        true => wit_encoder::Type::option(type_),
     })
 }
 

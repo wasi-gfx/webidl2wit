@@ -202,6 +202,7 @@ dependencies = [
  "itertools",
  "pretty_assertions",
  "weedle",
+ "wit-encoder",
  "wit-parser",
 ]
 
@@ -211,6 +212,15 @@ version = "0.12.0"
 source = "git+https://github.com/rustwasm/weedle.git#c704b30c7bb8c041ab4a9a47637378e02192ab6f"
 dependencies = [
  "nom",
+]
+
+[[package]]
+name = "wit-encoder"
+version = "0.204.0"
+source = "git+https://github.com/MendyBerger/wasm-tools.git?rev=67637756f69937d7f1e29565174fd4a59c4314a5#67637756f69937d7f1e29565174fd4a59c4314a5"
+dependencies = [
+ "pretty_assertions",
+ "semver",
 ]
 
 [[package]]
