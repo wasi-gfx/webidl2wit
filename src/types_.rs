@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use itertools::Itertools;
 
-use super::ident_name;
+use crate::translations::ident_name;
 
 // WebIdl 2 Wit
 pub fn wi2w_type(
