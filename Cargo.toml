@@ -1,5 +1,5 @@
 [package]
-name = "webidl-wit"
+name = "webidl2wit"
 version = "0.1.0"
 edition = "2021"
 
