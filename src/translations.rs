@@ -1,8 +1,9 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
 use weedle::{Definition, Definitions as WebIdlDefinitions};
+use wit_encoder::Ident;
 
 /// conversion options.
 #[derive(Clone, Debug)]
@@ -23,6 +24,8 @@ impl Default for ConversionOptions {
 pub(super) struct State<'a> {
     pub interface: wit_encoder::Interface,
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
+    // Resource names do know what needs to be borrowed.
+    pub resource_names: HashSet<Ident>,
 }
 
 pub fn webidl_to_wit(
@@ -33,6 +36,13 @@ pub fn webidl_to_wit(
     let mut state = State {
         interface: options.interface,
         mixins: HashMap::new(),
+        resource_names: webidl
+            .iter()
+            .filter_map(|item| match item {
+                Definition::Interface(wi_interface) => Some(ident_name(wi_interface.identifier.0)),
+                _ => None,
+            })
+            .collect(),
     };
 
     for item in webidl {
@@ -83,6 +93,7 @@ pub fn webidl_to_wit(
                 let fields = dict.members.body.iter().map(|mem| {
                     let name = ident_name(mem.identifier.0);
                     let ty = state.wi2w_type(&mem.type_, mem.required.is_none()).unwrap();
+                    let ty = state.borrow_resources(ty);
                     (name, ty)
                 });
                 let type_def = wit_encoder::TypeDef::record(ident_name(dict.identifier.0), fields);
@@ -120,6 +131,7 @@ impl<'a> State<'a> {
                     let name = ident_name(arg.identifier.0);
                     let optional = arg.optional.is_some();
                     let type_ = self.wi2w_type(&arg.type_.type_, optional).unwrap();
+                    let type_ = self.borrow_resources(type_);
                     (name, type_)
                 }
             })

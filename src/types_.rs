@@ -30,6 +30,7 @@ impl<'a> State<'a> {
                             let type_ = self.wi_non_any2w(&type_.type_, false).unwrap();
                             let type_name = type_.to_string();
                             let type_name = clean_generic(type_name);
+                            let type_ = self.borrow_resources(type_);
                             (type_name, type_)
                         }
                         weedle::types::UnionMemberType::Union(_) => todo!(),
@@ -72,7 +73,6 @@ impl<'a> State<'a> {
 
     // WebIdl non any 2 Wit
     fn wi_non_any2w(
-        // interface: &mut wit_encoder::Interface,
         &mut self,
         wi: &weedle::types::NonAnyType,
         optional: bool,
@@ -144,6 +144,23 @@ impl<'a> State<'a> {
             false => type_,
             true => wit_encoder::Type::option(type_),
         })
+    }
+
+    pub fn borrow_resources(&self, type_: wit_encoder::Type) -> wit_encoder::Type {
+        match type_ {
+            wit_encoder::Type::Option(type_) => {
+                wit_encoder::Type::option(self.borrow_resources(*type_))
+            }
+            wit_encoder::Type::List(type_) => {
+                wit_encoder::Type::list(self.borrow_resources(*type_))
+            }
+            wit_encoder::Type::Result(_) => todo!(),
+            wit_encoder::Type::Tuple(_) => todo!(),
+            wit_encoder::Type::Named(ref name) if self.resource_names.contains(&name) => {
+                wit_encoder::Type::borrow(type_)
+            }
+            _ => type_,
+        }
     }
 }
 

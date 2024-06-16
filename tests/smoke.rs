@@ -35,6 +35,11 @@ fn type_() {
 }
 
 #[test]
+fn borrow() {
+    compare("borrow");
+}
+
+#[test]
 fn webgpu() {
     compare("webgpu");
 }

@@ -1,0 +1,22 @@
+package my-namespace:my-package;
+
+interface my-interface {
+    resource some-object {
+        some-value: func() -> u32;
+        take-resource: static func(obj: borrow<some-object>);
+    }
+    record some-dict {
+        obj: borrow<some-object>,
+        optional-obj: option<borrow<some-object>>,
+        sequence-obj: list<borrow<some-object>>,
+        sequence-of-optional-obj: list<option<borrow<some-object>>>,
+        optional-of-sequence-obj: option<list<borrow<some-object>>>,
+        named: named-object,
+    }
+    variant s32-or-some-object {
+        %s32(s32),
+        some-object(borrow<some-object>),
+    }
+    type some-union = s32-or-some-object;
+    type named-object = some-object;
+}

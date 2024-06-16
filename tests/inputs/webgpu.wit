@@ -376,14 +376,14 @@ interface my-interface {
         set-label: func(label: string);
     }
     record gpu-bind-group-descriptor {
-        layout: gpu-bind-group-layout,
+        layout: borrow<gpu-bind-group-layout>,
         entries: list<gpu-bind-group-entry>,
     }
     variant gpu-buffer-binding-or-gpu-external-texture-or-gpu-sampler-or-gpu-texture-view {
         gpu-buffer-binding(gpu-buffer-binding),
-        gpu-external-texture(gpu-external-texture),
-        gpu-sampler(gpu-sampler),
-        gpu-texture-view(gpu-texture-view),
+        gpu-external-texture(borrow<gpu-external-texture>),
+        gpu-sampler(borrow<gpu-sampler>),
+        gpu-texture-view(borrow<gpu-texture-view>),
     }
     type gpu-binding-resource = gpu-buffer-binding-or-gpu-external-texture-or-gpu-sampler-or-gpu-texture-view;
     record gpu-bind-group-entry {
@@ -391,7 +391,7 @@ interface my-interface {
         %resource: gpu-binding-resource,
     }
     record gpu-buffer-binding {
-        buffer: gpu-buffer,
+        buffer: borrow<gpu-buffer>,
         offset: option<gpu-size64>,
         size: option<gpu-size64>,
     }
@@ -400,7 +400,7 @@ interface my-interface {
         set-label: func(label: string);
     }
     record gpu-pipeline-layout-descriptor {
-        bind-group-layouts: list<gpu-bind-group-layout>,
+        bind-group-layouts: list<borrow<gpu-bind-group-layout>>,
     }
     resource gpu-shader-module {
         get-compilation-info: func() -> gpu-compilation-info;
@@ -413,7 +413,7 @@ interface my-interface {
     }
     variant gpu-auto-layout-mode-or-gpu-pipeline-layout {
         gpu-auto-layout-mode(gpu-auto-layout-mode),
-        gpu-pipeline-layout(gpu-pipeline-layout),
+        gpu-pipeline-layout(borrow<gpu-pipeline-layout>),
     }
     record gpu-shader-module-compilation-hint {
         entry-point: string,
@@ -452,7 +452,7 @@ interface my-interface {
         layout: gpu-auto-layout-mode-or-gpu-pipeline-layout,
     }
     record gpu-programmable-stage {
-        module: gpu-shader-module,
+        module: borrow<gpu-shader-module>,
         entry-point: option<string>,
     }
     type gpu-pipeline-constant-value = f64;
@@ -632,10 +632,10 @@ interface my-interface {
         rows-per-image: option<gpu-size32>,
     }
     record gpu-image-copy-buffer {
-        buffer: gpu-buffer,
+        buffer: borrow<gpu-buffer>,
     }
     record gpu-image-copy-texture {
-        texture: gpu-texture,
+        texture: borrow<gpu-texture>,
         mip-level: option<gpu-integer-coordinate>,
         origin: option<gpu-origin3-d>,
         aspect: option<gpu-texture-aspect>,
@@ -656,12 +656,12 @@ interface my-interface {
     resource gpu-command-encoder {
         begin-render-pass: func(descriptor: gpu-render-pass-descriptor) -> gpu-render-pass-encoder;
         begin-compute-pass: func(descriptor: option<gpu-compute-pass-descriptor>) -> gpu-compute-pass-encoder;
-        copy-buffer-to-buffer: func(source: gpu-buffer, source-offset: gpu-size64, destination: gpu-buffer, destination-offset: gpu-size64, size: gpu-size64);
+        copy-buffer-to-buffer: func(source: borrow<gpu-buffer>, source-offset: gpu-size64, destination: borrow<gpu-buffer>, destination-offset: gpu-size64, size: gpu-size64);
         copy-buffer-to-texture: func(source: gpu-image-copy-buffer, destination: gpu-image-copy-texture, copy-size: gpu-extent3-d);
         copy-texture-to-buffer: func(source: gpu-image-copy-texture, destination: gpu-image-copy-buffer, copy-size: gpu-extent3-d);
         copy-texture-to-texture: func(source: gpu-image-copy-texture, destination: gpu-image-copy-texture, copy-size: gpu-extent3-d);
-        clear-buffer: func(buffer: gpu-buffer, offset: option<gpu-size64>, size: option<gpu-size64>);
-        resolve-query-set: func(query-set: gpu-query-set, first-query: gpu-size32, query-count: gpu-size32, destination: gpu-buffer, destination-offset: gpu-size64);
+        clear-buffer: func(buffer: borrow<gpu-buffer>, offset: option<gpu-size64>, size: option<gpu-size64>);
+        resolve-query-set: func(query-set: borrow<gpu-query-set>, first-query: gpu-size32, query-count: gpu-size32, destination: borrow<gpu-buffer>, destination-offset: gpu-size64);
         finish: func(descriptor: option<gpu-command-buffer-descriptor>) -> gpu-command-buffer;
         label: func() -> string;
         set-label: func(label: string);
@@ -669,19 +669,19 @@ interface my-interface {
     record gpu-command-encoder-descriptor {
     }
     resource gpu-compute-pass-encoder {
-        set-pipeline: func(pipeline: gpu-compute-pipeline);
+        set-pipeline: func(pipeline: borrow<gpu-compute-pipeline>);
         dispatch-workgroups: func(workgroup-count-x: gpu-size32, workgroup-count-y: option<gpu-size32>, workgroup-count-z: option<gpu-size32>);
-        dispatch-workgroups-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
+        dispatch-workgroups-indirect: func(indirect-buffer: borrow<gpu-buffer>, indirect-offset: gpu-size64);
         end: func();
         label: func() -> string;
         set-label: func(label: string);
         push-debug-group: func(group-label: string);
         pop-debug-group: func();
         insert-debug-marker: func(marker-label: string);
-        set-bind-group: func(index: gpu-index32, bind-group: option<gpu-bind-group>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
+        set-bind-group: func(index: gpu-index32, bind-group: option<borrow<gpu-bind-group>>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
     }
     record gpu-compute-pass-timestamp-writes {
-        query-set: gpu-query-set,
+        query-set: borrow<gpu-query-set>,
         beginning-of-pass-write-index: option<gpu-size32>,
         end-of-pass-write-index: option<gpu-size32>,
     }
@@ -695,37 +695,37 @@ interface my-interface {
         set-stencil-reference: func(reference: gpu-stencil-value);
         begin-occlusion-query: func(query-index: gpu-size32);
         end-occlusion-query: func();
-        execute-bundles: func(bundles: list<gpu-render-bundle>);
+        execute-bundles: func(bundles: list<borrow<gpu-render-bundle>>);
         end: func();
         label: func() -> string;
         set-label: func(label: string);
         push-debug-group: func(group-label: string);
         pop-debug-group: func();
         insert-debug-marker: func(marker-label: string);
-        set-bind-group: func(index: gpu-index32, bind-group: option<gpu-bind-group>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
+        set-bind-group: func(index: gpu-index32, bind-group: option<borrow<gpu-bind-group>>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
     }
     record gpu-render-pass-timestamp-writes {
-        query-set: gpu-query-set,
+        query-set: borrow<gpu-query-set>,
         beginning-of-pass-write-index: option<gpu-size32>,
         end-of-pass-write-index: option<gpu-size32>,
     }
     record gpu-render-pass-descriptor {
         color-attachments: list<option<gpu-render-pass-color-attachment>>,
         depth-stencil-attachment: option<gpu-render-pass-depth-stencil-attachment>,
-        occlusion-query-set: option<gpu-query-set>,
+        occlusion-query-set: option<borrow<gpu-query-set>>,
         timestamp-writes: option<gpu-render-pass-timestamp-writes>,
         max-draw-count: option<gpu-size64>,
     }
     record gpu-render-pass-color-attachment {
-        view: gpu-texture-view,
+        view: borrow<gpu-texture-view>,
         depth-slice: option<gpu-integer-coordinate>,
-        resolve-target: option<gpu-texture-view>,
+        resolve-target: option<borrow<gpu-texture-view>>,
         clear-value: option<gpu-color>,
         load-op: gpu-load-op,
         store-op: gpu-store-op,
     }
     record gpu-render-pass-depth-stencil-attachment {
-        view: gpu-texture-view,
+        view: borrow<gpu-texture-view>,
         depth-clear-value: option<f32>,
         depth-load-op: option<gpu-load-op>,
         depth-store-op: option<gpu-store-op>,
@@ -761,14 +761,14 @@ interface my-interface {
         push-debug-group: func(group-label: string);
         pop-debug-group: func();
         insert-debug-marker: func(marker-label: string);
-        set-bind-group: func(index: gpu-index32, bind-group: option<gpu-bind-group>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
-        set-pipeline: func(pipeline: gpu-render-pipeline);
-        set-index-buffer: func(buffer: gpu-buffer, index-format: gpu-index-format, offset: option<gpu-size64>, size: option<gpu-size64>);
-        set-vertex-buffer: func(slot: gpu-index32, buffer: option<gpu-buffer>, offset: option<gpu-size64>, size: option<gpu-size64>);
+        set-bind-group: func(index: gpu-index32, bind-group: option<borrow<gpu-bind-group>>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
+        set-pipeline: func(pipeline: borrow<gpu-render-pipeline>);
+        set-index-buffer: func(buffer: borrow<gpu-buffer>, index-format: gpu-index-format, offset: option<gpu-size64>, size: option<gpu-size64>);
+        set-vertex-buffer: func(slot: gpu-index32, buffer: option<borrow<gpu-buffer>>, offset: option<gpu-size64>, size: option<gpu-size64>);
         draw: func(vertex-count: gpu-size32, instance-count: option<gpu-size32>, first-vertex: option<gpu-size32>, first-instance: option<gpu-size32>);
         draw-indexed: func(index-count: gpu-size32, instance-count: option<gpu-size32>, first-index: option<gpu-size32>, base-vertex: option<gpu-signed-offset32>, first-instance: option<gpu-size32>);
-        draw-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
-        draw-indexed-indirect: func(indirect-buffer: gpu-buffer, indirect-offset: gpu-size64);
+        draw-indirect: func(indirect-buffer: borrow<gpu-buffer>, indirect-offset: gpu-size64);
+        draw-indexed-indirect: func(indirect-buffer: borrow<gpu-buffer>, indirect-offset: gpu-size64);
     }
     record gpu-render-bundle-encoder-descriptor {
         depth-read-only: option<bool>,
@@ -777,9 +777,9 @@ interface my-interface {
     record gpu-queue-descriptor {
     }
     resource gpu-queue {
-        submit: func(command-buffers: list<gpu-command-buffer>);
+        submit: func(command-buffers: list<borrow<gpu-command-buffer>>);
         on-submitted-work-done: func();
-        write-buffer: func(buffer: gpu-buffer, buffer-offset: gpu-size64, data-offset: option<gpu-size64>, size: option<gpu-size64>);
+        write-buffer: func(buffer: borrow<gpu-buffer>, buffer-offset: gpu-size64, data-offset: option<gpu-size64>, size: option<gpu-size64>);
         write-texture: func(destination: gpu-image-copy-texture, data-layout: gpu-image-data-layout, size: gpu-extent3-d);
         copy-external-image-to-texture: func(source: gpu-image-copy-external-image, destination: gpu-image-copy-texture-tagged, copy-size: gpu-extent3-d);
         label: func() -> string;
@@ -810,7 +810,7 @@ interface my-interface {
         premultiplied,
     }
     record gpu-canvas-configuration {
-        device: gpu-device,
+        device: borrow<gpu-device>,
         format: gpu-texture-format,
         usage: option<gpu-texture-usage-flags>,
         view-formats: option<list<gpu-texture-format>>,
@@ -846,7 +846,7 @@ interface my-interface {
         error: func() -> gpu-error;
     }
     record gpu-uncaptured-error-event-init {
-        error: gpu-error,
+        error: borrow<gpu-error>,
     }
     type gpu-buffer-dynamic-offset = u32;
     type gpu-stencil-value = u32;
