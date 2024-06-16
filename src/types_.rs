@@ -101,7 +101,11 @@ impl<'a> State<'a> {
                 weedle::types::FloatingPointType::Double(_) => wit_encoder::Type::F64,
             },
             weedle::types::NonAnyType::Identifier(ident) => {
-                wit_encoder::Type::named(ident_name(ident.type_.0))
+                let mut type_ = wit_encoder::Type::named(ident_name(ident.type_.0));
+                if ident.q_mark.is_some() {
+                    type_ = wit_encoder::Type::option(type_)
+                }
+                type_
             }
             weedle::types::NonAnyType::Promise(promise) => {
                 // use wit_encoder::TypeDefKind::Future instead?
