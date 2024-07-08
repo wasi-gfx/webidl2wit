@@ -48,7 +48,7 @@ If you have any thoughts, please use the [discussion about this table](https://g
 | `ObservableArray<T>`            | ❓                    |
 | `setlike<T>`                    | ❓                    |
 | `maplike<K, V>`                 | ❓                    |
-| `namespace`                     | ❓                    |
+| `namespace`                     | `interface`           |
 | `typedef`                       | `type`                |
 
 ❓ = Not yet sure how to deal with this type.

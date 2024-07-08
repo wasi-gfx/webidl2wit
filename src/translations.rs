@@ -36,6 +36,7 @@ impl Default for ConversionOptions {
     }
 }
 pub(super) struct State<'a> {
+    defined_namespace: bool,
     unsupported_features: HandleUnsupported,
     pub interface: wit_encoder::Interface,
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
@@ -59,6 +60,7 @@ pub fn webidl_to_wit(
 ) -> anyhow::Result<wit_encoder::Package> {
     let mut package = wit_encoder::Package::new(options.package_name);
     let mut state = State {
+        defined_namespace: false,
         unsupported_features: options.unsupported_features,
         interface: options.interface,
         mixins: HashMap::new(),
@@ -95,12 +97,8 @@ pub fn webidl_to_wit(
                 state.mixins.insert(mixin.identifier.0.to_string(), members);
             }
             Definition::Namespace(ns) => {
-                handle_unsupported(
-                    ns.identifier.0,
-                    "callback interface",
-                    &state.unsupported_features,
-                );
-                continue;
+                let interface_name = ident_name(ns.identifier.0);
+                state.namespace_members_to_functions(&interface_name, &ns.members.body)?;
             }
             Definition::PartialInterface(wi_interface) => {
                 let resource_name = ident_name(wi_interface.identifier.0);
@@ -197,24 +195,21 @@ impl<'a> State<'a> {
             .list
             .iter()
             .map(|arg| match arg {
-                weedle::argument::Argument::Variadic(v) => {
-                    handle_unsupported(
-                        v.identifier.0,
-                        "variadic argument",
-                        &self.unsupported_features,
-                    );
-                    None
+                weedle::argument::Argument::Variadic(varg) => {
+                    let name = ident_name(varg.identifier.0);
+                    let type_ = self.wi2w_type(&varg.type_, false).unwrap();
+                    let type_ = wit_encoder::Type::List(Box::new(type_));
+                    let type_ = self.borrow_resources(type_);
+                    (name, type_)
                 }
                 weedle::argument::Argument::Single(arg) => {
                     let name = ident_name(arg.identifier.0);
                     let optional = arg.optional.is_some();
                     let type_ = self.wi2w_type(&arg.type_.type_, optional).unwrap();
                     let type_ = self.borrow_resources(type_);
-                    Some((name, type_))
+                    (name, type_)
                 }
             })
-            .filter(|item| item.is_some())
-            .map(|item| item.unwrap())
             .collect())
     }
 }
@@ -383,6 +378,59 @@ impl<'a> State<'a> {
         };
 
         resource.funcs_mut().extend(functions);
+
+        Ok(())
+    }
+    fn namespace_members_to_functions<'b>(
+        &mut self,
+        resource_name: &'b wit_encoder::Ident,
+        members: impl IntoIterator<Item = &'b weedle::namespace::NamespaceMember<'b>>,
+    ) -> anyhow::Result<()> {
+        // we allow a single namespace definition to define into the interface itself
+        // if there are more than two namespaces, we would need to support multi-interface conversion
+        // so for now we do not support this
+        if self.defined_namespace {
+            todo!("Multiple namespace definitions are not currently supported");
+        }
+        self.defined_namespace = true;
+        let mut functions = Vec::new();
+        for member in members {
+            match member {
+                weedle::namespace::NamespaceMember::Const(_) => {
+                    eprintln!(
+                        "WARN: Skipping {} as {} is unsupported",
+                        resource_name, "const"
+                    );
+                    continue;
+                }
+                weedle::namespace::NamespaceMember::Attribute(attr) => {
+                    let attr_name = ident_name(attr.identifier.0);
+                    let attr_type = self.wi2w_type(&attr.type_.type_, false)?;
+
+                    // namespaces can only have readonly attributes
+                    let mut getter = wit_encoder::StandaloneFunction::new(attr_name);
+                    getter.results(wit_encoder::Results::Anon(attr_type));
+                    functions.push(getter);
+                }
+                weedle::namespace::NamespaceMember::Operation(operation) => {
+                    let function_name = ident_name(operation.identifier.unwrap().0);
+                    let mut function = wit_encoder::StandaloneFunction::new(function_name);
+
+                    function.params(self.function_args(&operation.args.body)?);
+
+                    let results = match &operation.return_type {
+                        weedle::types::ReturnType::Undefined(_) => wit_encoder::Results::empty(),
+                        weedle::types::ReturnType::Type(type_) => {
+                            self.wi2w_type(&type_, false)?.into()
+                        }
+                    };
+                    function.results(results);
+                    functions.push(function);
+                }
+            }
+        }
+
+        self.interface.functions_mut().extend(functions);
 
         Ok(())
     }

@@ -1,6 +1,6 @@
 use pretty_assertions::assert_eq;
-use webidl2wit::{ConversionOptions, HandleUnsupported};
 use std::{fs, path::Path};
+use webidl2wit::{ConversionOptions, HandleUnsupported};
 
 fn compare(path: &str, opts: ConversionOptions) {
     let webidl_input =
@@ -40,15 +40,23 @@ fn borrow() {
 }
 
 #[test]
+fn console() {
+    compare("console", Default::default());
+}
+
+#[test]
 fn webgpu() {
     compare("webgpu", Default::default());
 }
 
 #[test]
 fn unsupported() {
-    compare("unsupported", ConversionOptions {
-        package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
-        interface: wit_encoder::Interface::new(Some("my-interface")),
-        unsupported_features: HandleUnsupported::Warn,
-    });
+    compare(
+        "unsupported",
+        ConversionOptions {
+            package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
+            interface: wit_encoder::Interface::new(Some("my-interface")),
+            unsupported_features: HandleUnsupported::Warn,
+        },
+    );
 }
