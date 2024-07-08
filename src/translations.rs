@@ -12,20 +12,45 @@ pub struct ConversionOptions {
     pub package_name: wit_encoder::PackageName,
     /// interface to hold the generated types and functions.
     pub interface: wit_encoder::Interface,
+    /// skip unsupported features
+    pub unsupported_features: HandleUnsupported,
 }
+
+#[derive(Clone, Debug)]
+pub enum HandleUnsupported {
+    /// Bail on unsupported features (default)
+    Bail,
+    /// Skip unsupported features
+    Skip,
+    /// Skip and warn unsupported features
+    Warn,
+}
+
 impl Default for ConversionOptions {
     fn default() -> Self {
         Self {
             package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
             interface: wit_encoder::Interface::new(Some("my-interface")),
+            unsupported_features: HandleUnsupported::Bail,
         }
     }
 }
 pub(super) struct State<'a> {
+    unsupported_features: HandleUnsupported,
     pub interface: wit_encoder::Interface,
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
     // Resource names do know what needs to be borrowed.
     pub resource_names: HashSet<Ident>,
+}
+
+fn handle_unsupported(name: &str, feature: &str, handle_unsupported: &HandleUnsupported) {
+    match handle_unsupported {
+        HandleUnsupported::Bail => todo!("{feature} for {name}"),
+        HandleUnsupported::Skip => {}
+        HandleUnsupported::Warn => {
+            eprintln!("WARN: Skipping {} as {} is unsupported", name, feature);
+        }
+    }
 }
 
 pub fn webidl_to_wit(
@@ -34,6 +59,7 @@ pub fn webidl_to_wit(
 ) -> anyhow::Result<wit_encoder::Package> {
     let mut package = wit_encoder::Package::new(options.package_name);
     let mut state = State {
+        unsupported_features: options.unsupported_features,
         interface: options.interface,
         mixins: HashMap::new(),
         resource_names: webidl
@@ -47,8 +73,18 @@ pub fn webidl_to_wit(
 
     for item in webidl {
         match item {
-            Definition::Callback(_) => todo!(),
-            Definition::CallbackInterface(_) => todo!(),
+            Definition::Callback(c) => {
+                handle_unsupported(c.identifier.0, "callback", &state.unsupported_features);
+                continue;
+            }
+            Definition::CallbackInterface(c) => {
+                handle_unsupported(
+                    c.identifier.0,
+                    "callback interface",
+                    &state.unsupported_features,
+                );
+                continue;
+            }
             Definition::InterfaceMixin(mixin) => {
                 let members = mixin
                     .members
@@ -58,14 +94,42 @@ pub fn webidl_to_wit(
                     .collect_vec();
                 state.mixins.insert(mixin.identifier.0.to_string(), members);
             }
-            Definition::Namespace(_) => todo!(),
+            Definition::Namespace(ns) => {
+                handle_unsupported(
+                    ns.identifier.0,
+                    "callback interface",
+                    &state.unsupported_features,
+                );
+                continue;
+            }
             Definition::PartialInterface(wi_interface) => {
                 let resource_name = ident_name(wi_interface.identifier.0);
                 state.interface_members_to_functions(&resource_name, &wi_interface.members.body)?;
             }
-            Definition::PartialInterfaceMixin(_) => todo!(),
-            Definition::PartialDictionary(_) => todo!(),
-            Definition::PartialNamespace(_) => todo!(),
+            Definition::PartialInterfaceMixin(m) => {
+                handle_unsupported(
+                    m.identifier.0,
+                    "partial interface mixin",
+                    &state.unsupported_features,
+                );
+                continue;
+            }
+            Definition::PartialDictionary(d) => {
+                handle_unsupported(
+                    d.identifier.0,
+                    "partial dictionary",
+                    &state.unsupported_features,
+                );
+                continue;
+            }
+            Definition::PartialNamespace(n) => {
+                handle_unsupported(
+                    n.identifier.0,
+                    "partial namespace",
+                    &state.unsupported_features,
+                );
+                continue;
+            }
             Definition::IncludesStatement(mixin) => {
                 let mixin_name = mixin.rhs_identifier.0.to_string();
                 let resource_name = ident_name(mixin.lhs_identifier.0);
@@ -73,7 +137,14 @@ pub fn webidl_to_wit(
                 let mixin = state.mixins.get(&mixin_name).unwrap().clone();
                 state.interface_members_to_functions(&resource_name, &mixin)?;
             }
-            Definition::Implements(_) => todo!(),
+            Definition::Implements(i) => {
+                handle_unsupported(
+                    i.lhs_identifier.0,
+                    "implements",
+                    &state.unsupported_features,
+                );
+                continue;
+            }
             Definition::Typedef(wi_type) => {
                 let type_ = state.wi2w_type(&wi_type.type_.type_, false)?;
                 let type_def = wit_encoder::TypeDef::type_(ident_name(wi_type.identifier.0), type_);
@@ -126,15 +197,24 @@ impl<'a> State<'a> {
             .list
             .iter()
             .map(|arg| match arg {
-                weedle::argument::Argument::Variadic(_) => todo!(),
+                weedle::argument::Argument::Variadic(v) => {
+                    handle_unsupported(
+                        v.identifier.0,
+                        "variadic argument",
+                        &self.unsupported_features,
+                    );
+                    None
+                }
                 weedle::argument::Argument::Single(arg) => {
                     let name = ident_name(arg.identifier.0);
                     let optional = arg.optional.is_some();
                     let type_ = self.wi2w_type(&arg.type_.type_, optional).unwrap();
                     let type_ = self.borrow_resources(type_);
-                    (name, type_)
+                    Some((name, type_))
                 }
             })
+            .filter(|item| item.is_some())
+            .map(|item| item.unwrap())
             .collect())
     }
 }
@@ -197,12 +277,48 @@ impl<'a> State<'a> {
         let mut functions = Vec::new();
         for member in members {
             match member {
-                weedle::interface::InterfaceMember::Const(_) => todo!(),
-                weedle::interface::InterfaceMember::Iterable(_) => todo!(),
-                weedle::interface::InterfaceMember::AsyncIterable(_) => todo!(),
-                weedle::interface::InterfaceMember::Maplike(_) => todo!(),
-                weedle::interface::InterfaceMember::Setlike(_) => todo!(),
-                weedle::interface::InterfaceMember::Stringifier(_) => todo!(),
+                weedle::interface::InterfaceMember::Const(_) => {
+                    eprintln!(
+                        "WARN: Skipping {} as {} is unsupported",
+                        resource_name, "const"
+                    );
+                    continue;
+                }
+                weedle::interface::InterfaceMember::Iterable(_) => {
+                    eprintln!(
+                        "WARN: Skipping {} as {} is unsupported",
+                        resource_name, "iterable"
+                    );
+                    continue;
+                }
+                weedle::interface::InterfaceMember::AsyncIterable(_) => {
+                    eprintln!(
+                        "WARN: Skipping {} as {} is unsupported",
+                        resource_name, "iterable"
+                    );
+                    continue;
+                }
+                weedle::interface::InterfaceMember::Maplike(_) => {
+                    eprintln!(
+                        "WARN: Skipping {} as {} is unsupported",
+                        resource_name, "maplike"
+                    );
+                    continue;
+                }
+                weedle::interface::InterfaceMember::Setlike(_) => {
+                    eprintln!(
+                        "WARN: Skipping {} as {} is unsupported",
+                        resource_name, "setlike"
+                    );
+                    continue;
+                }
+                weedle::interface::InterfaceMember::Stringifier(_) => {
+                    eprintln!(
+                        "WARN: Skipping {} as {} is unsupported",
+                        resource_name, "stringifier"
+                    );
+                    continue;
+                }
                 weedle::interface::InterfaceMember::Attribute(attr) => {
                     let attr_name = ident_name(attr.identifier.0);
                     let setter_name = format!("set-{attr_name}");
