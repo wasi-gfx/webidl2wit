@@ -44,7 +44,7 @@ interface my-interface {
   }
   variant bool-or-f64-or-string {
     %bool(bool),
-    f64(f64),
+    %f64(f64),
     %string(string),
   }
   resource html-unknown-element {
