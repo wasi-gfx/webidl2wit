@@ -1,18 +1,18 @@
-use std::collections::{HashMap, HashSet};
-
-use heck::{ToKebabCase, ToPascalCase};
+use anyhow::Context;
+use heck::{ToKebabCase, ToPascalCase, ToSnakeCase};
 use itertools::Itertools;
+use std::collections::{HashMap, HashSet};
 use weedle::{Definition, Definitions as WebIdlDefinitions};
-use wit_encoder::Ident;
+use wit_encoder::{Ident, Interface, StandaloneFunc, Use, World};
 
 /// conversion options.
 #[derive(Clone, Debug)]
 pub struct ConversionOptions {
     /// Name of package for generated wit.
     pub package_name: wit_encoder::PackageName,
-    /// interface to hold the generated types and functions.
-    pub interface: wit_encoder::Interface,
-    /// skip unsupported features
+    /// Interface to hold the generated types and functions.
+    pub interface: String,
+    /// Skip unsupported features.
     pub unsupported_features: HandleUnsupported,
 }
 
@@ -31,7 +31,7 @@ impl Default for ConversionOptions {
     fn default() -> Self {
         Self {
             package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
-            interface: wit_encoder::Interface::new("my-interface"),
+            interface: "my-interface".into(),
             unsupported_features: HandleUnsupported::default(),
         }
     }
@@ -59,9 +59,28 @@ pub fn webidl_to_wit(
     options: ConversionOptions,
 ) -> anyhow::Result<wit_encoder::Package> {
     let mut package = wit_encoder::Package::new(options.package_name);
+
+    // We generate a world or every global singleton.
+    // These include Window, WorkerGlobalScope, SharedWorkerGlobalScope, ServiceWorkerGlobalScope,
+    // DedicatedWorkerGlobalScope, whenever they are defined.
+    let global_world_singletons = webidl
+        .iter()
+        .filter_map(|item| match item {
+            Definition::Interface(wi_interface) => match wi_interface.identifier.0 {
+                "Window"
+                | "WorkerGlobalScope"
+                | "SharedWorkerGlobalScope"
+                | "ServiceWorkerGlobalScope"
+                | "DedicatedWorkerGlobalScope" => Some(wi_interface.identifier.0.to_snake_case()),
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect::<Vec<String>>();
+
     let mut state = State {
         unsupported_features: options.unsupported_features,
-        interface: options.interface,
+        interface: Interface::new(options.interface.clone()),
         mixins: HashMap::new(),
         resource_names: webidl
             .iter()
@@ -135,7 +154,11 @@ pub fn webidl_to_wit(
                 let mixin_name = mixin.rhs_identifier.0.to_string();
                 let resource_name = ident_name(mixin.lhs_identifier.0);
                 // todo: can we get rid of this clone?
-                let mixin = state.mixins.get(&mixin_name).unwrap().clone();
+                let mixin = state
+                    .mixins
+                    .get(&mixin_name)
+                    .with_context(|| format!("Mixin {mixin_name} not defined"))?
+                    .clone();
                 state.interface_members_to_functions(&resource_name, &mixin)?;
             }
             Definition::Implements(i) => {
@@ -185,6 +208,20 @@ pub fn webidl_to_wit(
     }
 
     package.interface(state.interface);
+
+    for global_name in global_world_singletons {
+        let mut interface = Interface::new(global_name.clone());
+        let mut use_ = Use::new(options.interface.clone());
+        use_.item("window", None);
+        interface.use_(use_);
+        let mut func = StandaloneFunc::new(format!("get-{}", global_name));
+        func.results(wit_encoder::Type::named(Ident::new("window")));
+        interface.function(func);
+        package.interface(interface);
+        let mut world = World::new(global_name.clone());
+        world.named_interface_import(global_name.clone());
+        package.world(world);
+    }
 
     Ok(package)
 }
@@ -369,16 +406,17 @@ impl<'a> State<'a> {
             }
         }
 
-        let resource = self
-            .interface
-            .items_mut()
-            .iter_mut()
-            .filter_map(|td| match td {
-                wit_encoder::InterfaceItem::TypeDef(td) => Some(td),
-                wit_encoder::InterfaceItem::Function(_) => None,
-            })
-            .find(|td| td.name() == resource_name)
-            .expect("Resource not found");
+        let resource =
+            self.interface
+                .items_mut()
+                .iter_mut()
+                .filter_map(|td| match td {
+                    wit_encoder::InterfaceItem::TypeDef(td) => Some(td),
+                    wit_encoder::InterfaceItem::Use(_)
+                    | wit_encoder::InterfaceItem::Function(_) => None,
+                })
+                .find(|td| td.name() == resource_name)
+                .expect("Resource not found");
         let resource = match resource.kind_mut() {
             wit_encoder::TypeDefKind::Resource(resource) => resource,
             _ => panic!("Not a resource"),

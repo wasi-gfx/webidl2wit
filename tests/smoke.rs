@@ -50,6 +50,11 @@ fn console() {
 }
 
 #[test]
+fn window() {
+    compare("window", Default::default());
+}
+
+#[test]
 fn unsupported() {
     compare(
         "unsupported",
