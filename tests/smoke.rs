@@ -54,9 +54,8 @@ fn unsupported() {
     compare(
         "unsupported",
         ConversionOptions {
-            package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
-            interface: wit_encoder::Interface::new(Some("my-interface")),
-            unsupported_features: HandleUnsupported::Warn,
+            unsupported_features: HandleUnsupported::Bail,
+            ..Default::default()
         },
     );
 }
