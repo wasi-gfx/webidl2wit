@@ -1,52 +1,52 @@
 package my-namespace:my-package;
 
 interface my-interface {
-    resource gpu-pipeline-error {
-        constructor(message: option<string>);
-    }
-    resource gpu-buffer {
-        unmap: func();
-        destroy: func();
-        interface-mixin-method: func(param: s32);
-        label: func() -> string;
-        set-label: func(label: string);
-        partial-interface-method: func(filter: s32);
-    }
-    resource gpu-supported-limits {
-        max-texture-dimension1-d: func() -> u32;
-        max-texture-dimension2-d: func() -> u32;
-        max-texture-dimension3-d: func() -> u32;
-        max-texture-array-layers: func() -> u32;
-        max-bind-groups: func() -> u32;
-        max-bind-groups-plus-vertex-buffers: func() -> u32;
-        max-bindings-per-bind-group: func() -> u32;
-        max-dynamic-uniform-buffers-per-pipeline-layout: func() -> u32;
-        max-dynamic-storage-buffers-per-pipeline-layout: func() -> u32;
-        max-sampled-textures-per-shader-stage: func() -> u32;
-        max-samplers-per-shader-stage: func() -> u32;
-        max-storage-buffers-per-shader-stage: func() -> u32;
-        max-storage-textures-per-shader-stage: func() -> u32;
-        max-uniform-buffers-per-shader-stage: func() -> u32;
-        max-uniform-buffer-binding-size: func() -> u64;
-        max-storage-buffer-binding-size: func() -> u64;
-        min-uniform-buffer-offset-alignment: func() -> u32;
-        min-storage-buffer-offset-alignment: func() -> u32;
-        max-vertex-buffers: func() -> u32;
-        max-buffer-size: func() -> u64;
-        max-vertex-attributes: func() -> u32;
-        max-vertex-buffer-array-stride: func() -> u32;
-        max-inter-stage-shader-components: func() -> u32;
-        max-inter-stage-shader-variables: func() -> u32;
-        max-color-attachments: func() -> u32;
-        max-color-attachment-bytes-per-sample: func() -> u32;
-        max-compute-workgroup-storage-size: func() -> u32;
-        max-compute-invocations-per-workgroup: func() -> u32;
-        max-compute-workgroup-size-x: func() -> u32;
-        max-compute-workgroup-size-y: func() -> u32;
-        max-compute-workgroup-size-z: func() -> u32;
-        max-compute-workgroups-per-dimension: func() -> u32;
-        interface-mixin-method: func(param: s32);
-        label: func() -> string;
-        set-label: func(label: string);
-    }
+  resource gpu-pipeline-error {
+    constructor(message: option<string>);
+  }
+  resource gpu-buffer {
+    unmap: func();
+    destroy: func();
+    interface-mixin-method: func(param: s32);
+    label: func() -> string;
+    set-label: func(label: string);
+    partial-interface-method: func(filter: s32);
+  }
+  resource gpu-supported-limits {
+    max-texture-dimension1-d: func() -> u32;
+    max-texture-dimension2-d: func() -> u32;
+    max-texture-dimension3-d: func() -> u32;
+    max-texture-array-layers: func() -> u32;
+    max-bind-groups: func() -> u32;
+    max-bind-groups-plus-vertex-buffers: func() -> u32;
+    max-bindings-per-bind-group: func() -> u32;
+    max-dynamic-uniform-buffers-per-pipeline-layout: func() -> u32;
+    max-dynamic-storage-buffers-per-pipeline-layout: func() -> u32;
+    max-sampled-textures-per-shader-stage: func() -> u32;
+    max-samplers-per-shader-stage: func() -> u32;
+    max-storage-buffers-per-shader-stage: func() -> u32;
+    max-storage-textures-per-shader-stage: func() -> u32;
+    max-uniform-buffers-per-shader-stage: func() -> u32;
+    max-uniform-buffer-binding-size: func() -> u64;
+    max-storage-buffer-binding-size: func() -> u64;
+    min-uniform-buffer-offset-alignment: func() -> u32;
+    min-storage-buffer-offset-alignment: func() -> u32;
+    max-vertex-buffers: func() -> u32;
+    max-buffer-size: func() -> u64;
+    max-vertex-attributes: func() -> u32;
+    max-vertex-buffer-array-stride: func() -> u32;
+    max-inter-stage-shader-components: func() -> u32;
+    max-inter-stage-shader-variables: func() -> u32;
+    max-color-attachments: func() -> u32;
+    max-color-attachment-bytes-per-sample: func() -> u32;
+    max-compute-workgroup-storage-size: func() -> u32;
+    max-compute-invocations-per-workgroup: func() -> u32;
+    max-compute-workgroup-size-x: func() -> u32;
+    max-compute-workgroup-size-y: func() -> u32;
+    max-compute-workgroup-size-z: func() -> u32;
+    max-compute-workgroups-per-dimension: func() -> u32;
+    interface-mixin-method: func(param: s32);
+    label: func() -> string;
+    set-label: func(label: string);
+  }
 }

@@ -52,9 +52,12 @@ impl<'a> State<'a> {
 
                 if self
                     .interface
-                    .type_defs()
+                    .items()
                     .iter()
-                    .all(|dt| dt.name() != &variant_name)
+                    .all(|dt| match dt {
+                        wit_encoder::InterfaceItem::TypeDef(dt) => dt.name(),
+                        wit_encoder::InterfaceItem::Function(func) => func.name(),
+                    } != &variant_name)
                 {
                     self.interface.type_def({
                         let cases = cases
@@ -157,7 +160,7 @@ impl<'a> State<'a> {
             wit_encoder::Type::Result(_) => todo!(),
             wit_encoder::Type::Tuple(_) => todo!(),
             wit_encoder::Type::Named(ref name) if self.resource_names.contains(&name) => {
-                wit_encoder::Type::borrow(type_)
+                wit_encoder::Type::borrow(name.clone())
             }
             _ => type_,
         }

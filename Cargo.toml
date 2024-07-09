@@ -14,7 +14,7 @@ heck = "0.5"
 itertools = "0.13"
 # need https://github.com/rustwasm/weedle/pull/56
 weedle = { git = "https://github.com/rustwasm/weedle.git" }
-wit-encoder = { git = "https://github.com/MendyBerger/wasm-tools.git", rev = "67637756f69937d7f1e29565174fd4a59c4314a5" }
+wit-encoder = { git = "https://github.com/bytecodealliance/wasm-tools.git", rev = "a2635eb91772d2de1607acbe14ff92ad16f25d33" }
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
