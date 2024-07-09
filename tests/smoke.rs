@@ -45,6 +45,11 @@ fn webgpu() {
 }
 
 #[test]
+fn console() {
+    compare("console", Default::default());
+}
+
+#[test]
 fn unsupported() {
     compare(
         "unsupported",
