@@ -455,8 +455,8 @@ interface my-interface {
     %u16(u16),
     %u32(u32),
     %u64(u64),
-    f32(f32),
-    f64(f64),
+    %f32(f32),
+    %f64(f64),
     %string(string),
   }
   resource object {
@@ -670,7 +670,7 @@ interface my-interface {
     snorm16x4,
     float16x2,
     float16x4,
-    %float32,
+    float32,
     float32x2,
     float32x3,
     float32x4,

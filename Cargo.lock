@@ -96,8 +96,9 @@ dependencies = [
 
 [[package]]
 name = "wit-encoder"
-version = "0.212.0"
-source = "git+https://github.com/bytecodealliance/wasm-tools.git?rev=a265ec17ab8ee9081e9390387eafda7d92107f27#a265ec17ab8ee9081e9390387eafda7d92107f27"
+version = "0.213.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "815d33c067884162abe12cb73486564be4d78c0e09c4b2be0efc13223392b5fa"
 dependencies = [
  "pretty_assertions",
  "semver",

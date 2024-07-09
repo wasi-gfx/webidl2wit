@@ -51,7 +51,13 @@ fn webgpu() {
 
 #[test]
 fn console() {
-    compare("console", Default::default());
+    compare(
+        "console",
+        ConversionOptions {
+            singleton_interface: Some("console".into()),
+            ..Default::default()
+        },
+    );
 }
 
 #[test]
