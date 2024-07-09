@@ -1,52 +1,52 @@
 package my-namespace:my-package;
 
 interface my-interface {
-    resource node-list {
-        item: func(index: u32) -> option<node>;
-        length: func() -> u32;
-    }
-    resource html-element {
-        constructor();
-        title: func() -> string;
-        set-title: func(title: string);
-        lang: func() -> string;
-        set-lang: func(lang: string);
-        translate: func() -> bool;
-        set-translate: func(translate: bool);
-        dir: func() -> string;
-        set-dir: func(dir: string);
-        hidden: func() -> bool-or-f64-or-string;
-        set-hidden: func(hidden: bool-or-f64-or-string);
-        inert: func() -> bool;
-        set-inert: func(inert: bool);
-        click: func();
-        access-key: func() -> string;
-        set-access-key: func(access-key: string);
-        access-key-label: func() -> string;
-        draggable: func() -> bool;
-        set-draggable: func(draggable: bool);
-        spellcheck: func() -> bool;
-        set-spellcheck: func(spellcheck: bool);
-        writing-suggestions: func() -> string;
-        set-writing-suggestions: func(writing-suggestions: string);
-        autocapitalize: func() -> string;
-        set-autocapitalize: func(autocapitalize: string);
-        inner-text: func() -> string;
-        set-inner-text: func(inner-text: string);
-        outer-text: func() -> string;
-        set-outer-text: func(outer-text: string);
-        attach-internals: func() -> element-internals;
-        show-popover: func();
-        hide-popover: func();
-        toggle-popover: func(force: option<bool>) -> bool;
-        popover: func() -> string;
-        set-popover: func(popover: string);
-    }
-    variant bool-or-f64-or-string {
-        %bool(bool),
-        f64(f64),
-        %string(string),
-    }
-    resource html-unknown-element {
-    }
+  resource node-list {
+    item: func(index: u32) -> option<node>;
+    length: func() -> u32;
+  }
+  resource html-element {
+    constructor();
+    title: func() -> string;
+    set-title: func(title: string);
+    lang: func() -> string;
+    set-lang: func(lang: string);
+    translate: func() -> bool;
+    set-translate: func(translate: bool);
+    dir: func() -> string;
+    set-dir: func(dir: string);
+    hidden: func() -> bool-or-f64-or-string;
+    set-hidden: func(hidden: bool-or-f64-or-string);
+    inert: func() -> bool;
+    set-inert: func(inert: bool);
+    click: func();
+    access-key: func() -> string;
+    set-access-key: func(access-key: string);
+    access-key-label: func() -> string;
+    draggable: func() -> bool;
+    set-draggable: func(draggable: bool);
+    spellcheck: func() -> bool;
+    set-spellcheck: func(spellcheck: bool);
+    writing-suggestions: func() -> string;
+    set-writing-suggestions: func(writing-suggestions: string);
+    autocapitalize: func() -> string;
+    set-autocapitalize: func(autocapitalize: string);
+    inner-text: func() -> string;
+    set-inner-text: func(inner-text: string);
+    outer-text: func() -> string;
+    set-outer-text: func(outer-text: string);
+    attach-internals: func() -> element-internals;
+    show-popover: func();
+    hide-popover: func();
+    toggle-popover: func(force: option<bool>) -> bool;
+    popover: func() -> string;
+    set-popover: func(popover: string);
+  }
+  variant bool-or-f64-or-string {
+    %bool(bool),
+    f64(f64),
+    %string(string),
+  }
+  resource html-unknown-element {
+  }
 }

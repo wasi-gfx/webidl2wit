@@ -31,7 +31,7 @@ impl Default for ConversionOptions {
     fn default() -> Self {
         Self {
             package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
-            interface: wit_encoder::Interface::new(Some("my-interface")),
+            interface: wit_encoder::Interface::new("my-interface"),
             unsupported_features: HandleUnsupported::default(),
         }
     }
@@ -371,8 +371,12 @@ impl<'a> State<'a> {
 
         let resource = self
             .interface
-            .type_defs_mut()
+            .items_mut()
             .iter_mut()
+            .filter_map(|td| match td {
+                wit_encoder::InterfaceItem::TypeDef(td) => Some(td),
+                wit_encoder::InterfaceItem::Function(_) => None,
+            })
             .find(|td| td.name() == resource_name)
             .expect("Resource not found");
         let resource = match resource.kind_mut() {

@@ -1,10 +1,10 @@
 package my-namespace:my-package;
 
 interface my-interface {
-    record gpu-color-dict {
-        r: f64,
-        g: f64,
-        b: option<f64>,
-        a: option<f64>,
-    }
+  record gpu-color-dict {
+    r: f64,
+    g: f64,
+    b: option<f64>,
+    a: option<f64>,
+  }
 }
