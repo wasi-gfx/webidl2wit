@@ -16,9 +16,10 @@ pub struct ConversionOptions {
     pub unsupported_features: HandleUnsupported,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub enum HandleUnsupported {
     /// Bail on unsupported features (default)
+    #[default]
     Bail,
     /// Skip unsupported features
     Skip,
@@ -31,7 +32,7 @@ impl Default for ConversionOptions {
         Self {
             package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
             interface: wit_encoder::Interface::new(Some("my-interface")),
-            unsupported_features: HandleUnsupported::Bail,
+            unsupported_features: HandleUnsupported::default(),
         }
     }
 }
