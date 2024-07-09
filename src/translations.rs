@@ -198,24 +198,21 @@ impl<'a> State<'a> {
             .list
             .iter()
             .map(|arg| match arg {
-                weedle::argument::Argument::Variadic(v) => {
-                    handle_unsupported(
-                        v.identifier.0,
-                        "variadic argument",
-                        &self.unsupported_features,
-                    );
-                    None
+                weedle::argument::Argument::Variadic(varg) => {
+                    let name = ident_name(varg.identifier.0);
+                    let type_ = self.wi2w_type(&varg.type_, false).unwrap();
+                    let type_ = wit_encoder::Type::List(Box::new(type_));
+                    let type_ = self.borrow_resources(type_);
+                    (name, type_)
                 }
                 weedle::argument::Argument::Single(arg) => {
                     let name = ident_name(arg.identifier.0);
                     let optional = arg.optional.is_some();
                     let type_ = self.wi2w_type(&arg.type_.type_, optional).unwrap();
                     let type_ = self.borrow_resources(type_);
-                    Some((name, type_))
+                    (name, type_)
                 }
             })
-            .filter(|item| item.is_some())
-            .map(|item| item.unwrap())
             .collect())
     }
 }
