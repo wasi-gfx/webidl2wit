@@ -4,19 +4,8 @@ interface my-interface {
   resource window {
     window: func() -> window-proxy;
     self: func() -> window-proxy;
-    document: func() -> document;
     name: func() -> string;
     set-name: func(name: string);
-    location: func() -> location;
-    history: func() -> history;
-    navigation: func() -> navigation;
-    custom-elements: func() -> custom-element-registry;
-    locationbar: func() -> bar-prop;
-    menubar: func() -> bar-prop;
-    personalbar: func() -> bar-prop;
-    scrollbars: func() -> bar-prop;
-    statusbar: func() -> bar-prop;
-    toolbar: func() -> bar-prop;
     status: func() -> string;
     set-status: func(status: string);
     close: func();
@@ -28,12 +17,8 @@ interface my-interface {
     length: func() -> u32;
     top: func() -> option<window-proxy>;
     parent: func() -> option<window-proxy>;
-    frame-element: func() -> option<element>;
     open: func(url: option<string>, target: option<string>, features: option<string>) -> option<window-proxy>;
-    navigator: func() -> navigator;
-    client-information: func() -> navigator;
     origin-agent-cluster: func() -> bool;
-    alert: func();
     alert: func(message: string);
     confirm: func(message: option<string>) -> bool;
     prompt: func(message: option<string>, default: option<string>) -> string;
@@ -42,13 +27,14 @@ interface my-interface {
   record window-post-message-options {
     target-origin: option<string>,
   }
+  type window-proxy = window;
 }
 
-interface window {
-  use my-interface.window;
+interface idl-window {
+  use my-interface.{ window };
   get-window: func() -> window;
 }
 
 world window {
-  import window;
+  import idl-window;
 }

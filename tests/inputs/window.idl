@@ -2,18 +2,18 @@ interface Window : EventTarget {
   // the current browsing context
   [LegacyUnforgeable] readonly attribute WindowProxy window;
   [Replaceable] readonly attribute WindowProxy self;
-  [LegacyUnforgeable] readonly attribute Document document;
+  // [LegacyUnforgeable] readonly attribute Document document;
   attribute DOMString name; 
-  [PutForwards=href, LegacyUnforgeable] readonly attribute Location location;
-  readonly attribute History history;
-  readonly attribute Navigation navigation;
-  readonly attribute CustomElementRegistry customElements;
-  [Replaceable] readonly attribute BarProp locationbar;
-  [Replaceable] readonly attribute BarProp menubar;
-  [Replaceable] readonly attribute BarProp personalbar;
-  [Replaceable] readonly attribute BarProp scrollbars;
-  [Replaceable] readonly attribute BarProp statusbar;
-  [Replaceable] readonly attribute BarProp toolbar;
+  // [PutForwards=href, LegacyUnforgeable] readonly attribute Location location;
+  // readonly attribute History history;
+  // readonly attribute Navigation navigation;
+  // readonly attribute CustomElementRegistry customElements;
+  // [Replaceable] readonly attribute BarProp locationbar;
+  // [Replaceable] readonly attribute BarProp menubar;
+  // [Replaceable] readonly attribute BarProp personalbar;
+  // [Replaceable] readonly attribute BarProp scrollbars;
+  // [Replaceable] readonly attribute BarProp statusbar;
+  // [Replaceable] readonly attribute BarProp toolbar;
   attribute DOMString status;
   undefined close();
   readonly attribute boolean closed;
@@ -28,7 +28,7 @@ interface Window : EventTarget {
   // TODO
   // attribute any opener;
   [Replaceable] readonly attribute WindowProxy? parent;
-  readonly attribute Element? frameElement;
+  // readonly attribute Element? frameElement;
   WindowProxy? open(optional USVString url = "", optional DOMString target = "_blank", optional [LegacyNullToEmptyString] DOMString features = "");
 
   // Since this is the global object, the IDL named getter adds a NamedPropertiesObject exotic
@@ -38,12 +38,12 @@ interface Window : EventTarget {
   // getter object (DOMString name);
 
   // the user agent
-  readonly attribute Navigator navigator;
-  [Replaceable] readonly attribute Navigator clientInformation; // legacy alias of .navigator
+  // readonly attribute Navigator navigator;
+  // [Replaceable] readonly attribute Navigator clientInformation; // legacy alias of .navigator
   readonly attribute boolean originAgentCluster;
 
   // user prompts
-  undefined alert();
+  // undefined alert();
   undefined alert(DOMString message);
   boolean confirm(optional DOMString message = "");
   DOMString? prompt(optional DOMString message = "", optional DOMString default = "");
@@ -59,3 +59,6 @@ interface Window : EventTarget {
 dictionary WindowPostMessageOptions : StructuredSerializeOptions {
   USVString targetOrigin = "/";
 };
+
+// hack
+typedef Window WindowProxy;

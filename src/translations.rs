@@ -210,16 +210,16 @@ pub fn webidl_to_wit(
     package.interface(state.interface);
 
     for global_name in global_world_singletons {
-        let mut interface = Interface::new(global_name.clone());
+        let mut interface = Interface::new(format!("idl-{}", global_name));
         let mut use_ = Use::new(options.interface.clone());
-        use_.item("window", None);
+        use_.item(&global_name, None);
         interface.use_(use_);
         let mut func = StandaloneFunc::new(format!("get-{}", global_name));
-        func.results(wit_encoder::Type::named(Ident::new("window")));
+        func.results(wit_encoder::Type::named(Ident::new(global_name.clone())));
         interface.function(func);
         package.interface(interface);
         let mut world = World::new(global_name.clone());
-        world.named_interface_import(global_name.clone());
+        world.named_interface_import(format!("idl-{}", global_name));
         package.world(world);
     }
 
