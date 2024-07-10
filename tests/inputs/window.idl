@@ -3,7 +3,7 @@ interface Window : EventTarget {
   [LegacyUnforgeable] readonly attribute WindowProxy window;
   [Replaceable] readonly attribute WindowProxy self;
   // [LegacyUnforgeable] readonly attribute Document document;
-  attribute DOMString name; 
+  attribute DOMString name;
   // [PutForwards=href, LegacyUnforgeable] readonly attribute Location location;
   // readonly attribute History history;
   // readonly attribute Navigation navigation;
@@ -62,3 +62,4 @@ dictionary WindowPostMessageOptions : StructuredSerializeOptions {
 
 // hack
 typedef Window WindowProxy;
+

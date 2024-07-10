@@ -12,8 +12,7 @@ crate-type = ["lib"]
 anyhow = "1.0"
 heck = "0.5"
 itertools = "0.13"
-# need https://github.com/rustwasm/weedle/pull/56
-weedle = { git = "https://github.com/rustwasm/weedle.git" }
+weedle = "0.13.0"
 wit-encoder = { git = "https://github.com/bytecodealliance/wasm-tools.git" }
 
 [dev-dependencies]

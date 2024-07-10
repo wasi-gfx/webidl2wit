@@ -1,4 +1,4 @@
-package my-namespace:my-package;
+package my-namespace:my-package-idl;
 
 interface my-interface {
   record gpu-color-dict {

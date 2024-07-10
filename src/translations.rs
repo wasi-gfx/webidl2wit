@@ -3,7 +3,7 @@ use heck::{ToKebabCase, ToPascalCase, ToSnakeCase};
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use weedle::{Definition, Definitions as WebIdlDefinitions};
-use wit_encoder::{Ident, Interface, StandaloneFunc, Use, World};
+use wit_encoder::{Ident, Interface, StandaloneFunc, World};
 
 /// conversion options.
 #[derive(Clone, Debug)]
@@ -30,7 +30,7 @@ pub enum HandleUnsupported {
 impl Default for ConversionOptions {
     fn default() -> Self {
         Self {
-            package_name: wit_encoder::PackageName::new("my-namespace", "my-package", None),
+            package_name: wit_encoder::PackageName::new("my-namespace", "my-package-idl", None),
             interface: "my-interface".into(),
             unsupported_features: HandleUnsupported::default(),
         }
@@ -207,21 +207,16 @@ pub fn webidl_to_wit(
         }
     }
 
-    package.interface(state.interface);
-
     for global_name in global_world_singletons {
-        let mut interface = Interface::new(format!("idl-{}", global_name));
-        let mut use_ = Use::new(options.interface.clone());
-        use_.item(&global_name, None);
-        interface.use_(use_);
         let mut func = StandaloneFunc::new(format!("get-{}", global_name));
         func.results(wit_encoder::Type::named(Ident::new(global_name.clone())));
-        interface.function(func);
-        package.interface(interface);
+        state.interface.function(func);
         let mut world = World::new(global_name.clone());
-        world.named_interface_import(format!("idl-{}", global_name));
+        world.named_interface_import(options.interface.clone());
         package.world(world);
     }
+
+    package.interface(state.interface);
 
     Ok(package)
 }

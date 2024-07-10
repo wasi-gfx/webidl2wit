@@ -1,4 +1,8 @@
-package my-namespace:my-package;
+package my-namespace:my-package-idl;
+
+world window {
+  import my-interface;
+}
 
 interface my-interface {
   resource window {
@@ -28,13 +32,5 @@ interface my-interface {
     target-origin: option<string>,
   }
   type window-proxy = window;
-}
-
-interface idl-window {
-  use my-interface.{ window };
   get-window: func() -> window;
-}
-
-world window {
-  import idl-window;
 }
