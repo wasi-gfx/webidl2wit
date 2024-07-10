@@ -96,7 +96,7 @@ dependencies = [
 [[package]]
 name = "wit-encoder"
 version = "0.212.0"
-source = "git+https://github.com/bytecodealliance/wasm-tools.git?branch=wit-encoder-use#860f8113bbdfc6c776f243e4fc2a639ac33e739d"
+source = "git+https://github.com/bytecodealliance/wasm-tools.git#a265ec17ab8ee9081e9390387eafda7d92107f27"
 dependencies = [
  "pretty_assertions",
  "semver",
