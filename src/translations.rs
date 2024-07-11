@@ -9,9 +9,25 @@ use wit_encoder::{Ident, Interface, StandaloneFunc, World};
 #[derive(Clone, Debug)]
 pub struct ConversionOptions {
     /// Name of package for generated wit.
-    pub package_name: wit_encoder::PackageName,
+    ///
+    ///
+    /// When using the outputted wit in a JS environment, it is recommended that your package name starts or ends with idl.
+    ///
+    /// This lets tools like JCO know that this wit represents bindings to built in functions.
+    ///
+    /// Example
+    /// ```
+    /// # use webidl2wit::PackageName;
+    /// PackageName::new("my-namespace", "my-package-idl", None);
+    /// ```
+    /// Or:
+    /// ```
+    /// # use webidl2wit::PackageName;
+    /// PackageName::new("my-namespace", "idl-my-package", None);
+    /// ```
+    pub package_name: crate::PackageName,
     /// Interface to hold the generated types and functions.
-    pub interface: String,
+    pub interface_name: crate::Ident,
     /// Skip unsupported features.
     pub unsupported_features: HandleUnsupported,
 }
@@ -31,7 +47,7 @@ impl Default for ConversionOptions {
     fn default() -> Self {
         Self {
             package_name: wit_encoder::PackageName::new("my-namespace", "my-package-idl", None),
-            interface: "my-interface".into(),
+            interface_name: "my-interface".into(),
             unsupported_features: HandleUnsupported::default(),
         }
     }
@@ -80,7 +96,7 @@ pub fn webidl_to_wit(
 
     let mut state = State {
         unsupported_features: options.unsupported_features,
-        interface: Interface::new(options.interface.clone()),
+        interface: Interface::new(options.interface_name.clone()),
         mixins: HashMap::new(),
         resource_names: webidl
             .iter()
@@ -212,7 +228,7 @@ pub fn webidl_to_wit(
         func.results(wit_encoder::Type::named(Ident::new(global_name.clone())));
         state.interface.function(func);
         let mut world = World::new(global_name.clone());
-        world.named_interface_import(options.interface.clone());
+        world.named_interface_import(options.interface_name.clone());
         package.world(world);
     }
 
