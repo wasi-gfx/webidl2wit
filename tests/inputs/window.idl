@@ -21,6 +21,8 @@ interface Window : EventTarget {
   undefined focus();
   undefined blur();
 
+  attribute DOMString type;
+
   // other browsing contexts
   [Replaceable] readonly attribute WindowProxy frames;
   [Replaceable] readonly attribute unsigned long length;

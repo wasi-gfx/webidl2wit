@@ -17,6 +17,8 @@ interface my-interface {
     stop: func();
     focus: func();
     blur: func();
+    %type: func() -> string;
+    set-type: func(%type: string);
     frames: func() -> window-proxy;
     length: func() -> u32;
     top: func() -> option<window-proxy>;
