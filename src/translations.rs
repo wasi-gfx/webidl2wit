@@ -1,5 +1,5 @@
 use anyhow::Context;
-use heck::{ToKebabCase, ToPascalCase, ToSnakeCase};
+use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use weedle::{Definition, Definitions as WebIdlDefinitions};
@@ -30,6 +30,8 @@ pub struct ConversionOptions {
     pub interface_name: crate::Ident,
     /// Skip unsupported features.
     pub unsupported_features: HandleUnsupported,
+    /// Items - usually global singletons - that if encountered should get a get-[self] func, and get a dedicated world.
+    pub global_singletons: HashSet<String>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -49,6 +51,16 @@ impl Default for ConversionOptions {
             package_name: wit_encoder::PackageName::new("my-namespace", "my-package-idl", None),
             interface_name: "my-interface".into(),
             unsupported_features: HandleUnsupported::default(),
+            global_singletons: [
+                "Window",
+                "WorkerGlobalScope",
+                "SharedWorkerGlobalScope",
+                "ServiceWorkerGlobalScope",
+                "DedicatedWorkerGlobalScope",
+            ]
+            .into_iter()
+            .map(|x| x.into())
+            .collect(),
         }
     }
 }
@@ -82,17 +94,19 @@ pub fn webidl_to_wit(
     let global_world_singletons = webidl
         .iter()
         .filter_map(|item| match item {
-            Definition::Interface(wi_interface) => match wi_interface.identifier.0 {
-                "Window"
-                | "WorkerGlobalScope"
-                | "SharedWorkerGlobalScope"
-                | "ServiceWorkerGlobalScope"
-                | "DedicatedWorkerGlobalScope" => Some(wi_interface.identifier.0.to_snake_case()),
-                _ => None,
-            },
+            Definition::Interface(wi_interface) => {
+                if options
+                    .global_singletons
+                    .contains(wi_interface.identifier.0)
+                {
+                    Some(ident_name(wi_interface.identifier.0))
+                } else {
+                    None
+                }
+            }
             _ => None,
         })
-        .collect::<Vec<String>>();
+        .collect::<Vec<Ident>>();
 
     let mut state = State {
         unsupported_features: options.unsupported_features,
@@ -225,7 +239,7 @@ pub fn webidl_to_wit(
 
     for global_name in global_world_singletons {
         let mut func = StandaloneFunc::new(format!("get-{}", global_name));
-        func.results(wit_encoder::Type::named(Ident::new(global_name.clone())));
+        func.results(wit_encoder::Type::named(global_name.clone()));
         state.interface.function(func);
         let mut world = World::new(global_name.clone());
         world.named_interface_import(options.interface_name.clone());
