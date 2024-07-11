@@ -16,7 +16,7 @@ pub struct ConversionOptions {
     ///
     /// When using the outputted wit in a JS environment, it is recommended that your package name starts or ends with idl.
     ///
-    /// This lets tools like JCO know that this wit represents bindings to built in functions.
+    /// This lets tools like Jco know that this wit represents bindings to built in functions.
     ///
     /// Example
     /// ```
@@ -33,6 +33,14 @@ pub struct ConversionOptions {
     pub interface_name: String,
     /// When set, treats the given interface name as a singleton, flattening
     /// its functions as top-level interface functions of an interface of the given name.
+    ///
+    /// When using the outputted wit in a JS environment, it is recommended to make this name
+    /// match the global name of the interface, with a `global-` prefix, for transparent runtime
+    /// support in Jco.
+    ///
+    /// For example, `globalThis.console` or `globalThis.navigator.gpu` could be reflected as
+    /// global-console or global-navigator-gpu respectively to automatically bind these to those
+    /// objects under --experimental-idl-imports
     pub singleton_interface: Option<String>,
     /// Skip unsupported features.
     pub unsupported_features: HandleUnsupported,
