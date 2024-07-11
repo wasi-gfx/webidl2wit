@@ -55,6 +55,11 @@ fn window() {
 }
 
 #[test]
+fn custom_resources() {
+    compare("custom-resources", Default::default());
+}
+
+#[test]
 fn unsupported() {
     compare(
         "unsupported",

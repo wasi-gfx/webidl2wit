@@ -1,0 +1,18 @@
+package my-namespace:my-package;
+
+interface my-interface {
+  resource record-s32 {
+    constructor();
+    add: func(key: string, value: s32);
+    get: func(key: string) -> s32;
+    has: func(key: string) -> bool;
+    remove: func(key: string);
+    keys: func() -> list<string>;
+    values: func() -> list<s32>;
+    entries: func() -> tuple<string, s32>;
+  }
+  record custom-resource {
+    my-record: option<record-s32>,
+    reuses-records: option<record-s32>,
+  }
+}

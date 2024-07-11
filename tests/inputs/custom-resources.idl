@@ -1,0 +1,4 @@
+dictionary CustomResource {
+    record<USVString, long> myRecord;
+    record<USVString, long> reusesRecords;
+};
