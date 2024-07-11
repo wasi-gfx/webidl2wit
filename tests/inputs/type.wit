@@ -13,4 +13,20 @@ interface my-interface {
   type gpu-size64-out = u64;
   type gpu-integer-coordinate-out = u32;
   type gpu-size32-out = u32;
+  type my-bool = bool;
+  type my-byte-string = string;
+  type my-dom-string = string;
+  type my-usv-string = string;
+  type my-byte = s8;
+  type my-octet = u8;
+  type my-short = s16;
+  type my-unsigned-short = u16;
+  type my-long = s32;
+  type my-unsigned-long = u32;
+  type my-long-long = s64;
+  type my-unsigned-long-long = u64;
+  type my-float = f32;
+  type my-unrestricted-float = f32;
+  type my-double = f64;
+  type my-unrestricted-double = f64;
 }
