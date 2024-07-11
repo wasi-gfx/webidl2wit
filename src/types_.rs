@@ -118,8 +118,8 @@ impl<'a> State<'a> {
                 wit_encoder::Type::list(type_)
             }
             weedle::types::NonAnyType::Error(_) => todo!(),
-            weedle::types::NonAnyType::Byte(_) => todo!(),
-            weedle::types::NonAnyType::Octet(_) => todo!(),
+            weedle::types::NonAnyType::Byte(_) => wit_encoder::Type::S8,
+            weedle::types::NonAnyType::Octet(_) => wit_encoder::Type::U8,
             weedle::types::NonAnyType::Object(_) => todo!(),
             weedle::types::NonAnyType::Symbol(_) => todo!(),
             weedle::types::NonAnyType::ArrayBuffer(_) => todo!(),
