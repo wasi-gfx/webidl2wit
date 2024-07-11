@@ -12,9 +12,8 @@ crate-type = ["lib"]
 anyhow = "1.0"
 heck = "0.5"
 itertools = "0.13"
-# need https://github.com/rustwasm/weedle/pull/56
-weedle = { git = "https://github.com/rustwasm/weedle.git" }
-wit-encoder = { git = "https://github.com/bytecodealliance/wasm-tools.git", rev = "a2635eb91772d2de1607acbe14ff92ad16f25d33" }
+weedle = "0.13.0"
+wit-encoder = { git = "https://github.com/bytecodealliance/wasm-tools.git", rev = "a265ec17ab8ee9081e9390387eafda7d92107f27" }
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"

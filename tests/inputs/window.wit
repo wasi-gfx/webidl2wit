@@ -1,0 +1,36 @@
+package my-namespace:my-package-idl;
+
+world window {
+  import my-interface;
+}
+
+interface my-interface {
+  resource window {
+    window: func() -> window-proxy;
+    self: func() -> window-proxy;
+    name: func() -> string;
+    set-name: func(name: string);
+    status: func() -> string;
+    set-status: func(status: string);
+    close: func();
+    closed: func() -> bool;
+    stop: func();
+    focus: func();
+    blur: func();
+    frames: func() -> window-proxy;
+    length: func() -> u32;
+    top: func() -> option<window-proxy>;
+    parent: func() -> option<window-proxy>;
+    open: func(url: option<string>, target: option<string>, features: option<string>) -> option<window-proxy>;
+    origin-agent-cluster: func() -> bool;
+    alert: func(message: string);
+    confirm: func(message: option<string>) -> bool;
+    prompt: func(message: option<string>, default: option<string>) -> string;
+    print: func();
+  }
+  record window-post-message-options {
+    target-origin: option<string>,
+  }
+  type window-proxy = window;
+  get-window: func() -> window;
+}
