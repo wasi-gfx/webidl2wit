@@ -41,6 +41,68 @@ impl TypedArrayKind {
 }
 
 impl<'a> State<'a> {
+    pub(super) fn add_array_buffer<'b>(&mut self) -> anyhow::Result<wit_encoder::Ident> {
+        let buffer_name = wit_encoder::Ident::new("array-buffer");
+        if !self.type_def_exists(&buffer_name) {
+            let constructor_options_name =
+                wit_encoder::Ident::new(format!("array-buffer-constructor-options"));
+            let constructor_options = wit_encoder::TypeDef::record(
+                constructor_options_name.clone(),
+                [("max-byte-length", wit_encoder::Type::U32)],
+            );
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(constructor_options));
+
+            let array = wit_encoder::TypeDef::resource(
+                buffer_name.clone(),
+                [
+                    {
+                        let mut func = wit_encoder::ResourceFunc::constructor();
+                        func.params(wit_encoder::Params::from_iter([
+                            ("length", wit_encoder::Type::U32),
+                            (
+                                "options",
+                                wit_encoder::Type::option(wit_encoder::Type::named(
+                                    constructor_options_name.clone(),
+                                )),
+                            ),
+                        ]));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("byte-length");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("slice");
+                        func.params(wit_encoder::Params::from_iter([
+                            ("begin", wit_encoder::Type::U32),
+                            ("end", wit_encoder::Type::option(wit_encoder::Type::U32)),
+                        ]));
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                            "array-buffer",
+                        )));
+                        func
+                    },
+                    // still missing:
+                    // - isView
+                    // - detached
+                    // - maxByteLength
+                    // - resizable
+                    // - resize
+                    // - transfer
+                    // - transferToFixedLength
+                ],
+            );
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(array));
+        }
+        Ok(buffer_name)
+    }
+
     pub(super) fn add_typed_array<'b>(
         &mut self,
         kind: TypedArrayKind,
@@ -58,22 +120,22 @@ impl<'a> State<'a> {
                         wit_encoder::Type::named(array_name.clone()),
                     ),
                     wit_encoder::VariantCase::value("length", wit_encoder::Type::U32),
-                    // wit_encoder::VariantCase::value(
-                    //     "array-buffer",
-                    //     wit_encoder::Type::tuple([
-                    //         wit_encoder::Type::named("array-buffer"),
-                    //         wit_encoder::Type::option(wit_encoder::Type::U32),
-                    //         wit_encoder::Type::option(wit_encoder::Type::U32),
-                    //     ]),
-                    // ),
-                    // wit_encoder::VariantCase::value(
-                    //     "shared-array-buffer",
-                    //     wit_encoder::Type::tuple([
-                    //         wit_encoder::Type::named("shared-array-buffer"),
-                    //         wit_encoder::Type::option(wit_encoder::Type::U32),
-                    //         wit_encoder::Type::option(wit_encoder::Type::U32),
-                    //     ]),
-                    // ),
+                    wit_encoder::VariantCase::value(
+                        "array-buffer",
+                        wit_encoder::Type::tuple([
+                            wit_encoder::Type::named("array-buffer"),
+                            wit_encoder::Type::option(wit_encoder::Type::U32),
+                            wit_encoder::Type::option(wit_encoder::Type::U32),
+                        ]),
+                    ),
+                    wit_encoder::VariantCase::value(
+                        "shared-array-buffer",
+                        wit_encoder::Type::tuple([
+                            wit_encoder::Type::named("shared-array-buffer"),
+                            wit_encoder::Type::option(wit_encoder::Type::U32),
+                            wit_encoder::Type::option(wit_encoder::Type::U32),
+                        ]),
+                    ),
                 ],
             );
             self.interface
@@ -120,13 +182,13 @@ impl<'a> State<'a> {
                         )));
                         func
                     },
-                    // {
-                    //     let mut func = wit_encoder::ResourceFunc::method("buffer");
-                    //     func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
-                    //         "array-buffer",
-                    //     )));
-                    //     func
-                    // },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("buffer");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                            "array-buffer",
+                        )));
+                        func
+                    },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("length");
                         func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
@@ -213,7 +275,7 @@ impl<'a> State<'a> {
                         ]));
                         func
                     },
-                    // missing functions:
+                    // still missing:
                     // - entries
                     // - every
                     // - filter

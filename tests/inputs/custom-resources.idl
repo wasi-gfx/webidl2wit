@@ -11,4 +11,5 @@ dictionary CustomResource {
     Uint32Array myUint32Array;
     Float32Array myFloat32Array;
     Float64Array myFloat64Array;
+    ArrayBuffer myArrayBuffer;
 };

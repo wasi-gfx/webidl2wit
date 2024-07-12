@@ -14,6 +14,8 @@ interface my-interface {
   variant int8-array-constructor-options {
     int8-array(int8-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant int8-array-set-src {
     %list(list<s8>),
@@ -22,6 +24,7 @@ interface my-interface {
   resource int8-array {
     constructor(options: option<int8-array-constructor-options>);
     fill: func(value: s8, start: option<u32>, end: option<u32>) -> int8-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -37,6 +40,8 @@ interface my-interface {
   variant int16-array-constructor-options {
     int16-array(int16-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant int16-array-set-src {
     %list(list<s16>),
@@ -45,6 +50,7 @@ interface my-interface {
   resource int16-array {
     constructor(options: option<int16-array-constructor-options>);
     fill: func(value: s16, start: option<u32>, end: option<u32>) -> int16-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -60,6 +66,8 @@ interface my-interface {
   variant int32-array-constructor-options {
     int32-array(int32-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant int32-array-set-src {
     %list(list<s32>),
@@ -68,6 +76,7 @@ interface my-interface {
   resource int32-array {
     constructor(options: option<int32-array-constructor-options>);
     fill: func(value: s32, start: option<u32>, end: option<u32>) -> int32-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -83,6 +92,8 @@ interface my-interface {
   variant uint8-array-constructor-options {
     uint8-array(uint8-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint8-array-set-src {
     %list(list<u8>),
@@ -91,6 +102,7 @@ interface my-interface {
   resource uint8-array {
     constructor(options: option<uint8-array-constructor-options>);
     fill: func(value: u8, start: option<u32>, end: option<u32>) -> uint8-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -106,6 +118,8 @@ interface my-interface {
   variant uint8-clamped-array-constructor-options {
     uint8-clamped-array(uint8-clamped-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint8-clamped-array-set-src {
     %list(list<u8>),
@@ -114,6 +128,7 @@ interface my-interface {
   resource uint8-clamped-array {
     constructor(options: option<uint8-clamped-array-constructor-options>);
     fill: func(value: u8, start: option<u32>, end: option<u32>) -> uint8-clamped-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -129,6 +144,8 @@ interface my-interface {
   variant uint16-array-constructor-options {
     uint16-array(uint16-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint16-array-set-src {
     %list(list<u16>),
@@ -137,6 +154,7 @@ interface my-interface {
   resource uint16-array {
     constructor(options: option<uint16-array-constructor-options>);
     fill: func(value: u16, start: option<u32>, end: option<u32>) -> uint16-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -152,6 +170,8 @@ interface my-interface {
   variant uint32-array-constructor-options {
     uint32-array(uint32-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint32-array-set-src {
     %list(list<u32>),
@@ -160,6 +180,7 @@ interface my-interface {
   resource uint32-array {
     constructor(options: option<uint32-array-constructor-options>);
     fill: func(value: u32, start: option<u32>, end: option<u32>) -> uint32-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -175,6 +196,8 @@ interface my-interface {
   variant float32-array-constructor-options {
     float32-array(float32-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant float32-array-set-src {
     %list(list<f32>),
@@ -183,6 +206,7 @@ interface my-interface {
   resource float32-array {
     constructor(options: option<float32-array-constructor-options>);
     fill: func(value: f32, start: option<u32>, end: option<u32>) -> float32-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -198,6 +222,8 @@ interface my-interface {
   variant float64-array-constructor-options {
     float64-array(float64-array),
     length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant float64-array-set-src {
     %list(list<f64>),
@@ -206,6 +232,7 @@ interface my-interface {
   resource float64-array {
     constructor(options: option<float64-array-constructor-options>);
     fill: func(value: f64, start: option<u32>, end: option<u32>) -> float64-array;
+    buffer: func() -> array-buffer;
     length: func() -> u32;
     byte-offset: func() -> u32;
     byte-length: func() -> u32;
@@ -217,6 +244,14 @@ interface my-interface {
     values: func() -> list<f64>;
     get-index: func(index: u32) -> f64;
     set-index: func(index: u32, value: f64);
+  }
+  record array-buffer-constructor-options {
+    max-byte-length: u32,
+  }
+  resource array-buffer {
+    constructor(length: u32, options: option<array-buffer-constructor-options>);
+    byte-length: func() -> u32;
+    slice: func(begin: u32, end: option<u32>) -> array-buffer;
   }
   record custom-resource {
     my-record: option<record-s32>,
@@ -231,5 +266,6 @@ interface my-interface {
     my-uint32-array: option<uint32-array>,
     my-float32-array: option<float32-array>,
     my-float64-array: option<float64-array>,
+    my-array-buffer: option<array-buffer>,
   }
 }
