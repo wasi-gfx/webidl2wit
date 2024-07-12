@@ -128,7 +128,10 @@ impl<'a> State<'a> {
             weedle::types::NonAnyType::Octet(_) => wit_encoder::Type::U8,
             weedle::types::NonAnyType::Object(_) => todo!(),
             weedle::types::NonAnyType::Symbol(_) => todo!(),
-            weedle::types::NonAnyType::ArrayBuffer(_) => todo!(),
+            weedle::types::NonAnyType::ArrayBuffer(_) => {
+                let buffer = self.add_array_buffer()?;
+                wit_encoder::Type::named(buffer)
+            }
             weedle::types::NonAnyType::DataView(_) => todo!(),
             weedle::types::NonAnyType::Int8Array(_) => {
                 let array = self.add_typed_array(TypedArrayKind::Int8)?;

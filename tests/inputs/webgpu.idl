@@ -166,7 +166,7 @@ interface GPUBuffer {
     readonly attribute GPUBufferMapState mapState;
 
     undefined mapAsync(GPUMapModeFlags mode, optional GPUSize64 offset = 0, optional GPUSize64 size);
-    // ArrayBuffer getMappedRange(optional GPUSize64 offset = 0, optional GPUSize64 size);
+    ArrayBuffer getMappedRange(optional GPUSize64 offset = 0, optional GPUSize64 size);
     undefined unmap();
 
     undefined destroy();
