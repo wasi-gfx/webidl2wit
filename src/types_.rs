@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use itertools::Itertools;
+use wit_encoder::Ident;
 
 use crate::{
     custom_resources::TypedArrayKind,
@@ -18,7 +19,9 @@ impl<'a> State<'a> {
             weedle::types::Type::Single(weedle::types::SingleType::NonAny(type_)) => {
                 self.wi_non_any2w(type_, optional)
             }
-            weedle::types::Type::Single(weedle::types::SingleType::Any(_any)) => todo!(),
+            weedle::types::Type::Single(weedle::types::SingleType::Any(_any)) => {
+                Ok(wit_encoder::Type::named(self.found_any()))
+            }
             weedle::types::Type::Union(union) => {
                 // using a HashSet to get rid of types that are different in WebIDL but are the same in wit.
                 // e.g. `(long or DOMString or ByteString)` should not have two sting options.
@@ -193,6 +196,37 @@ impl<'a> State<'a> {
             }
             _ => type_,
         }
+    }
+
+    pub(super) fn found_any(&mut self) -> wit_encoder::Ident {
+        let any_name = Ident::new("any");
+
+        if !self.any_found {
+            // TODO: this should run after all types (except variants) are added, and should have a case for each type.
+            let any = wit_encoder::TypeDef::variant(
+                any_name.clone(),
+                [
+                    wit_encoder::VariantCase::value("bool", wit_encoder::Type::Bool),
+                    wit_encoder::VariantCase::value("s8", wit_encoder::Type::S8),
+                    wit_encoder::VariantCase::value("s16", wit_encoder::Type::S16),
+                    wit_encoder::VariantCase::value("s32", wit_encoder::Type::S32),
+                    wit_encoder::VariantCase::value("s64", wit_encoder::Type::S64),
+                    wit_encoder::VariantCase::value("u8", wit_encoder::Type::U8),
+                    wit_encoder::VariantCase::value("u16", wit_encoder::Type::U16),
+                    wit_encoder::VariantCase::value("u32", wit_encoder::Type::U32),
+                    wit_encoder::VariantCase::value("u64", wit_encoder::Type::U64),
+                    wit_encoder::VariantCase::value("f32", wit_encoder::Type::F32),
+                    wit_encoder::VariantCase::value("f64", wit_encoder::Type::F64),
+                    wit_encoder::VariantCase::value("string", wit_encoder::Type::String),
+                ],
+            );
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(any));
+            self.any_found = true;
+        }
+
+        any_name
     }
 }
 
