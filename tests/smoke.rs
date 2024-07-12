@@ -75,7 +75,7 @@ fn unsupported() {
     compare(
         "unsupported",
         ConversionOptions {
-            unsupported_features: HandleUnsupported::Bail,
+            unsupported_features: HandleUnsupported::Warn,
             ..Default::default()
         },
     );
