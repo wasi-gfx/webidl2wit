@@ -1,4 +1,14 @@
 dictionary CustomResource {
     record<USVString, long> myRecord;
     record<USVString, long> reusesRecords;
+    Int8Array myInt8Array;
+    Int8Array myReuseInt8Array;
+    Int16Array myInt16Array;
+    Int32Array myInt32Array;
+    Uint8Array myUint8Array;
+    Uint8ClampedArray myUint8ClampedArray;
+    Uint16Array myUint16Array;
+    Uint32Array myUint32Array;
+    Float32Array myFloat32Array;
+    Float64Array myFloat64Array;
 };

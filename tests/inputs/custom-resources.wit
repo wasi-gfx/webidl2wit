@@ -11,8 +11,225 @@ interface my-interface {
     values: func() -> list<s32>;
     entries: func() -> tuple<string, s32>;
   }
+  variant int8-array-constructor-options {
+    int8-array(int8-array),
+    length(u32),
+  }
+  variant int8-array-set-src {
+    %list(list<s8>),
+    int8-array(int8-array),
+  }
+  resource int8-array {
+    constructor(options: option<int8-array-constructor-options>);
+    fill: func(value: s8, start: option<u32>, end: option<u32>) -> int8-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<s8>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> int8-array;
+    set: func(src: int8-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> int8-array;
+    subarray: func(begin: u32, end: u32) -> int8-array;
+    values: func() -> list<s8>;
+    get-index: func(index: u32) -> s8;
+    set-index: func(index: u32, value: s8);
+  }
+  variant int16-array-constructor-options {
+    int16-array(int16-array),
+    length(u32),
+  }
+  variant int16-array-set-src {
+    %list(list<s16>),
+    int16-array(int16-array),
+  }
+  resource int16-array {
+    constructor(options: option<int16-array-constructor-options>);
+    fill: func(value: s16, start: option<u32>, end: option<u32>) -> int16-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<s16>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> int16-array;
+    set: func(src: int16-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> int16-array;
+    subarray: func(begin: u32, end: u32) -> int16-array;
+    values: func() -> list<s16>;
+    get-index: func(index: u32) -> s16;
+    set-index: func(index: u32, value: s16);
+  }
+  variant int32-array-constructor-options {
+    int32-array(int32-array),
+    length(u32),
+  }
+  variant int32-array-set-src {
+    %list(list<s32>),
+    int32-array(int32-array),
+  }
+  resource int32-array {
+    constructor(options: option<int32-array-constructor-options>);
+    fill: func(value: s32, start: option<u32>, end: option<u32>) -> int32-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<s32>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> int32-array;
+    set: func(src: int32-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> int32-array;
+    subarray: func(begin: u32, end: u32) -> int32-array;
+    values: func() -> list<s32>;
+    get-index: func(index: u32) -> s32;
+    set-index: func(index: u32, value: s32);
+  }
+  variant uint8-array-constructor-options {
+    uint8-array(uint8-array),
+    length(u32),
+  }
+  variant uint8-array-set-src {
+    %list(list<u8>),
+    uint8-array(uint8-array),
+  }
+  resource uint8-array {
+    constructor(options: option<uint8-array-constructor-options>);
+    fill: func(value: u8, start: option<u32>, end: option<u32>) -> uint8-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<u8>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> uint8-array;
+    set: func(src: uint8-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> uint8-array;
+    subarray: func(begin: u32, end: u32) -> uint8-array;
+    values: func() -> list<u8>;
+    get-index: func(index: u32) -> u8;
+    set-index: func(index: u32, value: u8);
+  }
+  variant uint8-clamped-array-constructor-options {
+    uint8-clamped-array(uint8-clamped-array),
+    length(u32),
+  }
+  variant uint8-clamped-array-set-src {
+    %list(list<u8>),
+    uint8-clamped-array(uint8-clamped-array),
+  }
+  resource uint8-clamped-array {
+    constructor(options: option<uint8-clamped-array-constructor-options>);
+    fill: func(value: u8, start: option<u32>, end: option<u32>) -> uint8-clamped-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<u8>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> uint8-clamped-array;
+    set: func(src: uint8-clamped-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> uint8-clamped-array;
+    subarray: func(begin: u32, end: u32) -> uint8-clamped-array;
+    values: func() -> list<u8>;
+    get-index: func(index: u32) -> u8;
+    set-index: func(index: u32, value: u8);
+  }
+  variant uint16-array-constructor-options {
+    uint16-array(uint16-array),
+    length(u32),
+  }
+  variant uint16-array-set-src {
+    %list(list<u16>),
+    uint16-array(uint16-array),
+  }
+  resource uint16-array {
+    constructor(options: option<uint16-array-constructor-options>);
+    fill: func(value: u16, start: option<u32>, end: option<u32>) -> uint16-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<u16>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> uint16-array;
+    set: func(src: uint16-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> uint16-array;
+    subarray: func(begin: u32, end: u32) -> uint16-array;
+    values: func() -> list<u16>;
+    get-index: func(index: u32) -> u16;
+    set-index: func(index: u32, value: u16);
+  }
+  variant uint32-array-constructor-options {
+    uint32-array(uint32-array),
+    length(u32),
+  }
+  variant uint32-array-set-src {
+    %list(list<u32>),
+    uint32-array(uint32-array),
+  }
+  resource uint32-array {
+    constructor(options: option<uint32-array-constructor-options>);
+    fill: func(value: u32, start: option<u32>, end: option<u32>) -> uint32-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<u32>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> uint32-array;
+    set: func(src: uint32-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> uint32-array;
+    subarray: func(begin: u32, end: u32) -> uint32-array;
+    values: func() -> list<u32>;
+    get-index: func(index: u32) -> u32;
+    set-index: func(index: u32, value: u32);
+  }
+  variant float32-array-constructor-options {
+    float32-array(float32-array),
+    length(u32),
+  }
+  variant float32-array-set-src {
+    %list(list<f32>),
+    float32-array(float32-array),
+  }
+  resource float32-array {
+    constructor(options: option<float32-array-constructor-options>);
+    fill: func(value: f32, start: option<u32>, end: option<u32>) -> float32-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<f32>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> float32-array;
+    set: func(src: float32-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> float32-array;
+    subarray: func(begin: u32, end: u32) -> float32-array;
+    values: func() -> list<f32>;
+    get-index: func(index: u32) -> f32;
+    set-index: func(index: u32, value: f32);
+  }
+  variant float64-array-constructor-options {
+    float64-array(float64-array),
+    length(u32),
+  }
+  variant float64-array-set-src {
+    %list(list<f64>),
+    float64-array(float64-array),
+  }
+  resource float64-array {
+    constructor(options: option<float64-array-constructor-options>);
+    fill: func(value: f64, start: option<u32>, end: option<u32>) -> float64-array;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<f64>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> float64-array;
+    set: func(src: float64-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> float64-array;
+    subarray: func(begin: u32, end: u32) -> float64-array;
+    values: func() -> list<f64>;
+    get-index: func(index: u32) -> f64;
+    set-index: func(index: u32, value: f64);
+  }
   record custom-resource {
     my-record: option<record-s32>,
     reuses-records: option<record-s32>,
+    my-int8-array: option<int8-array>,
+    my-reuse-int8-array: option<int8-array>,
+    my-int16-array: option<int16-array>,
+    my-int32-array: option<int32-array>,
+    my-uint8-array: option<uint8-array>,
+    my-uint8-clamped-array: option<uint8-clamped-array>,
+    my-uint16-array: option<uint16-array>,
+    my-uint32-array: option<uint32-array>,
+    my-float32-array: option<float32-array>,
+    my-float64-array: option<float64-array>,
   }
 }
