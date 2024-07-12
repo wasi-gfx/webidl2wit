@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 
 use itertools::Itertools;
 
-use crate::translations::{ident_name, State};
+use crate::{
+    custom_resources::TypedArrayKind,
+    translations::{ident_name, State},
+};
 
 impl<'a> State<'a> {
     // WebIdl 2 Wit
@@ -124,15 +127,42 @@ impl<'a> State<'a> {
             weedle::types::NonAnyType::Symbol(_) => todo!(),
             weedle::types::NonAnyType::ArrayBuffer(_) => todo!(),
             weedle::types::NonAnyType::DataView(_) => todo!(),
-            weedle::types::NonAnyType::Int8Array(_) => todo!(),
-            weedle::types::NonAnyType::Int16Array(_) => todo!(),
-            weedle::types::NonAnyType::Int32Array(_) => todo!(),
-            weedle::types::NonAnyType::Uint8Array(_) => todo!(),
-            weedle::types::NonAnyType::Uint16Array(_) => todo!(),
-            weedle::types::NonAnyType::Uint32Array(_) => todo!(),
-            weedle::types::NonAnyType::Uint8ClampedArray(_) => todo!(),
-            weedle::types::NonAnyType::Float32Array(_) => todo!(),
-            weedle::types::NonAnyType::Float64Array(_) => todo!(),
+            weedle::types::NonAnyType::Int8Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::Int8)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Int16Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::Int16)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Int32Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::Int32)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Uint8Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::UInt8)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Uint16Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::UInt16)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Uint32Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::UInt32)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Uint8ClampedArray(_) => {
+                let array = self.add_typed_array(TypedArrayKind::UInt8Clamped)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Float32Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::Float32)?;
+                wit_encoder::Type::named(array)
+            }
+            weedle::types::NonAnyType::Float64Array(_) => {
+                let array = self.add_typed_array(TypedArrayKind::Float64)?;
+                wit_encoder::Type::named(array)
+            }
             weedle::types::NonAnyType::ArrayBufferView(_) => todo!(),
             weedle::types::NonAnyType::BufferSource(_) => todo!(),
             weedle::types::NonAnyType::FrozenArrayType(_) => todo!(),
@@ -145,81 +175,6 @@ impl<'a> State<'a> {
         Ok(match optional {
             false => type_,
             true => wit_encoder::Type::option(type_),
-        })
-    }
-
-    fn add_record<'b>(
-        &mut self,
-        record: &weedle::types::RecordType<'b>,
-    ) -> anyhow::Result<wit_encoder::Ident> {
-        let value = self.wi2w_type(&record.generics.body.2, false)?;
-
-        let record_name = wit_encoder::Ident::new(format!("record-{value}"));
-        if !self.type_def_exists(&record_name) {
-            let set = wit_encoder::TypeDef::resource(
-                record_name.clone(),
-                [
-                    { wit_encoder::ResourceFunc::constructor() },
-                    {
-                        let mut func = wit_encoder::ResourceFunc::method("add");
-                        func.params(wit_encoder::Params::from_iter([
-                            ("key", wit_encoder::Type::String),
-                            ("value", value.clone()),
-                        ]));
-                        func
-                    },
-                    {
-                        let mut func = wit_encoder::ResourceFunc::method("get");
-                        func.params(("key", wit_encoder::Type::String));
-                        func.results(wit_encoder::Results::anon(value.clone()));
-                        func
-                    },
-                    {
-                        let mut func = wit_encoder::ResourceFunc::method("has");
-                        func.params(("key", wit_encoder::Type::String));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::Bool));
-                        func
-                    },
-                    {
-                        let mut func = wit_encoder::ResourceFunc::method("remove");
-                        func.params(("key", wit_encoder::Type::String));
-                        func
-                    },
-                    {
-                        let mut func = wit_encoder::ResourceFunc::method("keys");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
-                            wit_encoder::Type::String,
-                        )));
-                        func
-                    },
-                    {
-                        let mut func = wit_encoder::ResourceFunc::method("values");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
-                            value.clone(),
-                        )));
-                        func
-                    },
-                    {
-                        let mut func = wit_encoder::ResourceFunc::method("entries");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
-                            wit_encoder::Type::String,
-                            value.clone(),
-                        ])));
-                        func
-                    },
-                ],
-            );
-            self.interface
-                .items_mut()
-                .push(wit_encoder::InterfaceItem::TypeDef(set));
-        }
-        Ok(record_name)
-    }
-
-    fn type_def_exists(&self, name: &wit_encoder::Ident) -> bool {
-        self.interface.items().iter().any(|item| match item {
-            wit_encoder::InterfaceItem::TypeDef(td) => td.name() == name,
-            wit_encoder::InterfaceItem::Function(_) => false,
         })
     }
 

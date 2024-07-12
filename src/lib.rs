@@ -1,3 +1,4 @@
+mod custom_resources;
 mod translations;
 mod types_;
 
