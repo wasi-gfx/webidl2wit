@@ -65,11 +65,12 @@ impl Default for ConversionOptions {
     }
 }
 pub(super) struct State<'a> {
-    unsupported_features: HandleUnsupported,
+    pub unsupported_features: HandleUnsupported,
     pub interface: wit_encoder::Interface,
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
     // Resource names do know what needs to be borrowed.
     pub resource_names: HashSet<Ident>,
+    pub any_found: bool,
 }
 
 fn handle_unsupported(name: &str, feature: &str, handle_unsupported: &HandleUnsupported) {
@@ -119,6 +120,7 @@ pub fn webidl_to_wit(
                 _ => None,
             })
             .collect(),
+        any_found: false,
     };
 
     for item in webidl {
