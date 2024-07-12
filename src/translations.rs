@@ -411,24 +411,34 @@ impl<'a> State<'a> {
                     functions.push(function);
                 }
                 weedle::interface::InterfaceMember::Operation(operation) => {
-                    let function_name = ident_name(operation.identifier.unwrap().0);
-                    let mut function = match operation.modifier {
-                        Some(weedle::interface::StringifierOrStatic::Static(_)) => {
-                            wit_encoder::ResourceFunc::static_(function_name)
-                        }
-                        _ => wit_encoder::ResourceFunc::method(function_name),
-                    };
+                    if let Some(identifier) = operation.identifier {
+                        let function_name = ident_name(identifier.0);
+                        // TODO: if operation.attributes includes `[Throws]`, make return a result.
+                        let mut function = match operation.modifier {
+                            Some(weedle::interface::StringifierOrStatic::Static(_)) => {
+                                wit_encoder::ResourceFunc::static_(function_name)
+                            }
+                            _ => wit_encoder::ResourceFunc::method(function_name),
+                        };
 
-                    function.params(self.function_args(&operation.args.body)?);
+                        function.params(self.function_args(&operation.args.body)?);
 
-                    let results = match &operation.return_type {
-                        weedle::types::ReturnType::Undefined(_) => wit_encoder::Results::empty(),
-                        weedle::types::ReturnType::Type(type_) => {
-                            self.wi2w_type(&type_, false)?.into()
-                        }
-                    };
-                    function.results(results);
-                    functions.push(function);
+                        let results = match &operation.return_type {
+                            weedle::types::ReturnType::Undefined(_) => {
+                                wit_encoder::Results::empty()
+                            }
+                            weedle::types::ReturnType::Type(type_) => {
+                                self.wi2w_type(&type_, false)?.into()
+                            }
+                        };
+                        function.results(results);
+                        functions.push(function);
+                    } else {
+                        eprintln!(
+                            "WARN: Skipping operation without identifier. Getter/setter/deleter not yet supported",
+                        );
+                        continue;
+                    }
                 }
             }
         }
