@@ -428,7 +428,22 @@ impl<'a> State<'a> {
                                 wit_encoder::Results::empty()
                             }
                             weedle::types::ReturnType::Type(type_) => {
-                                self.wi2w_type(&type_, false)?.into()
+                                use weedle::types::{NonAnyType, ReturnType, SingleType, Type};
+                                // TODO: remove the `is_undefined_promise` once we have proper Future support
+                                let mut is_undefined_promise = false;
+                                if let Type::Single(SingleType::NonAny(NonAnyType::Promise(
+                                    promise,
+                                ))) = type_
+                                {
+                                    if let ReturnType::Undefined(_) = &*promise.generics.body {
+                                        is_undefined_promise = true;
+                                    }
+                                }
+                                if is_undefined_promise {
+                                    wit_encoder::Results::empty()
+                                } else {
+                                    self.wi2w_type(&type_, false)?.into()
+                                }
                             }
                         };
                         function.results(results);
