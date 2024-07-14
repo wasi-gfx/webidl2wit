@@ -12,4 +12,6 @@ dictionary CustomResource {
     Float32Array myFloat32Array;
     Float64Array myFloat64Array;
     ArrayBuffer myArrayBuffer;
+    object myObject;
+    object reusesObject;
 };
