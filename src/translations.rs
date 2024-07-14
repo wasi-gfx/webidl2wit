@@ -370,12 +370,9 @@ impl<'a> State<'a> {
                     );
                     continue;
                 }
-                weedle::interface::InterfaceMember::Setlike(_) => {
-                    eprintln!(
-                        "WARN: Skipping {} as {} is unsupported",
-                        resource_name, "setlike"
-                    );
-                    continue;
+                weedle::interface::InterfaceMember::Setlike(setlike) => {
+                    let mut set_methods = self.set_methods(setlike)?;
+                    functions.append(&mut set_methods);
                 }
                 weedle::interface::InterfaceMember::Stringifier(_) => {
                     eprintln!(
@@ -465,5 +462,22 @@ impl<'a> State<'a> {
         resource.funcs_mut().extend(functions);
 
         Ok(())
+    }
+
+    fn set_methods<'b>(
+        &mut self,
+        setlike: &weedle::interface::SetlikeInterfaceMember<'b>,
+    ) -> anyhow::Result<Vec<wit_encoder::ResourceFunc>> {
+        let generic_type = self.wi2w_type(&setlike.generics.body.type_, false)?;
+        assert!(
+            setlike.readonly.is_some(),
+            "TODO: add mutable setlike support"
+        );
+        Ok(vec![{
+            let mut func = wit_encoder::ResourceFunc::method("has");
+            func.params(("value", generic_type));
+            func.results(wit_encoder::Type::Bool);
+            func
+        }])
     }
 }
