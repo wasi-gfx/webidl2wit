@@ -420,6 +420,92 @@ impl<'a> State<'a> {
         Ok(view_name)
     }
 
+    pub(crate) fn add_array_buffer_view(&mut self) -> anyhow::Result<wit_encoder::Ident> {
+        // TODO: maybe like any, only include that ones that were used.
+        let buffer_view_name = wit_encoder::Ident::new("array-buffer-view");
+        if !self.type_def_exists(&buffer_view_name) {
+            let buffer_view = wit_encoder::TypeDef::variant(
+                buffer_view_name.clone(),
+                [
+                    {
+                        let view = self.add_data_view()?;
+                        wit_encoder::VariantCase::value(
+                            view.clone(),
+                            wit_encoder::Type::named(view),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::UInt8)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::UInt8Clamped)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::UInt16)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::UInt32)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::Int8)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::Int16)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::Int32)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::Float32)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                    {
+                        let array = self.add_typed_array(TypedArrayKind::Float64)?;
+                        wit_encoder::VariantCase::value(
+                            array.clone(),
+                            wit_encoder::Type::named(array),
+                        )
+                    },
+                ],
+            );
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(buffer_view));
+        }
+        Ok(buffer_view_name)
+    }
+
     pub(super) fn add_record<'b>(
         &mut self,
         record: &weedle::types::RecordType<'b>,
