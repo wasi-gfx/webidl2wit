@@ -165,7 +165,7 @@ interface GPUBuffer {
 
     readonly attribute GPUBufferMapState mapState;
 
-    undefined mapAsync(GPUMapModeFlags mode, optional GPUSize64 offset = 0, optional GPUSize64 size);
+    Promise<undefined> mapAsync(GPUMapModeFlags mode, optional GPUSize64 offset = 0, optional GPUSize64 size);
     ArrayBuffer getMappedRange(optional GPUSize64 offset = 0, optional GPUSize64 size);
     undefined unmap();
 
@@ -1134,7 +1134,7 @@ dictionary GPUQueueDescriptor
 interface GPUQueue {
     undefined submit(sequence<GPUCommandBuffer> commandBuffers);
 
-    undefined onSubmittedWorkDone();
+    Promise<undefined> onSubmittedWorkDone();
 
     undefined writeBuffer(
         GPUBuffer buffer,
