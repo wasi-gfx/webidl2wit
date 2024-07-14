@@ -1,13 +1,7 @@
-# WIP WebIDL to wit conversion.
-This code was written in a hacky way, plans to improve it soon.
-
-Side effects of reading this code may include facepalming, mouth drops, and a strong desire to rewrite all of it. Proceed at your own risk.
+# WIP WebIDL to wit convertor.
 
 
-## Conversions from WebIDL to wit types.
-> **_NOTE:_** This does not represent what's currently implemented, this only shows future plans.
-
-If you have any thoughts, please use the [discussion about this table](https://github.com/MendyBerger/webidl-wit/discussions/1) to chime in.
+### Conversions of types from WebIDL to wit.
 
 | WebIDL type                     | wit type              |
 |:--------------------------------|:----------------------|
@@ -22,10 +16,10 @@ If you have any thoughts, please use the [discussion about this table](https://g
 | `unsigned long`                 | `u32`                 |
 | `long long`                     | `s64`                 |
 | `unsigned long long`            | `u64`                 |
-| `float`                         | `float32`             |
-| `unrestricted float`            | `float32`             |
-| `double`                        | `float64`             |
-| `unrestricted double`           | `float64`             |
+| `float`                         | `f32`                 |
+| `unrestricted float`            | `f32`                 |
+| `double`                        | `f64`                 |
+| `unrestricted double`           | `f64`                 |
 | `bigint`                        | ❓                    |
 | `DOMString`                     | `string`              |
 | `ByteString`                    | `string`              |
@@ -40,13 +34,13 @@ If you have any thoughts, please use the [discussion about this table](https://g
 | `constructor`                   | `constructor`         |
 | `T?` (optional)                 | `option<T>`           |
 | `sequence<T>`                   | `list<T>`             |
-| `record<K, V>`                  | ❓                    |
+| `record<K, V>`                  | A custom resource     |
 | `Promise<T>`                    | ❓                    |
 | `or` (union)                    | `variant`             |
-| Buffer types (e.g. `Int8Array`) | ❓                    |
-| `FrozenArray<T>`                | ❓ (maybe `list<T>`?) |
+| Buffer types (e.g. `Int8Array`) | A custom resource     |
+| `FrozenArray<T>`                | `list<T>`             |
 | `ObservableArray<T>`            | ❓                    |
-| `setlike<T>`                    | ❓                    |
+| `setlike<T>`                    | Add set methods       |
 | `maplike<K, V>`                 | ❓                    |
 | `namespace`                     | ❓                    |
 | `typedef`                       | `type`                |
