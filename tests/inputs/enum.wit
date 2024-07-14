@@ -4,5 +4,6 @@ interface my-interface {
   enum gpu-power-preference {
     low-power,
     high-performance,
+    x1d-performance,
   }
 }

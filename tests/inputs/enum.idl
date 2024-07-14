@@ -1,4 +1,5 @@
 enum GPUPowerPreference {
     "low-power",
     "high-performance",
+    "1d-performance",
 };

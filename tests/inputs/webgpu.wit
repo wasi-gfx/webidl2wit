@@ -161,6 +161,7 @@ interface my-interface {
     depth-or-array-layers: func() -> gpu-integer-coordinate-out;
     mip-level-count: func() -> gpu-integer-coordinate-out;
     sample-count: func() -> gpu-size32-out;
+    dimension: func() -> gpu-texture-dimension;
     format: func() -> gpu-texture-format;
     usage: func() -> gpu-flags-constant;
     label: func() -> string;
@@ -170,9 +171,15 @@ interface my-interface {
     size: gpu-extent3-d,
     mip-level-count: option<gpu-integer-coordinate>,
     sample-count: option<gpu-size32>,
+    dimension: option<gpu-texture-dimension>,
     format: gpu-texture-format,
     usage: gpu-texture-usage-flags,
     view-formats: option<list<gpu-texture-format>>,
+  }
+  enum gpu-texture-dimension {
+    x1d,
+    x2d,
+    x3d,
   }
   type gpu-texture-usage-flags = u32;
   resource gpu-texture-view {
@@ -181,11 +188,20 @@ interface my-interface {
   }
   record gpu-texture-view-descriptor {
     format: option<gpu-texture-format>,
+    dimension: option<gpu-texture-view-dimension>,
     aspect: option<gpu-texture-aspect>,
     base-mip-level: option<gpu-integer-coordinate>,
     mip-level-count: option<gpu-integer-coordinate>,
     base-array-layer: option<gpu-integer-coordinate>,
     array-layer-count: option<gpu-integer-coordinate>,
+  }
+  enum gpu-texture-view-dimension {
+    x1d,
+    x2d,
+    x2d-array,
+    cube,
+    cube-array,
+    x3d,
   }
   enum gpu-texture-aspect {
     all,
@@ -377,6 +393,7 @@ interface my-interface {
   }
   record gpu-texture-binding-layout {
     sample-type: option<gpu-texture-sample-type>,
+    view-dimension: option<gpu-texture-view-dimension>,
     multisampled: option<bool>,
   }
   enum gpu-storage-texture-access {
@@ -387,6 +404,7 @@ interface my-interface {
   record gpu-storage-texture-binding-layout {
     access: option<gpu-storage-texture-access>,
     format: gpu-texture-format,
+    view-dimension: option<gpu-texture-view-dimension>,
   }
   record gpu-external-texture-binding-layout {  }
   resource gpu-bind-group {

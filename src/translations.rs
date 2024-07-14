@@ -283,7 +283,10 @@ impl<'a> State<'a> {
 
 pub(super) fn ident_name(src: &str) -> wit_encoder::Ident {
     // doing to_pascal_case first to get rid of all dashes. E.g. "A-1" should turn into "a1" and not "a-1".
-    let name = src.to_pascal_case().to_kebab_case();
+    let mut name = src.to_pascal_case().to_kebab_case();
+    if matches!(name.chars().next(), Some(c) if c.is_digit(10)) {
+        name = format!("x{name}");
+    }
     wit_encoder::Ident::new(name)
 }
 
