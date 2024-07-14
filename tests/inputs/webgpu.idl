@@ -219,7 +219,7 @@ interface GPUTexture {
     readonly attribute GPUIntegerCoordinateOut depthOrArrayLayers;
     readonly attribute GPUIntegerCoordinateOut mipLevelCount;
     readonly attribute GPUSize32Out sampleCount;
-    // readonly attribute GPUTextureDimension dimension;
+    readonly attribute GPUTextureDimension dimension;
     readonly attribute GPUTextureFormat format;
     readonly attribute GPUFlagsConstant usage;
 };
@@ -230,17 +230,17 @@ dictionary GPUTextureDescriptor
     required GPUExtent3D size;
     GPUIntegerCoordinate mipLevelCount = 1;
     GPUSize32 sampleCount = 1;
-    // GPUTextureDimension dimension = "2d";
+    GPUTextureDimension dimension = "2d";
     required GPUTextureFormat format;
     required GPUTextureUsageFlags usage;
     sequence<GPUTextureFormat> viewFormats = [];
 };
 
-// enum GPUTextureDimension {
-//     "1d",
-//     "2d",
-//     "3d",
-// };
+enum GPUTextureDimension {
+    "1d",
+    "2d",
+    "3d",
+};
 
 typedef [EnforceRange] unsigned long GPUTextureUsageFlags;
 // [Exposed=(Window, DedicatedWorker), SecureContext]
@@ -260,7 +260,7 @@ GPUTextureView includes GPUObjectBase;
 dictionary GPUTextureViewDescriptor
          : GPUObjectDescriptorBase {
     GPUTextureFormat format;
-    // GPUTextureViewDimension dimension;
+    GPUTextureViewDimension dimension;
     GPUTextureAspect aspect = "all";
     GPUIntegerCoordinate baseMipLevel = 0;
     GPUIntegerCoordinate mipLevelCount;
@@ -268,14 +268,14 @@ dictionary GPUTextureViewDescriptor
     GPUIntegerCoordinate arrayLayerCount;
 };
 
-// enum GPUTextureViewDimension {
-//     "1d",
-//     "2d",
-//     "2d-array",
-//     "cube",
-//     "cube-array",
-//     "3d",
-// };
+enum GPUTextureViewDimension {
+    "1d",
+    "2d",
+    "2d-array",
+    "cube",
+    "cube-array",
+    "3d",
+};
 
 enum GPUTextureAspect {
     "all",
@@ -522,7 +522,7 @@ enum GPUTextureSampleType {
 
 dictionary GPUTextureBindingLayout {
     GPUTextureSampleType sampleType = "float";
-    // GPUTextureViewDimension viewDimension = "2d";
+    GPUTextureViewDimension viewDimension = "2d";
     boolean multisampled = false;
 };
 
@@ -535,7 +535,7 @@ enum GPUStorageTextureAccess {
 dictionary GPUStorageTextureBindingLayout {
     GPUStorageTextureAccess access = "write-only";
     required GPUTextureFormat format;
-    // GPUTextureViewDimension viewDimension = "2d";
+    GPUTextureViewDimension viewDimension = "2d";
 };
 
 dictionary GPUExternalTextureBindingLayout {
