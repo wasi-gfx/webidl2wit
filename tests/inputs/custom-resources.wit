@@ -253,6 +253,30 @@ interface my-interface {
     get-index: func(index: u32) -> f64;
     set-index: func(index: u32, value: f64);
   }
+  variant any {
+    %bool(bool),
+    %s8(s8),
+    %s16(s16),
+    %s32(s32),
+    %s64(s64),
+    %u8(u8),
+    %u16(u16),
+    %u32(u32),
+    %u64(u64),
+    f32(f32),
+    f64(f64),
+    %string(string),
+  }
+  resource object {
+    constructor();
+    add: func(key: string, value: any);
+    get: func(key: string) -> any;
+    has: func(key: string) -> bool;
+    remove: func(key: string);
+    keys: func() -> list<string>;
+    values: func() -> list<any>;
+    entries: func() -> tuple<string, any>;
+  }
   record custom-resource {
     my-record: option<record-s32>,
     reuses-records: option<record-s32>,
@@ -267,5 +291,7 @@ interface my-interface {
     my-float32-array: option<float32-array>,
     my-float64-array: option<float64-array>,
     my-array-buffer: option<array-buffer>,
+    my-object: option<object>,
+    reuses-object: option<object>,
   }
 }

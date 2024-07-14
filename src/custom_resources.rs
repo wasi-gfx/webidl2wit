@@ -375,6 +375,73 @@ impl<'a> State<'a> {
         Ok(record_name)
     }
 
+    pub(super) fn add_object(&mut self) -> wit_encoder::Ident {
+        let any = self.found_any();
+
+        let object_name = wit_encoder::Ident::new(format!("object"));
+        if !self.type_def_exists(&object_name) {
+            let object = wit_encoder::TypeDef::resource(
+                object_name.clone(),
+                [
+                    { wit_encoder::ResourceFunc::constructor() },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("add");
+                        func.params(wit_encoder::Params::from_iter([
+                            ("key", wit_encoder::Type::String),
+                            ("value", wit_encoder::Type::named(any.clone())),
+                        ]));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("get");
+                        func.params(("key", wit_encoder::Type::String));
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                            any.clone(),
+                        )));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("has");
+                        func.params(("key", wit_encoder::Type::String));
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::Bool));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("remove");
+                        func.params(("key", wit_encoder::Type::String));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("keys");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                            wit_encoder::Type::String,
+                        )));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("values");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                            wit_encoder::Type::named(any.clone()),
+                        )));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("entries");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
+                            wit_encoder::Type::String,
+                            wit_encoder::Type::named(any.clone()),
+                        ])));
+                        func
+                    },
+                ],
+            );
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(object));
+        }
+        object_name
+    }
+
     fn type_def_exists(&self, name: &wit_encoder::Ident) -> bool {
         self.interface.items().iter().any(|item| match item {
             wit_encoder::InterfaceItem::TypeDef(td) => td.name() == name,
