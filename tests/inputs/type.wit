@@ -29,4 +29,5 @@ interface my-interface {
   type my-unrestricted-float = f32;
   type my-double = f64;
   type my-unrestricted-double = f64;
+  type frozen-array = list<s32>;
 }

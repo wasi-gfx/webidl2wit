@@ -171,7 +171,10 @@ impl<'a> State<'a> {
             }
             weedle::types::NonAnyType::ArrayBufferView(_) => todo!(),
             weedle::types::NonAnyType::BufferSource(_) => todo!(),
-            weedle::types::NonAnyType::FrozenArrayType(_) => todo!(),
+            weedle::types::NonAnyType::FrozenArrayType(array) => {
+                let type_ = self.wi2w_type(&*array.type_.generics.body, array.q_mark.is_some())?;
+                wit_encoder::Type::list(type_)
+            }
             weedle::types::NonAnyType::RecordType(record) => {
                 let record = self.add_record(&record.type_)?;
                 wit_encoder::Type::named(record)

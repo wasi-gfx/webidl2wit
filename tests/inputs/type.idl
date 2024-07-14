@@ -29,3 +29,5 @@ typedef float myFloat;
 typedef unrestricted float myUnrestrictedFloat;
 typedef double myDouble;
 typedef unrestricted double myUnrestrictedDouble;
+
+typedef FrozenArray<long> frozenArray;

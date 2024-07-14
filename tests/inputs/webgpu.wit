@@ -469,6 +469,7 @@ interface my-interface {
     length: func() -> u64;
   }
   resource gpu-compilation-info {
+    messages: func() -> list<gpu-compilation-message>;
   }
   resource gpu-pipeline-error {
     constructor(message: option<string>, options: gpu-pipeline-error-init);

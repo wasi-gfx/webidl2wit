@@ -611,7 +611,7 @@ interface GPUCompilationMessage {
 
 [Exposed=(Window, DedicatedWorker), Serializable, SecureContext]
 interface GPUCompilationInfo {
-    // readonly attribute FrozenArray<GPUCompilationMessage> messages;
+    readonly attribute FrozenArray<GPUCompilationMessage> messages;
 };
 
 [Exposed=(Window, DedicatedWorker), SecureContext, Serializable]
