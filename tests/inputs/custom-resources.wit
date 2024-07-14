@@ -11,6 +11,14 @@ interface my-interface {
     values: func() -> list<s32>;
     entries: func() -> tuple<string, s32>;
   }
+  record array-buffer-constructor-options {
+    max-byte-length: u32,
+  }
+  resource array-buffer {
+    constructor(length: u32, options: option<array-buffer-constructor-options>);
+    byte-length: func() -> u32;
+    slice: func(begin: u32, end: option<u32>) -> array-buffer;
+  }
   variant int8-array-constructor-options {
     int8-array(int8-array),
     length(u32),
@@ -244,14 +252,6 @@ interface my-interface {
     values: func() -> list<f64>;
     get-index: func(index: u32) -> f64;
     set-index: func(index: u32, value: f64);
-  }
-  record array-buffer-constructor-options {
-    max-byte-length: u32,
-  }
-  resource array-buffer {
-    constructor(length: u32, options: option<array-buffer-constructor-options>);
-    byte-length: func() -> u32;
-    slice: func(begin: u32, end: option<u32>) -> array-buffer;
   }
   record custom-resource {
     my-record: option<record-s32>,
