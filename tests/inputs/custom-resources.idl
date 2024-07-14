@@ -16,4 +16,6 @@ dictionary CustomResource {
     object reusesObject;
     DataView myDataView;
     DataView reusesDataView;
+    ArrayBufferView myArrayBufferView;
+    ArrayBufferView reusesArrayBufferView;
 };

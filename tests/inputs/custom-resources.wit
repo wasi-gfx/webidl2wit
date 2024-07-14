@@ -299,6 +299,18 @@ interface my-interface {
     get-float64: func(byte-offset: u32, little-endian: option<bool>) -> f64;
     set-float64: func(byte-offset: u32, value: f64, little-endian: option<bool>);
   }
+  variant array-buffer-view {
+    data-view(data-view),
+    uint8-array(uint8-array),
+    uint8-clamped-array(uint8-clamped-array),
+    uint16-array(uint16-array),
+    uint32-array(uint32-array),
+    int8-array(int8-array),
+    int16-array(int16-array),
+    int32-array(int32-array),
+    float32-array(float32-array),
+    float64-array(float64-array),
+  }
   record custom-resource {
     my-record: option<record-s32>,
     reuses-records: option<record-s32>,
@@ -317,5 +329,7 @@ interface my-interface {
     reuses-object: option<object>,
     my-data-view: option<data-view>,
     reuses-data-view: option<data-view>,
+    my-array-buffer-view: option<array-buffer-view>,
+    reuses-array-buffer-view: option<array-buffer-view>,
   }
 }

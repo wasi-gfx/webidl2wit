@@ -175,7 +175,10 @@ impl<'a> State<'a> {
                 let array = self.add_typed_array(TypedArrayKind::Float64)?;
                 wit_encoder::Type::named(array)
             }
-            weedle::types::NonAnyType::ArrayBufferView(_) => todo!(),
+            weedle::types::NonAnyType::ArrayBufferView(_) => {
+                let buffer_view = self.add_array_buffer_view()?;
+                wit_encoder::Type::named(buffer_view)
+            }
             weedle::types::NonAnyType::BufferSource(_) => todo!(),
             weedle::types::NonAnyType::FrozenArrayType(array) => {
                 let type_ = self.wi2w_type(&*array.type_.generics.body, array.q_mark.is_some())?;
