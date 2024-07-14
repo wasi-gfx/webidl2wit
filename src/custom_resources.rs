@@ -307,6 +307,119 @@ impl<'a> State<'a> {
         Ok(array_name)
     }
 
+    pub(super) fn add_data_view<'b>(&mut self) -> anyhow::Result<wit_encoder::Ident> {
+        fn setter_getter(type_: wit_encoder::Type) -> Vec<wit_encoder::ResourceFunc> {
+            let type_name = match type_ {
+                wit_encoder::Type::U8 => "uint8",
+                wit_encoder::Type::U16 => "uint16",
+                wit_encoder::Type::U32 => "uint32",
+                wit_encoder::Type::U64 => "uint64",
+                wit_encoder::Type::S8 => "int8",
+                wit_encoder::Type::S16 => "int16",
+                wit_encoder::Type::S32 => "int32",
+                wit_encoder::Type::S64 => "int64",
+                wit_encoder::Type::F32 => "float32",
+                wit_encoder::Type::F64 => "float64",
+                _ => unimplemented!(),
+            };
+
+            let is8 = match type_ {
+                wit_encoder::Type::U8 | wit_encoder::Type::S8 => true,
+                _ => false,
+            };
+
+            vec![
+                {
+                    let mut func = wit_encoder::ResourceFunc::method(format!("get-{}", type_name));
+                    if is8 {
+                        func.params(("byte-offset", wit_encoder::Type::U32));
+                    } else {
+                        func.params(wit_encoder::Params::from_iter([
+                            ("byte-offset", wit_encoder::Type::U32),
+                            (
+                                "little-endian",
+                                wit_encoder::Type::option(wit_encoder::Type::Bool),
+                            ),
+                        ]));
+                    }
+                    func.results(wit_encoder::Results::anon(type_.clone()));
+                    func
+                },
+                {
+                    let mut func = wit_encoder::ResourceFunc::method(format!("set-{}", type_name));
+                    if is8 {
+                        func.params(wit_encoder::Params::from_iter([
+                            ("byte-offset", wit_encoder::Type::U32),
+                            ("value", type_.clone()),
+                        ]));
+                    } else {
+                        func.params(wit_encoder::Params::from_iter([
+                            ("byte-offset", wit_encoder::Type::U32),
+                            ("value", type_.clone()),
+                            (
+                                "little-endian",
+                                wit_encoder::Type::option(wit_encoder::Type::Bool),
+                            ),
+                        ]));
+                    }
+                    func
+                },
+            ]
+        }
+        let view_name = wit_encoder::Ident::new("data-view");
+        if !self.type_def_exists(&view_name) {
+            let view = wit_encoder::TypeDef::resource(view_name.clone(), {
+                let mut funcs = vec![
+                    {
+                        let mut func = wit_encoder::ResourceFunc::constructor();
+                        func.params(wit_encoder::Params::from_iter([
+                            ("buffer", wit_encoder::Type::borrow("array-buffer")),
+                            (
+                                "byte-offset",
+                                wit_encoder::Type::option(wit_encoder::Type::U32),
+                            ),
+                            (
+                                "byte-length",
+                                wit_encoder::Type::option(wit_encoder::Type::U32),
+                            ),
+                        ]));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("buffer");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                            "array-buffer",
+                        )));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("byte-length");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func
+                    },
+                    {
+                        let mut func = wit_encoder::ResourceFunc::method("byte-offset");
+                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func
+                    },
+                ];
+                funcs.append(&mut setter_getter(wit_encoder::Type::S8));
+                funcs.append(&mut setter_getter(wit_encoder::Type::S16));
+                funcs.append(&mut setter_getter(wit_encoder::Type::S32));
+                funcs.append(&mut setter_getter(wit_encoder::Type::U8));
+                funcs.append(&mut setter_getter(wit_encoder::Type::U16));
+                funcs.append(&mut setter_getter(wit_encoder::Type::U32));
+                funcs.append(&mut setter_getter(wit_encoder::Type::F32));
+                funcs.append(&mut setter_getter(wit_encoder::Type::F64));
+                funcs
+            });
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(view));
+        }
+        Ok(view_name)
+    }
+
     pub(super) fn add_record<'b>(
         &mut self,
         record: &weedle::types::RecordType<'b>,
