@@ -277,6 +277,28 @@ interface my-interface {
     values: func() -> list<any>;
     entries: func() -> tuple<string, any>;
   }
+  resource data-view {
+    constructor(buffer: borrow<array-buffer>, byte-offset: option<u32>, byte-length: option<u32>);
+    buffer: func() -> array-buffer;
+    byte-length: func() -> u32;
+    byte-offset: func() -> u32;
+    get-int8: func(byte-offset: u32) -> s8;
+    set-int8: func(byte-offset: u32, value: s8);
+    get-int16: func(byte-offset: u32, little-endian: option<bool>) -> s16;
+    set-int16: func(byte-offset: u32, value: s16, little-endian: option<bool>);
+    get-int32: func(byte-offset: u32, little-endian: option<bool>) -> s32;
+    set-int32: func(byte-offset: u32, value: s32, little-endian: option<bool>);
+    get-uint8: func(byte-offset: u32) -> u8;
+    set-uint8: func(byte-offset: u32, value: u8);
+    get-uint16: func(byte-offset: u32, little-endian: option<bool>) -> u16;
+    set-uint16: func(byte-offset: u32, value: u16, little-endian: option<bool>);
+    get-uint32: func(byte-offset: u32, little-endian: option<bool>) -> u32;
+    set-uint32: func(byte-offset: u32, value: u32, little-endian: option<bool>);
+    get-float32: func(byte-offset: u32, little-endian: option<bool>) -> f32;
+    set-float32: func(byte-offset: u32, value: f32, little-endian: option<bool>);
+    get-float64: func(byte-offset: u32, little-endian: option<bool>) -> f64;
+    set-float64: func(byte-offset: u32, value: f64, little-endian: option<bool>);
+  }
   record custom-resource {
     my-record: option<record-s32>,
     reuses-records: option<record-s32>,
@@ -293,5 +315,7 @@ interface my-interface {
     my-array-buffer: option<array-buffer>,
     my-object: option<object>,
     reuses-object: option<object>,
+    my-data-view: option<data-view>,
+    reuses-data-view: option<data-view>,
   }
 }

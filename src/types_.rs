@@ -135,7 +135,10 @@ impl<'a> State<'a> {
                 let buffer = self.add_array_buffer()?;
                 wit_encoder::Type::named(buffer)
             }
-            weedle::types::NonAnyType::DataView(_) => todo!(),
+            weedle::types::NonAnyType::DataView(_) => {
+                let view = self.add_data_view()?;
+                wit_encoder::Type::named(view)
+            }
             weedle::types::NonAnyType::Int8Array(_) => {
                 let array = self.add_typed_array(TypedArrayKind::Int8)?;
                 wit_encoder::Type::named(array)
