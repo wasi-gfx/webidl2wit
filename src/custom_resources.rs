@@ -107,6 +107,7 @@ impl<'a> State<'a> {
         &mut self,
         kind: TypedArrayKind,
     ) -> anyhow::Result<wit_encoder::Ident> {
+        self.add_array_buffer()?;
         let type_ = kind.to_wit_encoder_type();
         let array_name = wit_encoder::Ident::new(format!("{}-array", kind.prefix_name()));
         if !self.type_def_exists(&array_name) {
