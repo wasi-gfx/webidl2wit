@@ -39,8 +39,10 @@ interface my-interface {
     max-compute-workgroups-per-dimension: func() -> u32;
   }
   resource gpu-supported-features {
+    has: func(value: string) -> bool;
   }
   resource wgsl-language-features {
+    has: func(value: string) -> bool;
   }
   resource gpu-adapter-info {
     vendor: func() -> string;

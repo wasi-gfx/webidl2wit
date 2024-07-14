@@ -57,12 +57,12 @@ interface GPUSupportedLimits {
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface GPUSupportedFeatures {
-    // readonly setlike<DOMString>;
+    readonly setlike<DOMString>;
 };
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
 interface WGSLLanguageFeatures {
-    // readonly setlike<DOMString>;
+    readonly setlike<DOMString>;
 };
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
