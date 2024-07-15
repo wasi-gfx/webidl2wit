@@ -1,0 +1,13 @@
+partial interface PartialMain {
+    readonly attribute long bar;
+};
+interface PartialMain {
+    readonly attribute long foo;
+};
+
+interface MainPartial {
+    readonly attribute long foo;
+};
+partial interface MainPartial {
+    readonly attribute long bar;
+};

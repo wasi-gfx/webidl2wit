@@ -70,6 +70,9 @@ pub(super) struct State<'a> {
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
     // Resource names do know what needs to be borrowed.
     pub resource_names: HashSet<Ident>,
+    // Add these methods to the resource one you find it.
+    // Used when partial interface is found before the main.
+    pub resource_method_stash: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
     pub any_found: bool,
 }
 
@@ -120,6 +123,7 @@ pub fn webidl_to_wit(
                 _ => None,
             })
             .collect(),
+        resource_method_stash: HashMap::new(),
         any_found: false,
     };
 
@@ -467,14 +471,24 @@ impl<'a> State<'a> {
                     wit_encoder::InterfaceItem::Use(_)
                     | wit_encoder::InterfaceItem::Function(_) => None,
                 })
-                .find(|td| td.name() == resource_name)
-                .expect("Resource not found");
-        let resource = match resource.kind_mut() {
-            wit_encoder::TypeDefKind::Resource(resource) => resource,
-            _ => panic!("Not a resource"),
-        };
+                .find(|td| td.name() == resource_name);
 
-        resource.funcs_mut().extend(functions);
+        match resource {
+            None => {
+                self.resource_method_stash
+                    .insert(resource_name.clone(), functions);
+            }
+            Some(resource) => {
+                let resource = match resource.kind_mut() {
+                    wit_encoder::TypeDefKind::Resource(resource) => resource,
+                    _ => panic!("Not a resource"),
+                };
+                resource.funcs_mut().extend(functions);
+                if let Some(functions) = self.resource_method_stash.remove(&resource_name) {
+                    resource.funcs_mut().extend(functions);
+                }
+            }
+        };
 
         Ok(())
     }
