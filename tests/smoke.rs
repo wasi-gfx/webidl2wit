@@ -20,6 +20,11 @@ fn enum_() {
 }
 
 #[test]
+fn order() {
+    compare("order", Default::default());
+}
+
+#[test]
 fn resource() {
     compare("resource", Default::default());
 }

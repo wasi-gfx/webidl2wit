@@ -1,0 +1,12 @@
+package my-namespace:my-package-idl;
+
+interface my-interface {
+  resource partial-main {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+  resource main-partial {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+}
