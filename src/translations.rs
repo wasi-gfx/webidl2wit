@@ -403,6 +403,26 @@ impl<'a> State<'a> {
                     continue;
                 }
                 weedle::interface::InterfaceMember::Attribute(attr) => {
+                    use weedle::types::{NonAnyType, ReturnType, SingleType, Type};
+                    // TODO: remove the `is_undefined_promise` once we have proper Future support
+                    let mut is_undefined_promise = false;
+                    if let Type::Single(SingleType::NonAny(NonAnyType::Promise(promise))) =
+                        &attr.type_.type_
+                    {
+                        if let ReturnType::Undefined(_) = &*promise.generics.body {
+                            is_undefined_promise = true;
+                        }
+                    }
+                    if is_undefined_promise {
+                        // wit_encoder::Results::empty()
+                        handle_unsupported(
+                            attr.identifier.0,
+                            "attribute Promise<undefined>",
+                            &self.unsupported_features,
+                        );
+                        continue;
+                    }
+
                     let attr_name = ident_name(attr.identifier.0);
                     let setter_name = format!("set-{attr_name}");
                     let attr_type = self.wi2w_type(&attr.type_.type_, false)?;
