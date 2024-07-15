@@ -506,6 +506,37 @@ impl<'a> State<'a> {
         Ok(buffer_view_name)
     }
 
+    pub(crate) fn add_buffer_source(&mut self) -> anyhow::Result<wit_encoder::Ident> {
+        // TODO: maybe like any, only include that ones that were used.
+        // TODO: maybe have the actual variants of `array-buffer-view` here.
+        let buffer_view_name = wit_encoder::Ident::new("buffer-source");
+        if !self.type_def_exists(&buffer_view_name) {
+            let buffer_view = wit_encoder::TypeDef::variant(
+                buffer_view_name.clone(),
+                [
+                    {
+                        let buffer = self.add_array_buffer()?;
+                        wit_encoder::VariantCase::value(
+                            buffer.clone(),
+                            wit_encoder::Type::named(buffer),
+                        )
+                    },
+                    {
+                        let buffer_view = self.add_array_buffer_view()?;
+                        wit_encoder::VariantCase::value(
+                            buffer_view.clone(),
+                            wit_encoder::Type::named(buffer_view),
+                        )
+                    },
+                ],
+            );
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(buffer_view));
+        }
+        Ok(buffer_view_name)
+    }
+
     pub(super) fn add_record<'b>(
         &mut self,
         record: &weedle::types::RecordType<'b>,

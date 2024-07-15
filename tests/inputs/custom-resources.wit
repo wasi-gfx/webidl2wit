@@ -311,6 +311,10 @@ interface my-interface {
     float32-array(float32-array),
     float64-array(float64-array),
   }
+  variant buffer-source {
+    array-buffer(array-buffer),
+    array-buffer-view(array-buffer-view),
+  }
   record custom-resource {
     my-record: option<record-s32>,
     reuses-records: option<record-s32>,
@@ -331,5 +335,7 @@ interface my-interface {
     reuses-data-view: option<data-view>,
     my-array-buffer-view: option<array-buffer-view>,
     reuses-array-buffer-view: option<array-buffer-view>,
+    my-buffer-source: option<buffer-source>,
+    reuses-buffer-source: option<buffer-source>,
   }
 }
