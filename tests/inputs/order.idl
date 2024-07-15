@@ -11,3 +11,52 @@ interface MainPartial {
 partial interface MainPartial {
     readonly attribute long bar;
 };
+
+IncludeMainMixin includes IncludeMainMixinMixin;
+interface mixin IncludeMainMixinMixin {
+    readonly attribute long bar;
+};
+interface IncludeMainMixin {
+    readonly attribute long foo;
+};
+
+IncludeMixinMain includes IncludeMixinMainMixin;
+interface mixin IncludeMixinMainMixin {
+    readonly attribute long bar;
+};
+interface IncludeMixinMain {
+    readonly attribute long foo;
+};
+
+interface mixin MixinIncludeMainMixin {
+    readonly attribute long bar;
+};
+MixinIncludeMain includes MixinIncludeMainMixin;
+interface MixinIncludeMain {
+    readonly attribute long foo;
+};
+
+interface MainIncludeMixin {
+    readonly attribute long foo;
+};
+MainIncludeMixin includes MainIncludeMixinMixin;
+interface mixin MainIncludeMixinMixin {
+    readonly attribute long bar;
+};
+
+interface MainMixinInclude {
+    readonly attribute long foo;
+};
+interface mixin MainMixinIncludeMixin {
+    readonly attribute long bar;
+};
+MainMixinInclude includes MainMixinIncludeMixin;
+
+
+interface mixin MixinMainIncludeMixin {
+    readonly attribute long bar;
+};
+interface MixinMainInclude {
+    readonly attribute long foo;
+};
+MixinMainInclude includes MixinMainIncludeMixin;

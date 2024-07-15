@@ -9,4 +9,28 @@ interface my-interface {
     foo: func() -> s32;
     bar: func() -> s32;
   }
+  resource include-main-mixin {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+  resource include-mixin-main {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+  resource mixin-include-main {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+  resource main-include-mixin {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+  resource main-mixin-include {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+  resource mixin-main-include {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
 }
