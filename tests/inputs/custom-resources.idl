@@ -18,4 +18,6 @@ dictionary CustomResource {
     DataView reusesDataView;
     ArrayBufferView myArrayBufferView;
     ArrayBufferView reusesArrayBufferView;
+    BufferSource myBufferSource;
+    BufferSource reusesBufferSource;
 };

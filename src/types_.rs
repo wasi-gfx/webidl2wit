@@ -179,7 +179,10 @@ impl<'a> State<'a> {
                 let buffer_view = self.add_array_buffer_view()?;
                 wit_encoder::Type::named(buffer_view)
             }
-            weedle::types::NonAnyType::BufferSource(_) => todo!(),
+            weedle::types::NonAnyType::BufferSource(_) => {
+                let buffer_source = self.add_buffer_source()?;
+                wit_encoder::Type::named(buffer_source)
+            }
             weedle::types::NonAnyType::FrozenArrayType(array) => {
                 let type_ = self.wi2w_type(&*array.type_.generics.body, array.q_mark.is_some())?;
                 wit_encoder::Type::list(type_)
