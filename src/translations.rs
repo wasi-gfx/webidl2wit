@@ -1,4 +1,3 @@
-use anyhow::Context;
 use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
@@ -71,8 +70,10 @@ pub(super) struct State<'a> {
     // Resource names do know what needs to be borrowed.
     pub resource_names: HashSet<Ident>,
     // Add these methods to the resource one you find it.
-    // Used when partial interface is found before the main.
-    pub resource_method_stash: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
+    // Used when partial interface is found before the main, or include is found before main declaration.
+    pub waiting_resource_method: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
+    // Mixin includes that were found before the mixin declaration.
+    pub waiting_includes: HashMap<String, Vec<Ident>>,
     pub any_found: bool,
 }
 
@@ -123,7 +124,8 @@ pub fn webidl_to_wit(
                 _ => None,
             })
             .collect(),
-        resource_method_stash: HashMap::new(),
+        waiting_resource_method: HashMap::new(),
+        waiting_includes: HashMap::new(),
         any_found: false,
     };
 
@@ -142,13 +144,19 @@ pub fn webidl_to_wit(
                 continue;
             }
             Definition::InterfaceMixin(mixin) => {
+                let mixin_name = mixin.identifier.0.to_string();
                 let members = mixin
                     .members
                     .body
                     .into_iter()
                     .map(|member| mixin_to_interface_member(member))
                     .collect_vec();
-                state.mixins.insert(mixin.identifier.0.to_string(), members);
+                state.mixins.insert(mixin_name.clone(), members.clone());
+                if let Some(resources) = state.waiting_includes.remove(&mixin_name) {
+                    for resource in resources {
+                        state.interface_members_to_functions(&resource, &members.clone())?;
+                    }
+                }
             }
             Definition::Namespace(ns) => {
                 handle_unsupported(
@@ -189,13 +197,22 @@ pub fn webidl_to_wit(
             Definition::IncludesStatement(mixin) => {
                 let mixin_name = mixin.rhs_identifier.0.to_string();
                 let resource_name = ident_name(mixin.lhs_identifier.0);
-                // todo: can we get rid of this clone?
-                let mixin = state
-                    .mixins
-                    .get(&mixin_name)
-                    .with_context(|| format!("Mixin {mixin_name} not defined"))?
-                    .clone();
-                state.interface_members_to_functions(&resource_name, &mixin)?;
+                let mixin = state.mixins.get(&mixin_name).cloned();
+                match mixin {
+                    Some(mixin) => {
+                        state.interface_members_to_functions(&resource_name, &mixin)?;
+                    }
+                    None => match state.waiting_includes.get_mut(&mixin_name) {
+                        Some(v) => {
+                            v.push(resource_name);
+                        }
+                        None => {
+                            state
+                                .waiting_includes
+                                .insert(mixin_name, vec![resource_name]);
+                        }
+                    },
+                }
             }
             Definition::Implements(i) => {
                 handle_unsupported(
@@ -475,7 +492,7 @@ impl<'a> State<'a> {
 
         match resource {
             None => {
-                self.resource_method_stash
+                self.waiting_resource_method
                     .insert(resource_name.clone(), functions);
             }
             Some(resource) => {
@@ -484,7 +501,7 @@ impl<'a> State<'a> {
                     _ => panic!("Not a resource"),
                 };
                 resource.funcs_mut().extend(functions);
-                if let Some(functions) = self.resource_method_stash.remove(&resource_name) {
+                if let Some(functions) = self.waiting_resource_method.remove(&resource_name) {
                     resource.funcs_mut().extend(functions);
                 }
             }
