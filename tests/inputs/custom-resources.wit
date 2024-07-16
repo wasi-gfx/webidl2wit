@@ -23,7 +23,6 @@ interface my-interface {
     int8-array(int8-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant int8-array-set-src {
     %list(list<s8>),
@@ -49,7 +48,6 @@ interface my-interface {
     int16-array(int16-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant int16-array-set-src {
     %list(list<s16>),
@@ -75,7 +73,6 @@ interface my-interface {
     int32-array(int32-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant int32-array-set-src {
     %list(list<s32>),
@@ -101,7 +98,6 @@ interface my-interface {
     uint8-array(uint8-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint8-array-set-src {
     %list(list<u8>),
@@ -127,7 +123,6 @@ interface my-interface {
     uint8-clamped-array(uint8-clamped-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint8-clamped-array-set-src {
     %list(list<u8>),
@@ -153,7 +148,6 @@ interface my-interface {
     uint16-array(uint16-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint16-array-set-src {
     %list(list<u16>),
@@ -179,7 +173,6 @@ interface my-interface {
     uint32-array(uint32-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant uint32-array-set-src {
     %list(list<u32>),
@@ -205,7 +198,6 @@ interface my-interface {
     float32-array(float32-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant float32-array-set-src {
     %list(list<f32>),
@@ -231,7 +223,6 @@ interface my-interface {
     float64-array(float64-array),
     length(u32),
     array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-    shared-array-buffer(tuple<shared-array-buffer, option<u32>, option<u32>>),
   }
   variant float64-array-set-src {
     %list(list<f64>),
