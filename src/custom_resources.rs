@@ -129,14 +129,14 @@ impl<'a> State<'a> {
                             wit_encoder::Type::option(wit_encoder::Type::U32),
                         ]),
                     ),
-                    wit_encoder::VariantCase::value(
-                        "shared-array-buffer",
-                        wit_encoder::Type::tuple([
-                            wit_encoder::Type::named("shared-array-buffer"),
-                            wit_encoder::Type::option(wit_encoder::Type::U32),
-                            wit_encoder::Type::option(wit_encoder::Type::U32),
-                        ]),
-                    ),
+                    // wit_encoder::VariantCase::value(
+                    //     "shared-array-buffer",
+                    //     wit_encoder::Type::tuple([
+                    //         wit_encoder::Type::named("shared-array-buffer"),
+                    //         wit_encoder::Type::option(wit_encoder::Type::U32),
+                    //         wit_encoder::Type::option(wit_encoder::Type::U32),
+                    //     ]),
+                    // ),
                 ],
             );
             self.interface
