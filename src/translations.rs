@@ -400,8 +400,14 @@ impl<'a> State<'a> {
         members: impl IntoIterator<Item = &'b weedle::interface::InterfaceMember<'b>>,
         singleton_interface: bool,
     ) -> anyhow::Result<()> {
-        let mut iface_items = Vec::new();
-        let mut resource_functions = Vec::new();
+        enum Funcs {
+            Standalone(Vec<wit_encoder::StandaloneFunc>),
+            Resource(Vec<wit_encoder::ResourceFunc>),
+        }
+        let mut functions = match singleton_interface {
+            true => Funcs::Standalone(Vec::new()),
+            false => Funcs::Resource(Vec::new()),
+        };
         for member in members {
             match member {
                 weedle::interface::InterfaceMember::Const(_) => {
@@ -428,19 +434,16 @@ impl<'a> State<'a> {
                     handle_unsupported(interface_name, "maplike", &self.unsupported_features);
                     continue;
                 }
-                weedle::interface::InterfaceMember::Setlike(setlike) => {
-                    if singleton_interface {
+                weedle::interface::InterfaceMember::Setlike(setlike) => match &mut functions {
+                    Funcs::Standalone(functions) => {
                         let mut set_methods = self.interface_set_methods(setlike)?;
-                        let mut set_methods = set_methods
-                            .drain(..)
-                            .map(|func| InterfaceItem::Function(func))
-                            .collect::<Vec<InterfaceItem>>();
-                        iface_items.append(&mut set_methods);
-                    } else {
-                        let mut set_methods = self.resource_set_methods(setlike)?;
-                        resource_functions.append(&mut set_methods);
+                        functions.append(&mut set_methods);
                     }
-                }
+                    Funcs::Resource(functions) => {
+                        let mut set_methods = self.resource_set_methods(setlike)?;
+                        functions.append(&mut set_methods);
+                    }
+                },
                 weedle::interface::InterfaceMember::Stringifier(_) => {
                     handle_unsupported(interface_name, "stringifier", &self.unsupported_features);
                     continue;
@@ -477,60 +480,73 @@ impl<'a> State<'a> {
                     );
                     let attr_type = self.wi2w_type(&attr.type_.type_, false)?;
 
-                    if singleton_interface {
-                        let mut getter = match attr.modifier {
-                            Some(weedle::interface::StringifierOrInheritOrStatic::Static(_)) => {
-                                bail!(
-                                    "Static functions unsupported for singleton interface {}",
-                                    interface_name
-                                );
-                            }
-                            _ => wit_encoder::StandaloneFunc::new(attr_name.clone()),
-                        };
-                        getter.results(attr_type.clone());
-                        iface_items.push(InterfaceItem::Function(getter));
-                    } else {
-                        let mut getter = match attr.modifier {
-                            Some(weedle::interface::StringifierOrInheritOrStatic::Static(_)) => {
-                                wit_encoder::ResourceFunc::static_(attr_name.clone())
-                            }
-                            _ => wit_encoder::ResourceFunc::method(attr_name.clone()),
-                        };
-                        getter.results(attr_type.clone());
-                        resource_functions.push(getter);
+                    match &mut functions {
+                        Funcs::Standalone(functions) => {
+                            let mut getter = match attr.modifier {
+                                Some(weedle::interface::StringifierOrInheritOrStatic::Static(
+                                    _,
+                                )) => {
+                                    bail!(
+                                        "Static functions unsupported for singleton interface {}",
+                                        interface_name
+                                    );
+                                }
+                                _ => wit_encoder::StandaloneFunc::new(attr_name.clone()),
+                            };
+                            getter.results(attr_type.clone());
+                            functions.push(getter);
+                        }
+                        Funcs::Resource(functions) => {
+                            let mut getter = match attr.modifier {
+                                Some(weedle::interface::StringifierOrInheritOrStatic::Static(
+                                    _,
+                                )) => wit_encoder::ResourceFunc::static_(attr_name.clone()),
+                                _ => wit_encoder::ResourceFunc::method(attr_name.clone()),
+                            };
+                            getter.results(attr_type.clone());
+                            functions.push(getter);
+                        }
                     }
+
                     if attr.readonly.is_none() {
-                        if singleton_interface {
-                            let mut setter = match attr.modifier {
-                                Some(weedle::interface::StringifierOrInheritOrStatic::Static(
-                                    _,
-                                )) => unreachable!(),
-                                _ => wit_encoder::StandaloneFunc::new(setter_name),
-                            };
-                            setter.params((attr_name, attr_type));
-                            iface_items.push(InterfaceItem::Function(setter));
-                        } else {
-                            let mut setter = match attr.modifier {
-                                Some(weedle::interface::StringifierOrInheritOrStatic::Static(
-                                    _,
-                                )) => wit_encoder::ResourceFunc::static_(setter_name),
-                                _ => wit_encoder::ResourceFunc::method(setter_name),
-                            };
-                            setter.params((attr_name, attr_type));
-                            resource_functions.push(setter);
+                        match &mut functions {
+                            Funcs::Standalone(functions) => {
+                                let mut setter = match attr.modifier {
+                                    Some(
+                                        weedle::interface::StringifierOrInheritOrStatic::Static(_),
+                                    ) => unreachable!(),
+                                    _ => wit_encoder::StandaloneFunc::new(setter_name),
+                                };
+                                setter.params((attr_name, attr_type));
+                                functions.push(setter);
+                            }
+                            Funcs::Resource(functions) => {
+                                let mut setter = match attr.modifier {
+                                    Some(
+                                        weedle::interface::StringifierOrInheritOrStatic::Static(_),
+                                    ) => wit_encoder::ResourceFunc::static_(setter_name),
+                                    _ => wit_encoder::ResourceFunc::method(setter_name),
+                                };
+                                setter.params((attr_name, attr_type));
+                                functions.push(setter);
+                            }
                         }
                     }
                 }
                 weedle::interface::InterfaceMember::Constructor(constructor) => {
-                    if singleton_interface {
-                        bail!(
-                            "Cannot create a singleton interface for {} with a constructor",
-                            interface_name
-                        );
+                    match &mut functions {
+                        Funcs::Standalone(_) => {
+                            bail!(
+                                "Cannot create a singleton interface for {} with a constructor",
+                                interface_name
+                            );
+                        }
+                        Funcs::Resource(functions) => {
+                            let mut function = wit_encoder::ResourceFunc::constructor();
+                            function.params(self.function_args(&constructor.args.body)?);
+                            functions.push(function);
+                        }
                     }
-                    let mut function = wit_encoder::ResourceFunc::constructor();
-                    function.params(self.function_args(&constructor.args.body)?);
-                    resource_functions.push(function);
                 }
                 weedle::interface::InterfaceMember::Operation(operation) => {
                     if let Some(identifier) = operation.identifier {
@@ -559,31 +575,35 @@ impl<'a> State<'a> {
                                 }
                             }
                         };
+                        let params = self.function_args(&operation.args.body)?;
 
-                        if singleton_interface {
-                            let mut function = match operation.modifier {
-                                Some(weedle::interface::StringifierOrStatic::Static(_)) => {
-                                    bail!(
-                                        "Static functions unsupported for singleton interface {}",
-                                        interface_name
-                                    )
-                                }
-                                _ => wit_encoder::StandaloneFunc::new(function_name),
-                            };
-                            function.params(self.function_args(&operation.args.body)?);
-                            function.results(results);
-                            iface_items.push(InterfaceItem::Function(function));
-                        } else {
-                            // TODO: if operation.attributes includes `[Throws]`, make return a result.
-                            let mut function = match operation.modifier {
-                                Some(weedle::interface::StringifierOrStatic::Static(_)) => {
-                                    wit_encoder::ResourceFunc::static_(function_name)
-                                }
-                                _ => wit_encoder::ResourceFunc::method(function_name),
-                            };
-                            function.params(self.function_args(&operation.args.body)?);
-                            function.results(results);
-                            resource_functions.push(function);
+                        // TODO: if operation.attributes includes `[Throws]`, make return a result.
+                        match &mut functions {
+                            Funcs::Standalone(functions) => {
+                                let mut function = match operation.modifier {
+                                    Some(weedle::interface::StringifierOrStatic::Static(_)) => {
+                                        bail!(
+                                            "Static functions unsupported for singleton interface {}",
+                                            interface_name
+                                        )
+                                    }
+                                    _ => wit_encoder::StandaloneFunc::new(function_name),
+                                };
+                                function.params(params);
+                                function.results(results);
+                                functions.push(function);
+                            }
+                            Funcs::Resource(functions) => {
+                                let mut function = match operation.modifier {
+                                    Some(weedle::interface::StringifierOrStatic::Static(_)) => {
+                                        wit_encoder::ResourceFunc::static_(function_name)
+                                    }
+                                    _ => wit_encoder::ResourceFunc::method(function_name),
+                                };
+                                function.params(params);
+                                function.results(results);
+                                functions.push(function);
+                            }
                         }
                     } else {
                         eprintln!(
@@ -595,36 +615,42 @@ impl<'a> State<'a> {
             }
         }
 
-        if singleton_interface {
-            self.interface.items_mut().extend(iface_items);
-        } else {
-            let resource = self
-                .interface
-                .items_mut()
-                .iter_mut()
-                .filter_map(|td| match td {
-                    wit_encoder::InterfaceItem::TypeDef(td) => Some(td),
-                    wit_encoder::InterfaceItem::Use(_)
-                    | wit_encoder::InterfaceItem::Function(_) => None,
-                })
-                .find(|td| td.name() == interface_name);
+        match functions {
+            Funcs::Standalone(functions) => {
+                let items = functions.into_iter().map(|f| InterfaceItem::Function(f));
+                self.interface.items_mut().extend(items);
+            }
+            Funcs::Resource(functions) => {
+                let resource = self
+                    .interface
+                    .items_mut()
+                    .iter_mut()
+                    .filter_map(|td| match td {
+                        wit_encoder::InterfaceItem::TypeDef(td) => Some(td),
+                        wit_encoder::InterfaceItem::Use(_)
+                        | wit_encoder::InterfaceItem::Function(_) => None,
+                    })
+                    .find(|td| td.name() == interface_name);
 
-            match resource {
-                None => {
-                    self.waiting_resource_method
-                        .insert(interface_name.clone(), resource_functions);
-                }
-                Some(resource) => {
-                    let resource = match resource.kind_mut() {
-                        wit_encoder::TypeDefKind::Resource(resource) => resource,
-                        _ => panic!("Not a resource"),
-                    };
-                    resource.funcs_mut().extend(resource_functions);
-                    if let Some(functions) = self.waiting_resource_method.remove(&interface_name) {
-                        resource.funcs_mut().extend(functions);
+                match resource {
+                    None => {
+                        self.waiting_resource_method
+                            .insert(interface_name.clone(), functions);
                     }
-                }
-            };
+                    Some(resource) => {
+                        let resource = match resource.kind_mut() {
+                            wit_encoder::TypeDefKind::Resource(resource) => resource,
+                            _ => panic!("Not a resource"),
+                        };
+                        resource.funcs_mut().extend(functions);
+                        if let Some(functions) =
+                            self.waiting_resource_method.remove(&interface_name)
+                        {
+                            resource.funcs_mut().extend(functions);
+                        }
+                    }
+                };
+            }
         }
 
         Ok(())
