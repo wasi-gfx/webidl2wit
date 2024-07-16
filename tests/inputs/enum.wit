@@ -2,6 +2,7 @@ package webidl:my-package-idl;
 
 interface my-interface {
   enum gpu-power-preference {
+    default,
     low-power,
     high-performance,
     x1d-performance,

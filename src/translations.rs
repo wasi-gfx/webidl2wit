@@ -289,12 +289,10 @@ pub fn webidl_to_wit(
                 state.interface.type_def(type_def);
             }
             Definition::Enum(e) => {
-                let cases = e
-                    .values
-                    .body
-                    .list
-                    .iter()
-                    .map(|case| wit_encoder::EnumCase::new(ident_name(case.0)));
+                let cases = e.values.body.list.iter().map(|case| {
+                    let name = if case.0.is_empty() { "default" } else { case.0 };
+                    wit_encoder::EnumCase::new(ident_name(name))
+                });
                 let type_def = wit_encoder::TypeDef::enum_(ident_name(e.identifier.0), cases);
                 state.interface.type_def(type_def);
             }
