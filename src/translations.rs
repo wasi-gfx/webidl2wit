@@ -13,21 +13,17 @@ use wit_encoder::{Ident, Interface, InterfaceItem, StandaloneFunc, World};
 pub struct ConversionOptions {
     /// Name of package for generated wit.
     ///
-    ///
-    /// When using the outputted wit in a JS environment, it is recommended that your package name starts or ends with idl.
+    /// When using the outputted wit in a JS environment, it is recommended to use the "webidl:"
+    /// namespace.
     ///
     /// This lets tools like Jco know that this wit represents bindings to built in functions.
     ///
     /// Example
     /// ```
     /// # use webidl2wit::PackageName;
-    /// PackageName::new("my-namespace", "my-package-idl", None);
+    /// PackageName::new("webidl", "my-package", None);
     /// ```
-    /// Or:
-    /// ```
-    /// # use webidl2wit::PackageName;
-    /// PackageName::new("my-namespace", "idl-my-package", None);
-    /// ```
+    ///
     pub package_name: crate::PackageName,
     /// Interface to hold the generated types and functions.
     pub interface_name: String,
@@ -38,9 +34,8 @@ pub struct ConversionOptions {
     /// match the global name of the interface, with a `global-` prefix, for transparent runtime
     /// support in Jco.
     ///
-    /// For example, `globalThis.console` or `globalThis.navigator.gpu` could be reflected as
-    /// global-console or global-navigator-gpu respectively to automatically bind these to those
-    /// objects under --experimental-idl-imports
+    /// For example in Jco, `globalThis.console` or `globalThis.navigator.gpu` can be reflected as
+    /// global-console or global-navigator-gpu respectively to automatically bind these globals.
     pub singleton_interface: Option<String>,
     /// Skip unsupported features.
     pub unsupported_features: HandleUnsupported,
@@ -62,7 +57,7 @@ pub enum HandleUnsupported {
 impl Default for ConversionOptions {
     fn default() -> Self {
         Self {
-            package_name: wit_encoder::PackageName::new("my-namespace", "my-package-idl", None),
+            package_name: wit_encoder::PackageName::new("webidl", "my-package-idl", None),
             interface_name: "my-interface".into(),
             unsupported_features: HandleUnsupported::default(),
             global_singletons: [

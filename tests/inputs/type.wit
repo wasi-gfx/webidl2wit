@@ -1,4 +1,4 @@
-package my-namespace:my-package-idl;
+package webidl:my-package-idl;
 
 interface my-interface {
   type gpu-buffer-dynamic-offset = u32;
