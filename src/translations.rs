@@ -469,15 +469,8 @@ impl<'a> State<'a> {
                         continue;
                     }
 
-                    let attr_name = ident_name(attr.identifier.0).to_string();
-                    let setter_name = format!(
-                        "set-{}",
-                        if attr_name.starts_with('%') {
-                            &attr_name[1..]
-                        } else {
-                            &attr_name
-                        }
-                    );
+                    let attr_name = ident_name(attr.identifier.0);
+                    let setter_name = Ident::new(format!("set-{}", attr_name.raw_name()));
                     let attr_type = self.wi2w_type(&attr.type_.type_, false)?;
 
                     match &mut functions {
