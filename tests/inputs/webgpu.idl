@@ -958,7 +958,7 @@ interface GPUCommandEncoder {
 };
 GPUCommandEncoder includes GPUObjectBase;
 GPUCommandEncoder includes GPUCommandsMixin;
-// GPUCommandEncoder includes GPUDebugCommandsMixin;
+GPUCommandEncoder includes GPUDebugCommandsMixin;
 
 dictionary GPUCommandEncoderDescriptor
          : GPUObjectDescriptorBase {
@@ -1026,7 +1026,7 @@ GPURenderPassEncoder includes GPUObjectBase;
 GPURenderPassEncoder includes GPUCommandsMixin;
 GPURenderPassEncoder includes GPUDebugCommandsMixin;
 GPURenderPassEncoder includes GPUBindingCommandsMixin;
-// GPURenderPassEncoder includes GPURenderCommandsMixin;
+GPURenderPassEncoder includes GPURenderCommandsMixin;
 
 dictionary GPURenderPassTimestampWrites {
     required GPUQuerySet querySet;
