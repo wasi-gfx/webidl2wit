@@ -155,9 +155,21 @@ interface my-interface {
   }
   type gpu-buffer-usage-flags = u32;
   resource gpu-buffer-usage {
+    MAP-READ: static func() -> gpu-flags-constant;
+    MAP-WRITE: static func() -> gpu-flags-constant;
+    COPY-SRC: static func() -> gpu-flags-constant;
+    COPY-DST: static func() -> gpu-flags-constant;
+    INDEX: static func() -> gpu-flags-constant;
+    VERTEX: static func() -> gpu-flags-constant;
+    UNIFORM: static func() -> gpu-flags-constant;
+    STORAGE: static func() -> gpu-flags-constant;
+    INDIRECT: static func() -> gpu-flags-constant;
+    QUERY-RESOLVE: static func() -> gpu-flags-constant;
   }
   type gpu-map-mode-flags = u32;
   resource gpu-map-mode {
+    READ: static func() -> gpu-flags-constant;
+    WRITE: static func() -> gpu-flags-constant;
   }
   resource gpu-texture {
     create-view: func(descriptor: option<gpu-texture-view-descriptor>) -> gpu-texture-view;
@@ -189,6 +201,11 @@ interface my-interface {
   }
   type gpu-texture-usage-flags = u32;
   resource gpu-texture-usage {
+    COPY-SRC: static func() -> gpu-flags-constant;
+    COPY-DST: static func() -> gpu-flags-constant;
+    TEXTURE-BINDING: static func() -> gpu-flags-constant;
+    STORAGE-BINDING: static func() -> gpu-flags-constant;
+    RENDER-ATTACHMENT: static func() -> gpu-flags-constant;
   }
   resource gpu-texture-view {
     label: func() -> string;
@@ -375,6 +392,9 @@ interface my-interface {
   }
   type gpu-shader-stage-flags = u32;
   resource gpu-shader-stage {
+    VERTEX: static func() -> gpu-flags-constant;
+    FRAGMENT: static func() -> gpu-flags-constant;
+    COMPUTE: static func() -> gpu-flags-constant;
   }
   enum gpu-buffer-binding-type {
     uniform,
@@ -601,6 +621,11 @@ interface my-interface {
   }
   type gpu-color-write-flags = u32;
   resource gpu-color-write {
+    RED: static func() -> gpu-flags-constant;
+    GREEN: static func() -> gpu-flags-constant;
+    BLUE: static func() -> gpu-flags-constant;
+    ALPHA: static func() -> gpu-flags-constant;
+    ALL: static func() -> gpu-flags-constant;
   }
   record gpu-blend-component {
     operation: option<gpu-blend-operation>,

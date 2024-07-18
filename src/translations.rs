@@ -469,13 +469,39 @@ impl<'a> State<'a> {
         };
         for member in members {
             match member {
-                weedle::interface::InterfaceMember::Const(_) => {
-                    handle_unsupported(
-                        interface_name,
-                        "partial namespace",
-                        &self.unsupported_features,
-                    );
-                    continue;
+                weedle::interface::InterfaceMember::Const(const_) => {
+                    fn const_type_to_wi_type(
+                        const_type: weedle::types::ConstType,
+                    ) -> weedle::types::Type {
+                        use weedle::types::{ConstType, SingleType, Type};
+                        match const_type {
+                            ConstType::Integer(t) => Type::Single(SingleType::NonAny(t.into())),
+                            ConstType::FloatingPoint(t) => {
+                                Type::Single(SingleType::NonAny(t.into()))
+                            }
+                            ConstType::Boolean(t) => Type::Single(SingleType::NonAny(t.into())),
+                            ConstType::Byte(t) => Type::Single(SingleType::NonAny(t.into())),
+                            ConstType::Octet(t) => Type::Single(SingleType::NonAny(t.into())),
+                            ConstType::Identifier(t) => Type::Single(SingleType::NonAny(t.into())),
+                        }
+                    }
+
+                    let const_name = ident_name(const_.identifier.0).to_string().to_uppercase();
+                    let wit_type = const_type_to_wi_type(const_.const_type.clone());
+                    let type_ = self.wi2w_type(&wit_type, false)?;
+
+                    match &mut functions {
+                        Funcs::Standalone(functions) => {
+                            let mut function = wit_encoder::StandaloneFunc::new(const_name);
+                            function.results(type_);
+                            functions.push(function);
+                        }
+                        Funcs::Resource(functions) => {
+                            let mut function = wit_encoder::ResourceFunc::static_(const_name);
+                            function.results(type_);
+                            functions.push(function);
+                        }
+                    }
                 }
                 weedle::interface::InterfaceMember::Iterable(_) => {
                     handle_unsupported(interface_name, "iterable", &self.unsupported_features);

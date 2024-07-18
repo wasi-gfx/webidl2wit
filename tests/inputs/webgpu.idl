@@ -189,23 +189,23 @@ dictionary GPUBufferDescriptor
 typedef [EnforceRange] unsigned long GPUBufferUsageFlags;
 [Exposed=(Window, DedicatedWorker), SecureContext]
 namespace GPUBufferUsage {
-//     const GPUFlagsConstant MAP_READ      = 0x0001;
-//     const GPUFlagsConstant MAP_WRITE     = 0x0002;
-//     const GPUFlagsConstant COPY_SRC      = 0x0004;
-//     const GPUFlagsConstant COPY_DST      = 0x0008;
-//     const GPUFlagsConstant INDEX         = 0x0010;
-//     const GPUFlagsConstant VERTEX        = 0x0020;
-//     const GPUFlagsConstant UNIFORM       = 0x0040;
-//     const GPUFlagsConstant STORAGE       = 0x0080;
-//     const GPUFlagsConstant INDIRECT      = 0x0100;
-//     const GPUFlagsConstant QUERY_RESOLVE = 0x0200;
+    const GPUFlagsConstant MAP_READ      = 0x0001;
+    const GPUFlagsConstant MAP_WRITE     = 0x0002;
+    const GPUFlagsConstant COPY_SRC      = 0x0004;
+    const GPUFlagsConstant COPY_DST      = 0x0008;
+    const GPUFlagsConstant INDEX         = 0x0010;
+    const GPUFlagsConstant VERTEX        = 0x0020;
+    const GPUFlagsConstant UNIFORM       = 0x0040;
+    const GPUFlagsConstant STORAGE       = 0x0080;
+    const GPUFlagsConstant INDIRECT      = 0x0100;
+    const GPUFlagsConstant QUERY_RESOLVE = 0x0200;
 };
 
 typedef [EnforceRange] unsigned long GPUMapModeFlags;
 [Exposed=(Window, DedicatedWorker), SecureContext]
 namespace GPUMapMode {
-//     const GPUFlagsConstant READ  = 0x0001;
-//     const GPUFlagsConstant WRITE = 0x0002;
+    const GPUFlagsConstant READ  = 0x0001;
+    const GPUFlagsConstant WRITE = 0x0002;
 };
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
@@ -245,11 +245,11 @@ enum GPUTextureDimension {
 typedef [EnforceRange] unsigned long GPUTextureUsageFlags;
 [Exposed=(Window, DedicatedWorker), SecureContext]
 namespace GPUTextureUsage {
-//     const GPUFlagsConstant COPY_SRC          = 0x01;
-//     const GPUFlagsConstant COPY_DST          = 0x02;
-//     const GPUFlagsConstant TEXTURE_BINDING   = 0x04;
-//     const GPUFlagsConstant STORAGE_BINDING   = 0x08;
-//     const GPUFlagsConstant RENDER_ATTACHMENT = 0x10;
+    const GPUFlagsConstant COPY_SRC          = 0x01;
+    const GPUFlagsConstant COPY_DST          = 0x02;
+    const GPUFlagsConstant TEXTURE_BINDING   = 0x04;
+    const GPUFlagsConstant STORAGE_BINDING   = 0x08;
+    const GPUFlagsConstant RENDER_ATTACHMENT = 0x10;
 };
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
@@ -485,9 +485,9 @@ dictionary GPUBindGroupLayoutEntry {
 typedef [EnforceRange] unsigned long GPUShaderStageFlags;
 [Exposed=(Window, DedicatedWorker), SecureContext]
 namespace GPUShaderStage {
-//     const GPUFlagsConstant VERTEX   = 0x1;
-//     const GPUFlagsConstant FRAGMENT = 0x2;
-//     const GPUFlagsConstant COMPUTE  = 0x4;
+    const GPUFlagsConstant VERTEX   = 0x1;
+    const GPUFlagsConstant FRAGMENT = 0x2;
+    const GPUFlagsConstant COMPUTE  = 0x4;
 };
 
 enum GPUBufferBindingType {
@@ -731,11 +731,11 @@ dictionary GPUBlendState {
 typedef [EnforceRange] unsigned long GPUColorWriteFlags;
 [Exposed=(Window, DedicatedWorker), SecureContext]
 namespace GPUColorWrite {
-//     const GPUFlagsConstant RED   = 0x1;
-//     const GPUFlagsConstant GREEN = 0x2;
-//     const GPUFlagsConstant BLUE  = 0x4;
-//     const GPUFlagsConstant ALPHA = 0x8;
-//     const GPUFlagsConstant ALL   = 0xF;
+    const GPUFlagsConstant RED   = 0x1;
+    const GPUFlagsConstant GREEN = 0x2;
+    const GPUFlagsConstant BLUE  = 0x4;
+    const GPUFlagsConstant ALPHA = 0x8;
+    const GPUFlagsConstant ALL   = 0xF;
 };
 
 dictionary GPUBlendComponent {

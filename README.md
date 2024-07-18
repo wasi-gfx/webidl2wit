@@ -44,5 +44,6 @@
 | `maplike<K, V>`                 | ❓                        |
 | `namespace`                     | `resource` or `interface` |
 | `typedef`                       | `type`                    |
+| `const`                         | A getter                  |
 
 ❓ = Not yet sure how to deal with this type.
