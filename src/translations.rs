@@ -184,13 +184,28 @@ pub fn webidl_to_wit(
                     }
                 }
             }
-            Definition::Namespace(ns) => {
-                handle_unsupported(
-                    ns.identifier.0,
-                    "callback interface",
-                    &state.unsupported_features,
-                );
-                continue;
+            Definition::Namespace(namespace) => {
+                let members = namespace
+                    .members
+                    .body
+                    .into_iter()
+                    .map(|member| namespace_to_interface_member(member))
+                    .collect_vec();
+                let is_singleton = options
+                    .singleton_interface
+                    .as_ref()
+                    .map(|singleton_iface| singleton_iface == namespace.identifier.0)
+                    .unwrap_or(false);
+                let interface_name = ident_name(namespace.identifier.0);
+                if !is_singleton {
+                    let resource = wit_encoder::Resource::empty();
+                    let type_def = wit_encoder::TypeDef::new(
+                        interface_name.clone(),
+                        wit_encoder::TypeDefKind::Resource(resource),
+                    );
+                    state.interface.type_def(type_def);
+                }
+                state.interface_members_to_functions(&interface_name, &members, is_singleton)?;
             }
             Definition::PartialInterface(wi_interface) => {
                 let resource_name = ident_name(wi_interface.identifier.0);
@@ -348,6 +363,50 @@ pub(super) fn ident_name(src: &str) -> wit_encoder::Ident {
         name = format!("x{name}");
     }
     wit_encoder::Ident::new(name)
+}
+
+fn namespace_to_interface_member(
+    mixin_member: weedle::namespace::NamespaceMember,
+) -> weedle::interface::InterfaceMember {
+    match mixin_member {
+        weedle::namespace::NamespaceMember::Const(const_) => {
+            weedle::interface::InterfaceMember::Const(weedle::interface::ConstMember {
+                attributes: const_.attributes,
+                const_: const_.const_,
+                const_type: const_.const_type,
+                identifier: const_.identifier,
+                assign: weedle::term::Assign,
+                const_value: const_.const_value,
+                semi_colon: weedle::term::SemiColon,
+            })
+        }
+        weedle::namespace::NamespaceMember::Operation(operation) => {
+            weedle::interface::InterfaceMember::Operation(
+                weedle::interface::OperationInterfaceMember {
+                    attributes: operation.attributes,
+                    modifier: None,
+                    special: None,
+                    return_type: operation.return_type,
+                    identifier: operation.identifier,
+                    args: operation.args,
+                    semi_colon: operation.semi_colon,
+                },
+            )
+        }
+        weedle::namespace::NamespaceMember::Attribute(attribute) => {
+            weedle::interface::InterfaceMember::Attribute(
+                weedle::interface::AttributeInterfaceMember {
+                    attributes: attribute.attributes,
+                    modifier: None,
+                    readonly: Some(weedle::term::ReadOnly),
+                    attribute: attribute.attribute,
+                    type_: attribute.type_,
+                    identifier: attribute.identifier,
+                    semi_colon: attribute.semi_colon,
+                },
+            )
+        }
+    }
 }
 
 fn mixin_to_interface_member(

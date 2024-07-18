@@ -154,7 +154,11 @@ interface my-interface {
     mapped-at-creation: option<bool>,
   }
   type gpu-buffer-usage-flags = u32;
+  resource gpu-buffer-usage {
+  }
   type gpu-map-mode-flags = u32;
+  resource gpu-map-mode {
+  }
   resource gpu-texture {
     create-view: func(descriptor: option<gpu-texture-view-descriptor>) -> gpu-texture-view;
     destroy: func();
@@ -184,6 +188,8 @@ interface my-interface {
     x3d,
   }
   type gpu-texture-usage-flags = u32;
+  resource gpu-texture-usage {
+  }
   resource gpu-texture-view {
     label: func() -> string;
     set-label: func(label: string);
@@ -368,6 +374,8 @@ interface my-interface {
     external-texture: option<gpu-external-texture-binding-layout>,
   }
   type gpu-shader-stage-flags = u32;
+  resource gpu-shader-stage {
+  }
   enum gpu-buffer-binding-type {
     uniform,
     storage,
@@ -592,6 +600,8 @@ interface my-interface {
     alpha: gpu-blend-component,
   }
   type gpu-color-write-flags = u32;
+  resource gpu-color-write {
+  }
   record gpu-blend-component {
     operation: option<gpu-blend-operation>,
     src-factor: option<gpu-blend-factor>,
