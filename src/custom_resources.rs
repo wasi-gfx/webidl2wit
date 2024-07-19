@@ -672,6 +672,44 @@ impl<'a> State<'a> {
         object_name
     }
 
+    pub(crate) fn add_allow_shared_buffer_source(&mut self) -> anyhow::Result<wit_encoder::Ident> {
+        // TODO: maybe like any, only include that ones that were used.
+        let allow_name = wit_encoder::Ident::new("allow-shared-buffer-source");
+        if !self.type_def_exists(&allow_name) {
+            let allow = wit_encoder::TypeDef::variant(
+                allow_name.clone(),
+                [
+                    {
+                        let name = self.add_array_buffer_view()?;
+                        wit_encoder::VariantCase::value(
+                            name.clone(),
+                            wit_encoder::Type::named(name),
+                        )
+                    },
+                    {
+                        let name = self.add_array_buffer()?;
+                        wit_encoder::VariantCase::value(
+                            name.clone(),
+                            wit_encoder::Type::named(name),
+                        )
+                    },
+                    // {
+                    //     let name = self.add_shared_array_buffer()?;
+                    //     wit_encoder::VariantCase::value(
+                    //         name.clone(),
+                    //         wit_encoder::Type::named(name),
+                    //     )
+                    // },
+                ],
+            );
+            self.interface
+                .items_mut()
+                .push(wit_encoder::InterfaceItem::TypeDef(allow));
+        }
+
+        Ok(allow_name)
+    }
+
     fn type_def_exists(&self, name: &wit_encoder::Ident) -> bool {
         self.interface.items().iter().any(|item| match item {
             wit_encoder::InterfaceItem::TypeDef(td) => td.name() == name,
