@@ -41,6 +41,12 @@ pub struct ConversionOptions {
     pub unsupported_features: HandleUnsupported,
     /// Items - usually global singletons - that if encountered should get a get-[self] func, and get a dedicated world.
     pub global_singletons: HashSet<String>,
+    /// Add empty interfaces with these names.
+    /// Useful if the WebIDL references interfaces not defined in the input.
+    pub phantom_interface: Vec<String>,
+    /// Add empty dictionary with these names.
+    /// Useful if the WebIDL references dictionaries not defined in the input.
+    pub phantom_dictionaries: Vec<String>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -71,6 +77,8 @@ impl Default for ConversionOptions {
             .map(|x| x.into())
             .collect(),
             singleton_interface: None,
+            phantom_interface: Vec::new(),
+            phantom_dictionaries: Vec::new(),
         }
     }
 }
@@ -103,9 +111,36 @@ fn handle_unsupported(
 }
 
 pub fn webidl_to_wit(
-    webidl: WebIdlDefinitions,
+    mut webidl: WebIdlDefinitions,
     options: ConversionOptions,
 ) -> anyhow::Result<wit_encoder::Package> {
+    let mut prepent = Vec::new();
+    prepent.extend(options.phantom_interface.into_iter().map(|name| {
+        // TODO: find a better way around lifetimes than leaking.
+        let name = Box::leak(Box::new(name));
+        Definition::Interface(weedle::InterfaceDefinition {
+            attributes: None,
+            interface: weedle::term::Interface,
+            identifier: weedle::common::Identifier(name),
+            inheritance: None,
+            members: Default::default(),
+            semi_colon: weedle::term::SemiColon,
+        })
+    }));
+    prepent.extend(options.phantom_dictionaries.into_iter().map(|name| {
+        // TODO: find a better way around lifetimes than leaking.
+        let name = Box::leak(Box::new(name));
+        Definition::Dictionary(weedle::DictionaryDefinition {
+            attributes: None,
+            dictionary: weedle::term::Dictionary,
+            identifier: weedle::common::Identifier(name),
+            inheritance: None,
+            members: Default::default(),
+            semi_colon: weedle::term::SemiColon,
+        })
+    }));
+    webidl.splice(0..0, prepent);
+
     let mut package = wit_encoder::Package::new(options.package_name);
 
     // We generate a world or every global singleton.

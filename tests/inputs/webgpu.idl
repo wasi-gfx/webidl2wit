@@ -411,8 +411,8 @@ GPUExternalTexture includes GPUObjectBase;
 
 dictionary GPUExternalTextureDescriptor
          : GPUObjectDescriptorBase {
-    // required (HTMLVideoElement or VideoFrame) source;
-    // PredefinedColorSpace colorSpace = "srgb";
+    required (HTMLVideoElement or VideoFrame) source;
+    PredefinedColorSpace colorSpace = "srgb";
 };
 
 [Exposed=(Window, DedicatedWorker), SecureContext]
@@ -885,20 +885,20 @@ dictionary GPUImageCopyTexture {
 
 dictionary GPUImageCopyTextureTagged
          : GPUImageCopyTexture {
-    // PredefinedColorSpace colorSpace = "srgb";
+    PredefinedColorSpace colorSpace = "srgb";
     boolean premultipliedAlpha = false;
 };
 
-// typedef (ImageBitmap or
-//          ImageData or
-//          HTMLImageElement or
-//          HTMLVideoElement or
-//          VideoFrame or
-//          HTMLCanvasElement or
-//          OffscreenCanvas) GPUImageCopyExternalImageSource;
+typedef (ImageBitmap or
+         ImageData or
+         HTMLImageElement or
+         HTMLVideoElement or
+         VideoFrame or
+         HTMLCanvasElement or
+         OffscreenCanvas) GPUImageCopyExternalImageSource;
 
 dictionary GPUImageCopyExternalImage {
-    // required GPUImageCopyExternalImageSource source;
+    required GPUImageCopyExternalImageSource source;
     GPUOrigin2D origin = {};
     boolean flipY = false;
 };
@@ -1196,7 +1196,7 @@ dictionary GPUCanvasConfiguration {
     required GPUTextureFormat format;
     GPUTextureUsageFlags usage = 0x10;  // GPUTextureUsage.RENDER_ATTACHMENT
     sequence<GPUTextureFormat> viewFormats = [];
-    // PredefinedColorSpace colorSpace = "srgb";
+    PredefinedColorSpace colorSpace = "srgb";
     GPUCanvasAlphaMode alphaMode = "opaque";
 };
 
@@ -1263,8 +1263,8 @@ dictionary GPUUncapturedErrorEventInit : EventInit {
 };
 
 partial interface GPUDevice {
-    // [Exposed=(Window, DedicatedWorker)]
-    // attribute EventHandler onuncapturederror;
+    [Exposed=(Window, DedicatedWorker)]
+    attribute EventHandler onuncapturederror;
 };
 
 typedef [EnforceRange] unsigned long GPUBufferDynamicOffset;
