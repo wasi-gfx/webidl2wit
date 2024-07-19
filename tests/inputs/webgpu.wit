@@ -1,6 +1,24 @@
 package webidl:my-package-idl;
 
 interface my-interface {
+  resource event-handler {
+  }
+  resource predefined-color-space {
+  }
+  resource html-video-element {
+  }
+  resource html-image-element {
+  }
+  resource html-canvas-element {
+  }
+  resource offscreen-canvas {
+  }
+  resource video-frame {
+  }
+  resource image-bitmap {
+  }
+  resource image-data {
+  }
   record gpu-object-descriptor-base {
     label: option<string>,
   }
@@ -123,6 +141,8 @@ interface my-interface {
     lost: func() -> gpu-device-lost-info;
     push-error-scope: func(filter: gpu-error-filter);
     pop-error-scope: func() -> option<gpu-error>;
+    onuncapturederror: func() -> event-handler;
+    set-onuncapturederror: func(onuncapturederror: event-handler);
   }
   resource gpu-buffer {
     size: func() -> gpu-size64-out;
@@ -334,7 +354,14 @@ interface my-interface {
     label: func() -> string;
     set-label: func(label: string);
   }
-  record gpu-external-texture-descriptor {  }
+  variant html-video-element-or-video-frame {
+    html-video-element(borrow<html-video-element>),
+    video-frame(borrow<video-frame>),
+  }
+  record gpu-external-texture-descriptor {
+    source: html-video-element-or-video-frame,
+    color-space: option<borrow<predefined-color-space>>,
+  }
   resource gpu-sampler {
     label: func() -> string;
     set-label: func(label: string);
@@ -751,9 +778,21 @@ interface my-interface {
     aspect: option<gpu-texture-aspect>,
   }
   record gpu-image-copy-texture-tagged {
+    color-space: option<borrow<predefined-color-space>>,
     premultiplied-alpha: option<bool>,
   }
+  variant html-canvas-element-or-html-image-element-or-html-video-element-or-image-bitmap-or-image-data-or-offscreen-canvas-or-video-frame {
+    html-canvas-element(borrow<html-canvas-element>),
+    html-image-element(borrow<html-image-element>),
+    html-video-element(borrow<html-video-element>),
+    image-bitmap(borrow<image-bitmap>),
+    image-data(borrow<image-data>),
+    offscreen-canvas(borrow<offscreen-canvas>),
+    video-frame(borrow<video-frame>),
+  }
+  type gpu-image-copy-external-image-source = html-canvas-element-or-html-image-element-or-html-video-element-or-image-bitmap-or-image-data-or-offscreen-canvas-or-video-frame;
   record gpu-image-copy-external-image {
+    source: gpu-image-copy-external-image-source,
     origin: option<gpu-origin2-d>,
     flip-y: option<bool>,
   }
@@ -930,6 +969,7 @@ interface my-interface {
     format: gpu-texture-format,
     usage: option<gpu-texture-usage-flags>,
     view-formats: option<list<gpu-texture-format>>,
+    color-space: option<borrow<predefined-color-space>>,
     alpha-mode: option<gpu-canvas-alpha-mode>,
   }
   enum gpu-device-lost-reason {

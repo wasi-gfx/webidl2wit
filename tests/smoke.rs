@@ -46,7 +46,23 @@ fn borrow() {
 
 #[test]
 fn webgpu() {
-    compare("webgpu", Default::default());
+    compare(
+        "webgpu",
+        ConversionOptions {
+            phantom_interface: vec![
+                "EventHandler".into(),
+                "PredefinedColorSpace".into(),
+                "HTMLVideoElement".into(),
+                "HTMLImageElement".into(),
+                "HTMLCanvasElement".into(),
+                "OffscreenCanvas".into(),
+                "VideoFrame".into(),
+                "ImageBitmap".into(),
+                "ImageData".into(),
+            ],
+            ..Default::default()
+        },
+    );
 }
 
 #[test]
