@@ -106,6 +106,10 @@ impl<'a> State<'a> {
                 weedle::types::FloatingPointType::Double(_) => wit_encoder::Type::F64,
             },
             weedle::types::NonAnyType::Identifier(ident) => {
+                // TODO: can remove this check one weedle has native support for AllowSharedBufferSource
+                if ident.type_.0 == "AllowSharedBufferSource" {
+                    self.add_allow_shared_buffer_source()?;
+                }
                 let mut type_ = wit_encoder::Type::named(ident_name(ident.type_.0));
                 if ident.q_mark.is_some() {
                     type_ = wit_encoder::Type::option(type_)
