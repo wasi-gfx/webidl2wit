@@ -354,105 +354,7 @@ impl<'a> State<'a> {
             })
             .collect())
     }
-}
 
-pub(super) fn ident_name(src: &str) -> wit_encoder::Ident {
-    // doing to_pascal_case first to get rid of all dashes. E.g. "A-1" should turn into "a1" and not "a-1".
-    let mut name = src.to_pascal_case().to_kebab_case();
-    if matches!(name.chars().next(), Some(c) if c.is_digit(10)) {
-        name = format!("x{name}");
-    }
-    wit_encoder::Ident::new(name)
-}
-
-fn namespace_to_interface_member(
-    mixin_member: weedle::namespace::NamespaceMember,
-) -> weedle::interface::InterfaceMember {
-    match mixin_member {
-        weedle::namespace::NamespaceMember::Const(const_) => {
-            weedle::interface::InterfaceMember::Const(weedle::interface::ConstMember {
-                attributes: const_.attributes,
-                const_: const_.const_,
-                const_type: const_.const_type,
-                identifier: const_.identifier,
-                assign: weedle::term::Assign,
-                const_value: const_.const_value,
-                semi_colon: weedle::term::SemiColon,
-            })
-        }
-        weedle::namespace::NamespaceMember::Operation(operation) => {
-            weedle::interface::InterfaceMember::Operation(
-                weedle::interface::OperationInterfaceMember {
-                    attributes: operation.attributes,
-                    modifier: None,
-                    special: None,
-                    return_type: operation.return_type,
-                    identifier: operation.identifier,
-                    args: operation.args,
-                    semi_colon: operation.semi_colon,
-                },
-            )
-        }
-        weedle::namespace::NamespaceMember::Attribute(attribute) => {
-            weedle::interface::InterfaceMember::Attribute(
-                weedle::interface::AttributeInterfaceMember {
-                    attributes: attribute.attributes,
-                    modifier: None,
-                    readonly: Some(weedle::term::ReadOnly),
-                    attribute: attribute.attribute,
-                    type_: attribute.type_,
-                    identifier: attribute.identifier,
-                    semi_colon: attribute.semi_colon,
-                },
-            )
-        }
-    }
-}
-
-fn mixin_to_interface_member(
-    mixin_member: weedle::mixin::MixinMember,
-) -> weedle::interface::InterfaceMember {
-    match mixin_member {
-        weedle::mixin::MixinMember::Const(const_) => {
-            weedle::interface::InterfaceMember::Const(const_)
-        }
-        weedle::mixin::MixinMember::Operation(operation) => {
-            weedle::interface::InterfaceMember::Operation(
-                weedle::interface::OperationInterfaceMember {
-                    attributes: operation.attributes,
-                    modifier: operation.stringifier.map(|stringifier| {
-                        weedle::interface::StringifierOrStatic::Stringifier(stringifier)
-                    }),
-                    special: None,
-                    return_type: operation.return_type,
-                    identifier: operation.identifier,
-                    args: operation.args,
-                    semi_colon: operation.semi_colon,
-                },
-            )
-        }
-        weedle::mixin::MixinMember::Attribute(attribute) => {
-            weedle::interface::InterfaceMember::Attribute(
-                weedle::interface::AttributeInterfaceMember {
-                    attributes: attribute.attributes,
-                    modifier: attribute.stringifier.map(|stringifier| {
-                        weedle::interface::StringifierOrInheritOrStatic::Stringifier(stringifier)
-                    }),
-                    readonly: attribute.readonly,
-                    attribute: attribute.attribute,
-                    type_: attribute.type_,
-                    identifier: attribute.identifier,
-                    semi_colon: attribute.semi_colon,
-                },
-            )
-        }
-        weedle::mixin::MixinMember::Stringifier(stringifier) => {
-            weedle::interface::InterfaceMember::Stringifier(stringifier)
-        }
-    }
-}
-
-impl<'a> State<'a> {
     fn interface_members_to_functions<'b>(
         &mut self,
         interface_name: &'b wit_encoder::Ident,
@@ -765,5 +667,101 @@ impl<'a> State<'a> {
             func.results(wit_encoder::Type::Bool);
             func
         }])
+    }
+}
+
+pub(super) fn ident_name(src: &str) -> wit_encoder::Ident {
+    // doing to_pascal_case first to get rid of all dashes. E.g. "A-1" should turn into "a1" and not "a-1".
+    let mut name = src.to_pascal_case().to_kebab_case();
+    if matches!(name.chars().next(), Some(c) if c.is_digit(10)) {
+        name = format!("x{name}");
+    }
+    wit_encoder::Ident::new(name)
+}
+
+fn namespace_to_interface_member(
+    mixin_member: weedle::namespace::NamespaceMember,
+) -> weedle::interface::InterfaceMember {
+    match mixin_member {
+        weedle::namespace::NamespaceMember::Const(const_) => {
+            weedle::interface::InterfaceMember::Const(weedle::interface::ConstMember {
+                attributes: const_.attributes,
+                const_: const_.const_,
+                const_type: const_.const_type,
+                identifier: const_.identifier,
+                assign: weedle::term::Assign,
+                const_value: const_.const_value,
+                semi_colon: weedle::term::SemiColon,
+            })
+        }
+        weedle::namespace::NamespaceMember::Operation(operation) => {
+            weedle::interface::InterfaceMember::Operation(
+                weedle::interface::OperationInterfaceMember {
+                    attributes: operation.attributes,
+                    modifier: None,
+                    special: None,
+                    return_type: operation.return_type,
+                    identifier: operation.identifier,
+                    args: operation.args,
+                    semi_colon: operation.semi_colon,
+                },
+            )
+        }
+        weedle::namespace::NamespaceMember::Attribute(attribute) => {
+            weedle::interface::InterfaceMember::Attribute(
+                weedle::interface::AttributeInterfaceMember {
+                    attributes: attribute.attributes,
+                    modifier: None,
+                    readonly: Some(weedle::term::ReadOnly),
+                    attribute: attribute.attribute,
+                    type_: attribute.type_,
+                    identifier: attribute.identifier,
+                    semi_colon: attribute.semi_colon,
+                },
+            )
+        }
+    }
+}
+
+fn mixin_to_interface_member(
+    mixin_member: weedle::mixin::MixinMember,
+) -> weedle::interface::InterfaceMember {
+    match mixin_member {
+        weedle::mixin::MixinMember::Const(const_) => {
+            weedle::interface::InterfaceMember::Const(const_)
+        }
+        weedle::mixin::MixinMember::Operation(operation) => {
+            weedle::interface::InterfaceMember::Operation(
+                weedle::interface::OperationInterfaceMember {
+                    attributes: operation.attributes,
+                    modifier: operation.stringifier.map(|stringifier| {
+                        weedle::interface::StringifierOrStatic::Stringifier(stringifier)
+                    }),
+                    special: None,
+                    return_type: operation.return_type,
+                    identifier: operation.identifier,
+                    args: operation.args,
+                    semi_colon: operation.semi_colon,
+                },
+            )
+        }
+        weedle::mixin::MixinMember::Attribute(attribute) => {
+            weedle::interface::InterfaceMember::Attribute(
+                weedle::interface::AttributeInterfaceMember {
+                    attributes: attribute.attributes,
+                    modifier: attribute.stringifier.map(|stringifier| {
+                        weedle::interface::StringifierOrInheritOrStatic::Stringifier(stringifier)
+                    }),
+                    readonly: attribute.readonly,
+                    attribute: attribute.attribute,
+                    type_: attribute.type_,
+                    identifier: attribute.identifier,
+                    semi_colon: attribute.semi_colon,
+                },
+            )
+        }
+        weedle::mixin::MixinMember::Stringifier(stringifier) => {
+            weedle::interface::InterfaceMember::Stringifier(stringifier)
+        }
     }
 }
