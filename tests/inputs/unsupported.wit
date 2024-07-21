@@ -48,5 +48,8 @@ interface my-interface {
     %string(string),
   }
   resource html-unknown-element {
+    as-html-element: func() -> html-element;
   }
+  value: func() -> bool;
+  set-value: func(value: bool);
 }

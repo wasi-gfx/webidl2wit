@@ -1,5 +1,5 @@
 [Exposed=(Window, DedicatedWorker), SecureContext, Serializable]
-interface GPUPipelineError : DOMException {
+interface GPUPipelineError {
     constructor(optional DOMString message = "");
 };
 
