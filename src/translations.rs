@@ -348,7 +348,7 @@ pub fn webidl_to_wit(
                                         "as-{}",
                                         base_name.raw_name()
                                     ));
-                                    func.results(wit_encoder::Type::named(base_name));
+                                    func.set_results(wit_encoder::Type::named(base_name));
                                     func
                                 });
                             }
@@ -434,7 +434,7 @@ pub fn webidl_to_wit(
 
     for global_name in global_world_singletons {
         let mut func = StandaloneFunc::new(format!("get-{}", global_name.clone()));
-        func.results(wit_encoder::Type::named(global_name.clone()));
+        func.set_results(wit_encoder::Type::named(global_name.clone()));
         state.interface.function(func);
         let mut world = World::new(global_name.clone());
         world.named_interface_import(options.interface_name.clone());
@@ -513,12 +513,12 @@ impl<'a> State<'a> {
                     match &mut functions {
                         Funcs::Standalone(functions) => {
                             let mut function = wit_encoder::StandaloneFunc::new(const_name);
-                            function.results(type_);
+                            function.set_results(type_);
                             functions.push(function);
                         }
                         Funcs::Resource(functions) => {
                             let mut function = wit_encoder::ResourceFunc::static_(const_name);
-                            function.results(type_);
+                            function.set_results(type_);
                             functions.push(function);
                         }
                     }
@@ -591,7 +591,7 @@ impl<'a> State<'a> {
                                 }
                                 _ => wit_encoder::StandaloneFunc::new(attr_name.clone()),
                             };
-                            getter.results(attr_type.clone());
+                            getter.set_results(attr_type.clone());
                             functions.push(getter);
                         }
                         Funcs::Resource(functions) => {
@@ -601,7 +601,7 @@ impl<'a> State<'a> {
                                 )) => wit_encoder::ResourceFunc::static_(attr_name.clone()),
                                 _ => wit_encoder::ResourceFunc::method(attr_name.clone()),
                             };
-                            getter.results(attr_type.clone());
+                            getter.set_results(attr_type.clone());
                             functions.push(getter);
                         }
                     }
@@ -615,7 +615,7 @@ impl<'a> State<'a> {
                                     ) => unreachable!(),
                                     _ => wit_encoder::StandaloneFunc::new(setter_name),
                                 };
-                                setter.params((attr_name, attr_type));
+                                setter.set_params((attr_name, attr_type));
                                 functions.push(setter);
                             }
                             Funcs::Resource(functions) => {
@@ -625,7 +625,7 @@ impl<'a> State<'a> {
                                     ) => wit_encoder::ResourceFunc::static_(setter_name),
                                     _ => wit_encoder::ResourceFunc::method(setter_name),
                                 };
-                                setter.params((attr_name, attr_type));
+                                setter.set_params((attr_name, attr_type));
                                 functions.push(setter);
                             }
                         }
@@ -641,7 +641,7 @@ impl<'a> State<'a> {
                         }
                         Funcs::Resource(functions) => {
                             let mut function = wit_encoder::ResourceFunc::constructor();
-                            function.params(self.function_args(&constructor.args.body)?);
+                            function.set_params(self.function_args(&constructor.args.body)?);
                             functions.push(function);
                         }
                     }
@@ -687,8 +687,8 @@ impl<'a> State<'a> {
                                     }
                                     _ => wit_encoder::StandaloneFunc::new(function_name),
                                 };
-                                function.params(params);
-                                function.results(results);
+                                function.set_params(params);
+                                function.set_results(results);
                                 functions.push(function);
                             }
                             Funcs::Resource(functions) => {
@@ -698,8 +698,8 @@ impl<'a> State<'a> {
                                     }
                                     _ => wit_encoder::ResourceFunc::method(function_name),
                                 };
-                                function.params(params);
-                                function.results(results);
+                                function.set_params(params);
+                                function.set_results(results);
                                 functions.push(function);
                             }
                         }
@@ -765,8 +765,8 @@ impl<'a> State<'a> {
         );
         Ok(vec![{
             let mut func = wit_encoder::ResourceFunc::method("has");
-            func.params(("value", generic_type));
-            func.results(wit_encoder::Type::Bool);
+            func.set_params(("value", generic_type));
+            func.set_results(wit_encoder::Type::Bool);
             func
         }])
     }
@@ -781,8 +781,8 @@ impl<'a> State<'a> {
         );
         Ok(vec![{
             let mut func = wit_encoder::StandaloneFunc::new("has");
-            func.params(("value", generic_type));
-            func.results(wit_encoder::Type::Bool);
+            func.set_params(("value", generic_type));
+            func.set_results(wit_encoder::Type::Bool);
             func
         }])
     }

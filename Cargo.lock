@@ -155,8 +155,6 @@ dependencies = [
 [[package]]
 name = "wit-encoder"
 version = "0.214.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56024e6c0235a742909f0aff7bb0a4c6524d33a3aca59129a7db0f3320f975a1"
 dependencies = [
  "pretty_assertions",
  "semver",

@@ -13,7 +13,8 @@ anyhow = "1.0"
 heck = "0.5"
 itertools = "0.13"
 weedle = "0.13.0"
-wit-encoder = "0.214.0"
+# wit-encoder = "0.214.0"
+wit-encoder = { path = "../wasm-tools/crates/wit-encoder" }
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"

@@ -59,7 +59,7 @@ impl<'a> State<'a> {
                 [
                     {
                         let mut func = wit_encoder::ResourceFunc::constructor();
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("length", wit_encoder::Type::U32),
                             (
                                 "options",
@@ -72,16 +72,16 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("byte-length");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::U32));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("slice");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("begin", wit_encoder::Type::U32),
                             ("end", wit_encoder::Type::option(wit_encoder::Type::U32)),
                         ]));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             "array-buffer",
                         )));
                         func
@@ -163,7 +163,7 @@ impl<'a> State<'a> {
                 [
                     {
                         let mut func = wit_encoder::ResourceFunc::constructor();
-                        func.params((
+                        func.set_params((
                             "options",
                             wit_encoder::Type::option(wit_encoder::Type::named(
                                 constructor_options_name.clone(),
@@ -173,61 +173,61 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("fill");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("value", type_.clone()),
                             ("start", wit_encoder::Type::option(wit_encoder::Type::U32)),
                             ("end", wit_encoder::Type::option(wit_encoder::Type::U32)),
                         ]));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             array_name.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("buffer");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             "array-buffer",
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("length");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::U32));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("byte-offset");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::U32));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("byte-length");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::U32));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("at");
-                        func.params(("index", wit_encoder::Type::S32));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::option(
+                        func.set_params(("index", wit_encoder::Type::S32));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::option(
                             type_.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("copy-within");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("target", wit_encoder::Type::U32),
                             ("start", wit_encoder::Type::U32),
                             ("end", wit_encoder::Type::option(wit_encoder::Type::U32)),
                         ]));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             array_name.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("set");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("src", wit_encoder::Type::named(set_src_name.clone())),
                             ("offset", wit_encoder::Type::U32),
                         ]));
@@ -235,42 +235,42 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("slice");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("begin", wit_encoder::Type::U32),
                             ("end", wit_encoder::Type::U32),
                         ]));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             array_name.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("subarray");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("begin", wit_encoder::Type::U32),
                             ("end", wit_encoder::Type::U32),
                         ]));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             array_name.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("values");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::list(
                             type_.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("get-index");
-                        func.params(("index", wit_encoder::Type::U32));
-                        func.results(wit_encoder::Results::anon(type_.clone()));
+                        func.set_params(("index", wit_encoder::Type::U32));
+                        func.set_results(wit_encoder::Results::anon(type_.clone()));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("set-index");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("index", wit_encoder::Type::U32),
                             ("value", type_.clone()),
                         ]));
@@ -332,9 +332,9 @@ impl<'a> State<'a> {
                 {
                     let mut func = wit_encoder::ResourceFunc::method(format!("get-{}", type_name));
                     if is8 {
-                        func.params(("byte-offset", wit_encoder::Type::U32));
+                        func.set_params(("byte-offset", wit_encoder::Type::U32));
                     } else {
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("byte-offset", wit_encoder::Type::U32),
                             (
                                 "little-endian",
@@ -342,18 +342,18 @@ impl<'a> State<'a> {
                             ),
                         ]));
                     }
-                    func.results(wit_encoder::Results::anon(type_.clone()));
+                    func.set_results(wit_encoder::Results::anon(type_.clone()));
                     func
                 },
                 {
                     let mut func = wit_encoder::ResourceFunc::method(format!("set-{}", type_name));
                     if is8 {
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("byte-offset", wit_encoder::Type::U32),
                             ("value", type_.clone()),
                         ]));
                     } else {
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("byte-offset", wit_encoder::Type::U32),
                             ("value", type_.clone()),
                             (
@@ -372,7 +372,7 @@ impl<'a> State<'a> {
                 let mut funcs = vec![
                     {
                         let mut func = wit_encoder::ResourceFunc::constructor();
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("buffer", wit_encoder::Type::borrow("array-buffer")),
                             (
                                 "byte-offset",
@@ -387,19 +387,19 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("buffer");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             "array-buffer",
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("byte-length");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::U32));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("byte-offset");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::U32));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::U32));
                         func
                     },
                 ];
@@ -551,7 +551,7 @@ impl<'a> State<'a> {
                     { wit_encoder::ResourceFunc::constructor() },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("add");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("key", wit_encoder::Type::String),
                             ("value", value.clone()),
                         ]));
@@ -559,38 +559,38 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("get");
-                        func.params(("key", wit_encoder::Type::String));
-                        func.results(wit_encoder::Results::anon(value.clone()));
+                        func.set_params(("key", wit_encoder::Type::String));
+                        func.set_results(wit_encoder::Results::anon(value.clone()));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("has");
-                        func.params(("key", wit_encoder::Type::String));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::Bool));
+                        func.set_params(("key", wit_encoder::Type::String));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::Bool));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("remove");
-                        func.params(("key", wit_encoder::Type::String));
+                        func.set_params(("key", wit_encoder::Type::String));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("keys");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::list(
                             wit_encoder::Type::String,
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("values");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::list(
                             value.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("entries");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
                             wit_encoder::Type::String,
                             value.clone(),
                         ])));
@@ -616,7 +616,7 @@ impl<'a> State<'a> {
                     { wit_encoder::ResourceFunc::constructor() },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("add");
-                        func.params(wit_encoder::Params::from_iter([
+                        func.set_params(wit_encoder::Params::from_iter([
                             ("key", wit_encoder::Type::String),
                             ("value", wit_encoder::Type::named(any.clone())),
                         ]));
@@ -624,40 +624,40 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("get");
-                        func.params(("key", wit_encoder::Type::String));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::named(
+                        func.set_params(("key", wit_encoder::Type::String));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
                             any.clone(),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("has");
-                        func.params(("key", wit_encoder::Type::String));
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::Bool));
+                        func.set_params(("key", wit_encoder::Type::String));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::Bool));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("remove");
-                        func.params(("key", wit_encoder::Type::String));
+                        func.set_params(("key", wit_encoder::Type::String));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("keys");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::list(
                             wit_encoder::Type::String,
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("values");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::list(
                             wit_encoder::Type::named(any.clone()),
                         )));
                         func
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("entries");
-                        func.results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
                             wit_encoder::Type::String,
                             wit_encoder::Type::named(any.clone()),
                         ])));
