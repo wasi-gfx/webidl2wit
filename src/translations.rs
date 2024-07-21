@@ -47,6 +47,8 @@ pub struct ConversionOptions {
     /// Add empty dictionary with these names.
     /// Useful if the WebIDL references dictionaries not defined in the input.
     pub phantom_dictionaries: Vec<String>,
+    /// How to handle resource inheritance.
+    pub resource_inheritance: ResourceInheritance,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -58,6 +60,15 @@ pub enum HandleUnsupported {
     Skip,
     /// Skip and warn unsupported features
     Warn,
+}
+
+#[derive(Clone, Debug, Default)]
+pub enum ResourceInheritance {
+    /// Add a `as-[base]` method to the resource.
+    #[default]
+    AsBaseMethod,
+    /// Duplicate all the method from the base on the resource.
+    DuplicateMethods,
 }
 
 impl Default for ConversionOptions {
@@ -79,6 +90,7 @@ impl Default for ConversionOptions {
             singleton_interface: None,
             phantom_interface: Vec::new(),
             phantom_dictionaries: Vec::new(),
+            resource_inheritance: ResourceInheritance::default(),
         }
     }
 }
@@ -93,7 +105,9 @@ pub(super) struct State<'a> {
     pub waiting_resource_method: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
     // Mixin includes that were found before the mixin declaration.
     pub waiting_includes: HashMap<String, Vec<Ident>>,
+    // TODO: don't treat any as special. Have a set for defined types instead.
     pub any_found: bool,
+    pub resource_inheritance: ResourceInheritance,
 }
 
 fn handle_unsupported(
@@ -188,6 +202,7 @@ pub fn webidl_to_wit(
         waiting_resource_method: HashMap::new(),
         waiting_includes: HashMap::new(),
         any_found: false,
+        resource_inheritance: options.resource_inheritance,
     };
 
     for item in webidl {
@@ -314,8 +329,50 @@ pub fn webidl_to_wit(
                     .map(|singleton_iface| singleton_iface == wi_interface.identifier.0)
                     .unwrap_or(false);
                 let interface_name = ident_name(wi_interface.identifier.0);
-                if !is_singleton {
-                    let resource = wit_encoder::Resource::empty();
+                if is_singleton {
+                    if let Some(_inheritance) = wi_interface.inheritance {
+                        handle_unsupported(
+                            wi_interface.identifier.0,
+                            "singleton inheritance",
+                            &state.unsupported_features,
+                        );
+                    }
+                } else {
+                    let mut resource = wit_encoder::Resource::empty();
+                    if let Some(inheritance) = wi_interface.inheritance {
+                        let base_name = ident_name(inheritance.identifier.0);
+                        match state.resource_inheritance {
+                            ResourceInheritance::AsBaseMethod => {
+                                resource.func({
+                                    let mut func = wit_encoder::ResourceFunc::method(format!(
+                                        "as-{}",
+                                        base_name.raw_name()
+                                    ));
+                                    func.results(wit_encoder::Type::named(base_name));
+                                    func
+                                });
+                            }
+                            ResourceInheritance::DuplicateMethods => {
+                                let mut base_funcs = state
+                                    .interface
+                                    .items()
+                                    .iter()
+                                    .find_map(|t| match t {
+                                        InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                                            wit_encoder::TypeDefKind::Resource(resource)
+                                                if type_def.name() == &base_name =>
+                                            {
+                                                Some(resource.funcs().to_vec())
+                                            }
+                                            _ => None,
+                                        },
+                                        InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                                    })
+                                    .expect("Base dictionary not found");
+                                resource.funcs_mut().append(&mut base_funcs);
+                            }
+                        }
+                    }
                     let type_def = wit_encoder::TypeDef::new(
                         interface_name.clone(),
                         wit_encoder::TypeDefKind::Resource(resource),
@@ -329,12 +386,38 @@ pub fn webidl_to_wit(
                 )?;
             }
             Definition::Dictionary(dict) => {
-                let fields = dict.members.body.iter().map(|mem| {
-                    let name = ident_name(mem.identifier.0);
-                    let ty = state.wi2w_type(&mem.type_, mem.required.is_none()).unwrap();
-                    let ty = state.borrow_resources(ty);
-                    (name, ty)
-                });
+                let mut fields = dict
+                    .members
+                    .body
+                    .iter()
+                    .map(|mem| {
+                        let name = ident_name(mem.identifier.0);
+                        let ty = state.wi2w_type(&mem.type_, mem.required.is_none()).unwrap();
+                        let ty = state.borrow_resources(ty);
+                        (name, ty).into()
+                    })
+                    .collect::<Vec<_>>();
+
+                if let Some(inheritance) = dict.inheritance {
+                    let base_name = ident_name(inheritance.identifier.0);
+                    let mut base_fields = state
+                        .interface
+                        .items()
+                        .iter()
+                        .find_map(|t| match t {
+                            InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                                wit_encoder::TypeDefKind::Record(record)
+                                    if type_def.name() == &base_name =>
+                                {
+                                    Some(record.fields().to_vec())
+                                }
+                                _ => None,
+                            },
+                            InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                        })
+                        .expect("Base dictionary not found");
+                    fields.append(&mut base_fields);
+                }
                 let type_def = wit_encoder::TypeDef::record(ident_name(dict.identifier.0), fields);
                 state.interface.type_def(type_def);
             }

@@ -19,6 +19,13 @@ interface my-interface {
   }
   resource image-data {
   }
+  resource event-target {
+  }
+  resource dom-exception {
+  }
+  resource event {
+  }
+  record event-init {  }
   record gpu-object-descriptor-base {
     label: option<string>,
   }
@@ -102,6 +109,7 @@ interface my-interface {
     required-features: option<list<gpu-feature-name>>,
     required-limits: option<record-gpu-size64>,
     default-queue: option<gpu-queue-descriptor>,
+    label: option<string>,
   }
   enum gpu-feature-name {
     depth-clip-control,
@@ -172,6 +180,7 @@ interface my-interface {
     size: gpu-size64,
     usage: gpu-buffer-usage-flags,
     mapped-at-creation: option<bool>,
+    label: option<string>,
   }
   type gpu-buffer-usage-flags = u32;
   resource gpu-buffer-usage {
@@ -213,6 +222,7 @@ interface my-interface {
     format: gpu-texture-format,
     usage: gpu-texture-usage-flags,
     view-formats: option<list<gpu-texture-format>>,
+    label: option<string>,
   }
   enum gpu-texture-dimension {
     x1d,
@@ -239,6 +249,7 @@ interface my-interface {
     mip-level-count: option<gpu-integer-coordinate>,
     base-array-layer: option<gpu-integer-coordinate>,
     array-layer-count: option<gpu-integer-coordinate>,
+    label: option<string>,
   }
   enum gpu-texture-view-dimension {
     x1d,
@@ -361,6 +372,7 @@ interface my-interface {
   record gpu-external-texture-descriptor {
     source: html-video-element-or-video-frame,
     color-space: option<borrow<predefined-color-space>>,
+    label: option<string>,
   }
   resource gpu-sampler {
     label: func() -> string;
@@ -377,6 +389,7 @@ interface my-interface {
     lod-max-clamp: option<f32>,
     compare: option<gpu-compare-function>,
     max-anisotropy: option<u16>,
+    label: option<string>,
   }
   enum gpu-address-mode {
     clamp-to-edge,
@@ -407,6 +420,7 @@ interface my-interface {
   }
   record gpu-bind-group-layout-descriptor {
     entries: list<gpu-bind-group-layout-entry>,
+    label: option<string>,
   }
   record gpu-bind-group-layout-entry {
     binding: gpu-index32,
@@ -471,6 +485,7 @@ interface my-interface {
   record gpu-bind-group-descriptor {
     layout: borrow<gpu-bind-group-layout>,
     entries: list<gpu-bind-group-entry>,
+    label: option<string>,
   }
   variant gpu-buffer-binding-or-gpu-external-texture-or-gpu-sampler-or-gpu-texture-view {
     gpu-buffer-binding(gpu-buffer-binding),
@@ -494,6 +509,7 @@ interface my-interface {
   }
   record gpu-pipeline-layout-descriptor {
     bind-group-layouts: list<borrow<gpu-bind-group-layout>>,
+    label: option<string>,
   }
   resource gpu-shader-module {
     get-compilation-info: func() -> gpu-compilation-info;
@@ -528,6 +544,7 @@ interface my-interface {
     code: string,
     source-map: option<object>,
     compilation-hints: option<list<gpu-shader-module-compilation-hint>>,
+    label: option<string>,
   }
   variant gpu-auto-layout-mode-or-gpu-pipeline-layout {
     gpu-auto-layout-mode(gpu-auto-layout-mode),
@@ -569,6 +586,7 @@ interface my-interface {
   }
   record gpu-pipeline-descriptor-base {
     layout: gpu-auto-layout-mode-or-gpu-pipeline-layout,
+    label: option<string>,
   }
   resource record-gpu-pipeline-constant-value {
     constructor();
@@ -593,6 +611,8 @@ interface my-interface {
   }
   record gpu-compute-pipeline-descriptor {
     compute: gpu-programmable-stage,
+    layout: gpu-auto-layout-mode-or-gpu-pipeline-layout,
+    label: option<string>,
   }
   resource gpu-render-pipeline {
     label: func() -> string;
@@ -605,6 +625,8 @@ interface my-interface {
     depth-stencil: option<gpu-depth-stencil-state>,
     multisample: option<gpu-multisample-state>,
     fragment: option<gpu-fragment-state>,
+    layout: gpu-auto-layout-mode-or-gpu-pipeline-layout,
+    label: option<string>,
   }
   record gpu-primitive-state {
     topology: option<gpu-primitive-topology>,
@@ -636,6 +658,9 @@ interface my-interface {
   }
   record gpu-fragment-state {
     targets: list<option<gpu-color-target-state>>,
+    module: borrow<gpu-shader-module>,
+    entry-point: option<string>,
+    constants: option<record-gpu-pipeline-constant-value>,
   }
   record gpu-color-target-state {
     format: gpu-texture-format,
@@ -752,6 +777,9 @@ interface my-interface {
   }
   record gpu-vertex-state {
     buffers: option<list<option<gpu-vertex-buffer-layout>>>,
+    module: borrow<gpu-shader-module>,
+    entry-point: option<string>,
+    constants: option<record-gpu-pipeline-constant-value>,
   }
   record gpu-vertex-buffer-layout {
     array-stride: gpu-size64,
@@ -770,6 +798,9 @@ interface my-interface {
   }
   record gpu-image-copy-buffer {
     buffer: borrow<gpu-buffer>,
+    offset: option<gpu-size64>,
+    bytes-per-row: option<gpu-size32>,
+    rows-per-image: option<gpu-size32>,
   }
   record gpu-image-copy-texture {
     texture: borrow<gpu-texture>,
@@ -780,6 +811,10 @@ interface my-interface {
   record gpu-image-copy-texture-tagged {
     color-space: option<borrow<predefined-color-space>>,
     premultiplied-alpha: option<bool>,
+    texture: borrow<gpu-texture>,
+    mip-level: option<gpu-integer-coordinate>,
+    origin: option<gpu-origin3-d>,
+    aspect: option<gpu-texture-aspect>,
   }
   variant html-canvas-element-or-html-image-element-or-html-video-element-or-image-bitmap-or-image-data-or-offscreen-canvas-or-video-frame {
     html-canvas-element(borrow<html-canvas-element>),
@@ -800,7 +835,9 @@ interface my-interface {
     label: func() -> string;
     set-label: func(label: string);
   }
-  record gpu-command-buffer-descriptor {  }
+  record gpu-command-buffer-descriptor {
+    label: option<string>,
+  }
   resource gpu-command-encoder {
     begin-render-pass: func(descriptor: gpu-render-pass-descriptor) -> gpu-render-pass-encoder;
     begin-compute-pass: func(descriptor: option<gpu-compute-pass-descriptor>) -> gpu-compute-pass-encoder;
@@ -817,7 +854,9 @@ interface my-interface {
     pop-debug-group: func();
     insert-debug-marker: func(marker-label: string);
   }
-  record gpu-command-encoder-descriptor {  }
+  record gpu-command-encoder-descriptor {
+    label: option<string>,
+  }
   resource gpu-compute-pass-encoder {
     set-pipeline: func(pipeline: borrow<gpu-compute-pipeline>);
     dispatch-workgroups: func(workgroup-count-x: gpu-size32, workgroup-count-y: option<gpu-size32>, workgroup-count-z: option<gpu-size32>);
@@ -837,6 +876,7 @@ interface my-interface {
   }
   record gpu-compute-pass-descriptor {
     timestamp-writes: option<gpu-compute-pass-timestamp-writes>,
+    label: option<string>,
   }
   resource gpu-render-pass-encoder {
     set-viewport: func(x: f32, y: f32, width: f32, height: f32, min-depth: f32, max-depth: f32);
@@ -872,6 +912,7 @@ interface my-interface {
     occlusion-query-set: option<borrow<gpu-query-set>>,
     timestamp-writes: option<gpu-render-pass-timestamp-writes>,
     max-draw-count: option<gpu-size64>,
+    label: option<string>,
   }
   record gpu-render-pass-color-attachment {
     view: borrow<gpu-texture-view>,
@@ -904,12 +945,15 @@ interface my-interface {
     color-formats: list<option<gpu-texture-format>>,
     depth-stencil-format: option<gpu-texture-format>,
     sample-count: option<gpu-size32>,
+    label: option<string>,
   }
   resource gpu-render-bundle {
     label: func() -> string;
     set-label: func(label: string);
   }
-  record gpu-render-bundle-descriptor {  }
+  record gpu-render-bundle-descriptor {
+    label: option<string>,
+  }
   resource gpu-render-bundle-encoder {
     finish: func(descriptor: option<gpu-render-bundle-descriptor>) -> gpu-render-bundle;
     label: func() -> string;
@@ -929,8 +973,14 @@ interface my-interface {
   record gpu-render-bundle-encoder-descriptor {
     depth-read-only: option<bool>,
     stencil-read-only: option<bool>,
+    color-formats: list<option<gpu-texture-format>>,
+    depth-stencil-format: option<gpu-texture-format>,
+    sample-count: option<gpu-size32>,
+    label: option<string>,
   }
-  record gpu-queue-descriptor {  }
+  record gpu-queue-descriptor {
+    label: option<string>,
+  }
   resource gpu-queue {
     submit: func(command-buffers: list<borrow<gpu-command-buffer>>);
     on-submitted-work-done: func();
@@ -1213,6 +1263,7 @@ interface my-interface {
   record gpu-query-set-descriptor {
     %type: gpu-query-type,
     count: gpu-size32,
+    label: option<string>,
   }
   enum gpu-query-type {
     occlusion,
@@ -1247,12 +1298,15 @@ interface my-interface {
     message: func() -> string;
   }
   resource gpu-validation-error {
+    message: func() -> string;
     constructor(message: string);
   }
   resource gpu-out-of-memory-error {
+    message: func() -> string;
     constructor(message: string);
   }
   resource gpu-internal-error {
+    message: func() -> string;
     constructor(message: string);
   }
   enum gpu-error-filter {

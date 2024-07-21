@@ -6,7 +6,7 @@ interface NodeList {
 };
 
 [Exposed=Window]
-interface HTMLElement : Element {
+interface HTMLElement {
   [HTMLConstructor] constructor();
 
   // metadata attributes
@@ -41,4 +41,9 @@ interface HTMLElement : Element {
 [Exposed=Window]
 interface HTMLUnknownElement : HTMLElement {
   // Note: intentionally no [HTMLConstructor]
+};
+
+[Exposed=Window]
+interface Singleton: NodeList {
+  attribute boolean value;
 };

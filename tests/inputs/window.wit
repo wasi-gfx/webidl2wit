@@ -5,7 +5,11 @@ world window {
 }
 
 interface my-interface {
+  resource event-target {
+  }
+  record structured-serialize-options {  }
   resource window {
+    as-event-target: func() -> event-target;
     window: func() -> window-proxy;
     self: func() -> window-proxy;
     name: func() -> string;

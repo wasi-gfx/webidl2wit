@@ -1,6 +1,6 @@
 use pretty_assertions::assert_eq;
 use std::{fs, path::Path};
-use webidl2wit::{ConversionOptions, HandleUnsupported};
+use webidl2wit::{ConversionOptions, HandleUnsupported, ResourceInheritance};
 
 fn compare(path: &str, opts: ConversionOptions) {
     let webidl_input =
@@ -59,7 +59,12 @@ fn webgpu() {
                 "VideoFrame".into(),
                 "ImageBitmap".into(),
                 "ImageData".into(),
+                "EventTarget".into(),
+                "DOMException".into(),
+                "Event".into(),
             ],
+            phantom_dictionaries: vec!["EventInit".into()],
+            resource_inheritance: ResourceInheritance::DuplicateMethods,
             ..Default::default()
         },
     );
@@ -78,7 +83,14 @@ fn console() {
 
 #[test]
 fn window() {
-    compare("window", Default::default());
+    compare(
+        "window",
+        ConversionOptions {
+            phantom_interface: vec!["EventTarget".into()],
+            phantom_dictionaries: vec!["StructuredSerializeOptions".into()],
+            ..Default::default()
+        },
+    );
 }
 
 #[test]
@@ -92,6 +104,7 @@ fn unsupported() {
         "unsupported",
         ConversionOptions {
             unsupported_features: HandleUnsupported::Warn,
+            singleton_interface: Some("Singleton".into()),
             ..Default::default()
         },
     );
