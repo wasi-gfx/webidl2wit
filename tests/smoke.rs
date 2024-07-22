@@ -82,6 +82,17 @@ fn console() {
 }
 
 #[test]
+fn overloading() {
+    compare(
+        "overloading",
+        ConversionOptions {
+            singleton_interface: Some("overloading".into()),
+            ..Default::default()
+        },
+    );
+}
+
+#[test]
 fn window() {
     compare(
         "window",

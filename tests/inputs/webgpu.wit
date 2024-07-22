@@ -867,7 +867,36 @@ interface my-interface {
     push-debug-group: func(group-label: string);
     pop-debug-group: func();
     insert-debug-marker: func(marker-label: string);
-    set-bind-group: func(index: gpu-index32, bind-group: option<borrow<gpu-bind-group>>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
+    set-bind-group: func(params: gpu-compute-pass-encoder-set-bind-group-params);
+  }
+  variant uint32-array-constructor-options {
+    uint32-array(uint32-array),
+    length(u32),
+    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
+  }
+  variant uint32-array-set-src {
+    %list(list<u32>),
+    uint32-array(uint32-array),
+  }
+  resource uint32-array {
+    constructor(options: option<uint32-array-constructor-options>);
+    fill: func(value: u32, start: option<u32>, end: option<u32>) -> uint32-array;
+    buffer: func() -> array-buffer;
+    length: func() -> u32;
+    byte-offset: func() -> u32;
+    byte-length: func() -> u32;
+    at: func(index: s32) -> option<u32>;
+    copy-within: func(target: u32, start: u32, end: option<u32>) -> uint32-array;
+    set: func(src: uint32-array-set-src, offset: u32);
+    slice: func(begin: u32, end: u32) -> uint32-array;
+    subarray: func(begin: u32, end: u32) -> uint32-array;
+    values: func() -> list<u32>;
+    get-index: func(index: u32) -> u32;
+    set-index: func(index: u32, value: u32);
+  }
+  variant gpu-compute-pass-encoder-set-bind-group-params {
+    index-bind-group-dynamic-offsets(tuple<gpu-index32, option<borrow<gpu-bind-group>>, option<list<gpu-buffer-dynamic-offset>>>),
+    index-bind-group-dynamic-offsets-data-dynamic-offsets-data-start-dynamic-offsets-data-length(tuple<gpu-index32, option<borrow<gpu-bind-group>>, uint32-array, gpu-size64, gpu-size32>),
   }
   record gpu-compute-pass-timestamp-writes {
     query-set: borrow<gpu-query-set>,
@@ -892,7 +921,7 @@ interface my-interface {
     push-debug-group: func(group-label: string);
     pop-debug-group: func();
     insert-debug-marker: func(marker-label: string);
-    set-bind-group: func(index: gpu-index32, bind-group: option<borrow<gpu-bind-group>>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
+    set-bind-group: func(params: gpu-render-pass-encoder-set-bind-group-params);
     set-pipeline: func(pipeline: borrow<gpu-render-pipeline>);
     set-index-buffer: func(buffer: borrow<gpu-buffer>, index-format: gpu-index-format, offset: option<gpu-size64>, size: option<gpu-size64>);
     set-vertex-buffer: func(slot: gpu-index32, buffer: option<borrow<gpu-buffer>>, offset: option<gpu-size64>, size: option<gpu-size64>);
@@ -900,6 +929,10 @@ interface my-interface {
     draw-indexed: func(index-count: gpu-size32, instance-count: option<gpu-size32>, first-index: option<gpu-size32>, base-vertex: option<gpu-signed-offset32>, first-instance: option<gpu-size32>);
     draw-indirect: func(indirect-buffer: borrow<gpu-buffer>, indirect-offset: gpu-size64);
     draw-indexed-indirect: func(indirect-buffer: borrow<gpu-buffer>, indirect-offset: gpu-size64);
+  }
+  variant gpu-render-pass-encoder-set-bind-group-params {
+    index-bind-group-dynamic-offsets(tuple<gpu-index32, option<borrow<gpu-bind-group>>, option<list<gpu-buffer-dynamic-offset>>>),
+    index-bind-group-dynamic-offsets-data-dynamic-offsets-data-start-dynamic-offsets-data-length(tuple<gpu-index32, option<borrow<gpu-bind-group>>, uint32-array, gpu-size64, gpu-size32>),
   }
   record gpu-render-pass-timestamp-writes {
     query-set: borrow<gpu-query-set>,
@@ -961,7 +994,7 @@ interface my-interface {
     push-debug-group: func(group-label: string);
     pop-debug-group: func();
     insert-debug-marker: func(marker-label: string);
-    set-bind-group: func(index: gpu-index32, bind-group: option<borrow<gpu-bind-group>>, dynamic-offsets: option<list<gpu-buffer-dynamic-offset>>);
+    set-bind-group: func(params: gpu-render-bundle-encoder-set-bind-group-params);
     set-pipeline: func(pipeline: borrow<gpu-render-pipeline>);
     set-index-buffer: func(buffer: borrow<gpu-buffer>, index-format: gpu-index-format, offset: option<gpu-size64>, size: option<gpu-size64>);
     set-vertex-buffer: func(slot: gpu-index32, buffer: option<borrow<gpu-buffer>>, offset: option<gpu-size64>, size: option<gpu-size64>);
@@ -969,6 +1002,10 @@ interface my-interface {
     draw-indexed: func(index-count: gpu-size32, instance-count: option<gpu-size32>, first-index: option<gpu-size32>, base-vertex: option<gpu-signed-offset32>, first-instance: option<gpu-size32>);
     draw-indirect: func(indirect-buffer: borrow<gpu-buffer>, indirect-offset: gpu-size64);
     draw-indexed-indirect: func(indirect-buffer: borrow<gpu-buffer>, indirect-offset: gpu-size64);
+  }
+  variant gpu-render-bundle-encoder-set-bind-group-params {
+    index-bind-group-dynamic-offsets(tuple<gpu-index32, option<borrow<gpu-bind-group>>, option<list<gpu-buffer-dynamic-offset>>>),
+    index-bind-group-dynamic-offsets-data-dynamic-offsets-data-start-dynamic-offsets-data-length(tuple<gpu-index32, option<borrow<gpu-bind-group>>, uint32-array, gpu-size64, gpu-size32>),
   }
   record gpu-render-bundle-encoder-descriptor {
     depth-read-only: option<bool>,
@@ -1086,31 +1123,6 @@ interface my-interface {
     values: func() -> list<u16>;
     get-index: func(index: u32) -> u16;
     set-index: func(index: u32, value: u16);
-  }
-  variant uint32-array-constructor-options {
-    uint32-array(uint32-array),
-    length(u32),
-    array-buffer(tuple<array-buffer, option<u32>, option<u32>>),
-  }
-  variant uint32-array-set-src {
-    %list(list<u32>),
-    uint32-array(uint32-array),
-  }
-  resource uint32-array {
-    constructor(options: option<uint32-array-constructor-options>);
-    fill: func(value: u32, start: option<u32>, end: option<u32>) -> uint32-array;
-    buffer: func() -> array-buffer;
-    length: func() -> u32;
-    byte-offset: func() -> u32;
-    byte-length: func() -> u32;
-    at: func(index: s32) -> option<u32>;
-    copy-within: func(target: u32, start: u32, end: option<u32>) -> uint32-array;
-    set: func(src: uint32-array-set-src, offset: u32);
-    slice: func(begin: u32, end: u32) -> uint32-array;
-    subarray: func(begin: u32, end: u32) -> uint32-array;
-    values: func() -> list<u32>;
-    get-index: func(index: u32) -> u32;
-    set-index: func(index: u32, value: u32);
   }
   variant int8-array-constructor-options {
     int8-array(int8-array),
