@@ -4,6 +4,7 @@ interface my-interface {
   resource singleton {
     single-param: func(params: singleton-single-param-params);
     multiple-params: func(params: singleton-multiple-params-params);
+    mixed: func(params: option<singleton-mixed-params>);
   }
   variant singleton-single-param-params {
     str(string),
@@ -13,9 +14,14 @@ interface my-interface {
     str1-str2(tuple<string, string>),
     num1-num2(tuple<s32, s32>),
   }
+  variant singleton-mixed-params {
+    one(s32),
+    one-two(tuple<s32, s32>),
+  }
   resource %resource {
     single-param: func(params: resource-single-param-params);
     multiple-params: func(params: resource-multiple-params-params);
+    mixed: func(params: option<resource-mixed-params>);
   }
   variant resource-single-param-params {
     str(string),
@@ -24,5 +30,9 @@ interface my-interface {
   variant resource-multiple-params-params {
     str1-str2(tuple<string, string>),
     num1-num2(tuple<s32, s32>),
+  }
+  variant resource-mixed-params {
+    one(s32),
+    one-two(tuple<s32, s32>),
   }
 }

@@ -416,7 +416,7 @@ pub fn webidl_to_wit(
                             },
                             InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
                         })
-                        .expect("Base dictionary not found");
+                        .expect(&format!("Base dictionary {base_name} not found"));
                     fields.append(&mut base_fields);
                 }
                 let type_def = wit_encoder::TypeDef::record(ident_name(dict.identifier.0), fields);
@@ -737,7 +737,8 @@ impl<'a> State<'a> {
                             interface_name.raw_name(),
                             func_name.raw_name()
                         ));
-                        self.interface_functions_params_to_variant(variant_name.clone(), functions);
+                        let optional = self
+                            .interface_functions_params_to_variant(variant_name.clone(), functions);
                         let results = functions[0].results();
                         let same_results = functions.iter().all(|f| f.results() == results);
                         assert!(
@@ -745,7 +746,13 @@ impl<'a> State<'a> {
                             "Different results for overloading not yet supported"
                         );
                         functions.drain(1..);
-                        functions[0].set_params(("params", wit_encoder::Type::named(variant_name)));
+                        let params = match optional {
+                            true => {
+                                wit_encoder::Type::option(wit_encoder::Type::named(variant_name))
+                            }
+                            false => wit_encoder::Type::named(variant_name),
+                        };
+                        functions[0].set_params(("params", params));
                     }
                 }
                 let items = functions
@@ -762,7 +769,8 @@ impl<'a> State<'a> {
                             interface_name.raw_name(),
                             func_name.raw_name()
                         ));
-                        self.resource_functions_params_to_variant(variant_name.clone(), functions);
+                        let optional = self
+                            .resource_functions_params_to_variant(variant_name.clone(), functions);
                         let results = match functions[0].kind() {
                             wit_encoder::ResourceFuncKind::Method(_, results) => Some(results),
                             wit_encoder::ResourceFuncKind::Static(_, results) => Some(results),
@@ -784,7 +792,13 @@ impl<'a> State<'a> {
                             }
                         }
                         functions.drain(1..);
-                        functions[0].set_params(("params", wit_encoder::Type::named(variant_name)));
+                        let params = match optional {
+                            true => {
+                                wit_encoder::Type::option(wit_encoder::Type::named(variant_name))
+                            }
+                            false => wit_encoder::Type::named(variant_name),
+                        };
+                        functions[0].set_params(("params", params));
                     }
                 }
                 let resource = self
@@ -852,7 +866,12 @@ impl<'a> State<'a> {
         &mut self,
         variant_name: Ident,
         functions: &mut Vec<wit_encoder::ResourceFunc>,
-    ) {
+    ) -> bool {
+        let mut has_empty = false;
+        if let Some(pos) = functions.iter().position(|f| f.params().items().is_empty()) {
+            functions.remove(pos);
+            has_empty = true;
+        }
         let cases = functions
             .into_iter()
             .map(|f| self.params_to_tuple(f.params_mut()))
@@ -860,13 +879,19 @@ impl<'a> State<'a> {
 
         let variant = wit_encoder::TypeDef::variant(variant_name, cases);
         self.interface.type_def(variant);
+        has_empty
     }
 
     fn interface_functions_params_to_variant(
         &mut self,
         variant_name: Ident,
         functions: &mut Vec<StandaloneFunc>,
-    ) {
+    ) -> bool {
+        let mut has_empty = false;
+        if let Some(pos) = functions.iter().position(|f| f.params().items().is_empty()) {
+            functions.remove(pos);
+            has_empty = true;
+        }
         let cases = functions
             .into_iter()
             .map(|f| self.params_to_tuple(f.params_mut()))
@@ -874,6 +899,7 @@ impl<'a> State<'a> {
 
         let variant = wit_encoder::TypeDef::variant(variant_name, cases);
         self.interface.type_def(variant);
+        has_empty
     }
 
     fn resource_set_methods<'b>(

@@ -3,10 +3,16 @@ interface singleton {
   undefined singleParam(long num);
   undefined multipleParams(DOMString str1, DOMString str2);
   undefined multipleParams(long num1, long num2);
+  undefined mixed();
+  undefined mixed(long one);
+  undefined mixed(long one, long two);
 };
 interface resource {
   undefined singleParam(DOMString str);
   undefined singleParam(long num);
   undefined multipleParams(DOMString str1, DOMString str2);
   undefined multipleParams(long num1, long num2);
+  undefined mixed();
+  undefined mixed(long one);
+  undefined mixed(long one, long two);
 };
