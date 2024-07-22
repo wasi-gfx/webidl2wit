@@ -737,14 +737,19 @@ impl<'a> State<'a> {
                             interface_name.raw_name(),
                             func_name.raw_name()
                         ));
-                        let optional = self
-                            .interface_functions_params_to_variant(variant_name.clone(), functions);
                         let results = functions[0].results();
                         let same_results = functions.iter().all(|f| f.results() == results);
-                        assert!(
-                            same_results,
-                            "Different results for overloading not yet supported"
-                        );
+                        if !same_results {
+                            handle_unsupported(
+                                func_name,
+                                "different results for overloading",
+                                &self.unsupported_features,
+                            );
+                            functions.clear();
+                            continue;
+                        }
+                        let optional = self
+                            .interface_functions_params_to_variant(variant_name.clone(), functions);
                         functions.drain(1..);
                         let params = match optional {
                             true => {
@@ -769,8 +774,6 @@ impl<'a> State<'a> {
                             interface_name.raw_name(),
                             func_name.raw_name()
                         ));
-                        let optional = self
-                            .resource_functions_params_to_variant(variant_name.clone(), functions);
                         let results = match functions[0].kind() {
                             wit_encoder::ResourceFuncKind::Method(_, results) => Some(results),
                             wit_encoder::ResourceFuncKind::Static(_, results) => Some(results),
@@ -788,9 +791,12 @@ impl<'a> State<'a> {
                                     "different results for overloading",
                                     &self.unsupported_features,
                                 );
+                                functions.clear();
                                 continue;
                             }
                         }
+                        let optional = self
+                            .resource_functions_params_to_variant(variant_name.clone(), functions);
                         functions.drain(1..);
                         let params = match optional {
                             true => {

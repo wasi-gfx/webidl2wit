@@ -87,6 +87,7 @@ fn overloading() {
         "overloading",
         ConversionOptions {
             singleton_interface: Some("overloading".into()),
+            unsupported_features: HandleUnsupported::Warn,
             ..Default::default()
         },
     );
