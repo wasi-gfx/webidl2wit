@@ -101,9 +101,9 @@ pub(super) struct State<'a> {
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
     // Resource names do know what needs to be borrowed.
     pub resource_names: HashSet<Ident>,
-    // Add these methods to the resource one you find it.
+    // Add these methods to the resource once they're found.
     // Used when partial interface is found before the main, or include is found before main declaration.
-    pub waiting_resource_method: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
+    pub waiting_resource_methods: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
     // Mixin includes that were found before the mixin declaration.
     pub waiting_includes: HashMap<String, Vec<Ident>>,
     // TODO: don't treat any as special. Have a set for defined types instead.
@@ -200,7 +200,7 @@ pub fn webidl_to_wit(
                 _ => None,
             })
             .collect(),
-        waiting_resource_method: HashMap::new(),
+        waiting_resource_methods: HashMap::new(),
         waiting_includes: HashMap::new(),
         any_found: false,
         resource_inheritance: options.resource_inheritance,
@@ -820,7 +820,7 @@ impl<'a> State<'a> {
 
                 match resource {
                     None => {
-                        self.waiting_resource_method.insert(
+                        self.waiting_resource_methods.insert(
                             interface_name.clone(),
                             functions.into_iter().map(|(_, f)| f).flatten().collect(),
                         );
@@ -837,7 +837,7 @@ impl<'a> State<'a> {
                                 .flatten(),
                         );
                         if let Some(functions) =
-                            self.waiting_resource_method.remove(&interface_name)
+                            self.waiting_resource_methods.remove(&interface_name)
                         {
                             resource.funcs_mut().extend(functions);
                         }
