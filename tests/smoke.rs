@@ -21,7 +21,13 @@ fn enum_() {
 
 #[test]
 fn order() {
-    compare("order", Default::default());
+    compare(
+        "order",
+        ConversionOptions {
+            resource_inheritance: ResourceInheritance::DuplicateMethods,
+            ..Default::default()
+        },
+    );
 }
 
 #[test]

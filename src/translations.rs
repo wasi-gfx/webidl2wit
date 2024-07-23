@@ -109,6 +109,7 @@ pub(super) struct State<'a> {
     // TODO: don't treat any as special. Have a set for defined types instead.
     pub any_found: bool,
     pub resource_inheritance: ResourceInheritance,
+    pub inheritors_waiting_for_base: HashMap<Ident, Vec<Ident>>,
 }
 
 fn handle_unsupported(
@@ -204,6 +205,7 @@ pub fn webidl_to_wit(
         waiting_includes: HashMap::new(),
         any_found: false,
         resource_inheritance: options.resource_inheritance,
+        inheritors_waiting_for_base: HashMap::new(),
     };
 
     for item in webidl {
@@ -354,24 +356,42 @@ pub fn webidl_to_wit(
                                 });
                             }
                             ResourceInheritance::DuplicateMethods => {
-                                let mut base_funcs = state
-                                    .interface
-                                    .items()
-                                    .iter()
-                                    .find_map(|t| match t {
-                                        InterfaceItem::TypeDef(type_def) => match type_def.kind() {
-                                            wit_encoder::TypeDefKind::Resource(resource)
-                                                if type_def.name() == &base_name =>
-                                            {
-                                                Some(resource.funcs().to_vec())
-                                            }
-                                            _ => None,
-                                        },
-                                        InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
-                                    })
-                                    .expect("Base dictionary not found");
-                                resource.funcs_mut().append(&mut base_funcs);
+                                let base = state.interface.items().iter().find_map(|t| match t {
+                                    InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                                        wit_encoder::TypeDefKind::Resource(resource)
+                                            if type_def.name() == &base_name =>
+                                        {
+                                            Some(resource)
+                                        }
+                                        _ => None,
+                                    },
+                                    InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                                });
+                                match base {
+                                    Some(base) => {
+                                        let mut base_funcs = base.funcs().to_vec();
+                                        resource.funcs_mut().append(&mut base_funcs);
+                                    }
+                                    None => {
+                                        state
+                                            .inheritors_waiting_for_base
+                                            .entry(base_name.clone())
+                                            .or_insert(vec![])
+                                            .push(interface_name.clone());
+                                    }
+                                }
                             }
+                        }
+                    }
+                    if let Some(inheritors) =
+                        state.inheritors_waiting_for_base.remove(&interface_name)
+                    {
+                        for inheritor in inheritors {
+                            state.interface_members_to_functions(
+                                &inheritor,
+                                &wi_interface.members.body,
+                                is_singleton,
+                            )?;
                         }
                     }
                     let type_def = wit_encoder::TypeDef::new(
@@ -399,27 +419,64 @@ pub fn webidl_to_wit(
                     })
                     .collect::<Vec<_>>();
 
+                let record_name = ident_name(dict.identifier.0);
+
                 if let Some(inheritance) = dict.inheritance {
                     let base_name = ident_name(inheritance.identifier.0);
-                    let mut base_fields = state
-                        .interface
-                        .items()
-                        .iter()
-                        .find_map(|t| match t {
-                            InterfaceItem::TypeDef(type_def) => match type_def.kind() {
-                                wit_encoder::TypeDefKind::Record(record)
-                                    if type_def.name() == &base_name =>
-                                {
-                                    Some(record.fields().to_vec())
-                                }
-                                _ => None,
-                            },
-                            InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
-                        })
-                        .expect(&format!("Base dictionary {base_name} not found"));
-                    fields.append(&mut base_fields);
+                    let base = state.interface.items().iter().find_map(|t| match t {
+                        InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                            wit_encoder::TypeDefKind::Record(record)
+                                if type_def.name() == &base_name =>
+                            {
+                                Some(record)
+                            }
+                            _ => None,
+                        },
+                        InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                    });
+                    match base {
+                        Some(base) => {
+                            let mut base_fields = base.fields().to_vec();
+                            fields.append(&mut base_fields);
+                        }
+                        None => {
+                            state
+                                .inheritors_waiting_for_base
+                                .entry(base_name.clone())
+                                .or_insert(vec![])
+                                .push(record_name.clone());
+                        }
+                    }
                 }
-                let type_def = wit_encoder::TypeDef::record(ident_name(dict.identifier.0), fields);
+
+                if let Some(inheritors) = state.inheritors_waiting_for_base.remove(&record_name) {
+                    for inheritor in inheritors {
+                        let inheritor = state
+                            .interface
+                            .items_mut()
+                            .iter_mut()
+                            .find_map(|t| match t {
+                                InterfaceItem::TypeDef(type_def) => {
+                                    if type_def.name() == &inheritor {
+                                        match type_def.kind_mut() {
+                                            wit_encoder::TypeDefKind::Record(record) => {
+                                                Some(record)
+                                            }
+                                            _ => panic!("Inheritor {} not a record", inheritor),
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                }
+                                InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                            })
+                            .unwrap();
+
+                        inheritor.fields_mut().append(&mut fields.clone())
+                    }
+                }
+
+                let type_def = wit_encoder::TypeDef::record(record_name, fields);
                 state.interface.type_def(type_def);
             }
             Definition::Enum(e) => {

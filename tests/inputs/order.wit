@@ -33,4 +33,32 @@ interface my-interface {
     foo: func() -> s32;
     bar: func() -> s32;
   }
+  resource intr-base-main-base {
+    foo: func() -> s32;
+  }
+  resource intr-base-main-main {
+    foo: func() -> s32;
+    bar: func() -> s32;
+  }
+  resource intr-main-base-main {
+    bar: func() -> s32;
+    foo: func() -> s32;
+  }
+  resource intr-main-base-base {
+    foo: func() -> s32;
+  }
+  record dict-base-main-base {
+    foo: s32,
+  }
+  record dict-base-main-main {
+    bar: s32,
+    foo: s32,
+  }
+  record dict-main-base-main {
+    bar: s32,
+    foo: s32,
+  }
+  record dict-main-base-base {
+    foo: s32,
+  }
 }
