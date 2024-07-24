@@ -552,7 +552,7 @@ interface my-interface {
   }
   record gpu-shader-module-compilation-hint {
     entry-point: string,
-    layout: gpu-auto-layout-mode-or-gpu-pipeline-layout,
+    layout: option<gpu-auto-layout-mode-or-gpu-pipeline-layout>,
   }
   enum gpu-compilation-message-type {
     error,
