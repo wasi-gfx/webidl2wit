@@ -1,4 +1,5 @@
 use anyhow::bail;
+use hashlink::LinkedHashMap;
 use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
 use std::{
@@ -100,14 +101,15 @@ pub(super) struct State<'a> {
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
     // Resource names do know what needs to be borrowed.
     pub resource_names: HashSet<Ident>,
-    // Add these methods to the resource one you find it.
+    // Add these methods to the resource once they're found.
     // Used when partial interface is found before the main, or include is found before main declaration.
-    pub waiting_resource_method: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
+    pub waiting_resource_methods: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
     // Mixin includes that were found before the mixin declaration.
     pub waiting_includes: HashMap<String, Vec<Ident>>,
     // TODO: don't treat any as special. Have a set for defined types instead.
     pub any_found: bool,
     pub resource_inheritance: ResourceInheritance,
+    pub inheritors_waiting_for_base: HashMap<Ident, Vec<Ident>>,
 }
 
 fn handle_unsupported(
@@ -199,10 +201,11 @@ pub fn webidl_to_wit(
                 _ => None,
             })
             .collect(),
-        waiting_resource_method: HashMap::new(),
+        waiting_resource_methods: HashMap::new(),
         waiting_includes: HashMap::new(),
         any_found: false,
         resource_inheritance: options.resource_inheritance,
+        inheritors_waiting_for_base: HashMap::new(),
     };
 
     for item in webidl {
@@ -348,29 +351,47 @@ pub fn webidl_to_wit(
                                         "as-{}",
                                         base_name.raw_name()
                                     ));
-                                    func.results(wit_encoder::Type::named(base_name));
+                                    func.set_results(wit_encoder::Type::named(base_name));
                                     func
                                 });
                             }
                             ResourceInheritance::DuplicateMethods => {
-                                let mut base_funcs = state
-                                    .interface
-                                    .items()
-                                    .iter()
-                                    .find_map(|t| match t {
-                                        InterfaceItem::TypeDef(type_def) => match type_def.kind() {
-                                            wit_encoder::TypeDefKind::Resource(resource)
-                                                if type_def.name() == &base_name =>
-                                            {
-                                                Some(resource.funcs().to_vec())
-                                            }
-                                            _ => None,
-                                        },
-                                        InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
-                                    })
-                                    .expect("Base dictionary not found");
-                                resource.funcs_mut().append(&mut base_funcs);
+                                let base = state.interface.items().iter().find_map(|t| match t {
+                                    InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                                        wit_encoder::TypeDefKind::Resource(resource)
+                                            if type_def.name() == &base_name =>
+                                        {
+                                            Some(resource)
+                                        }
+                                        _ => None,
+                                    },
+                                    InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                                });
+                                match base {
+                                    Some(base) => {
+                                        let mut base_funcs = base.funcs().to_vec();
+                                        resource.funcs_mut().append(&mut base_funcs);
+                                    }
+                                    None => {
+                                        state
+                                            .inheritors_waiting_for_base
+                                            .entry(base_name.clone())
+                                            .or_insert(vec![])
+                                            .push(interface_name.clone());
+                                    }
+                                }
                             }
+                        }
+                    }
+                    if let Some(inheritors) =
+                        state.inheritors_waiting_for_base.remove(&interface_name)
+                    {
+                        for inheritor in inheritors {
+                            state.interface_members_to_functions(
+                                &inheritor,
+                                &wi_interface.members.body,
+                                is_singleton,
+                            )?;
                         }
                     }
                     let type_def = wit_encoder::TypeDef::new(
@@ -398,27 +419,64 @@ pub fn webidl_to_wit(
                     })
                     .collect::<Vec<_>>();
 
+                let record_name = ident_name(dict.identifier.0);
+
                 if let Some(inheritance) = dict.inheritance {
                     let base_name = ident_name(inheritance.identifier.0);
-                    let mut base_fields = state
-                        .interface
-                        .items()
-                        .iter()
-                        .find_map(|t| match t {
-                            InterfaceItem::TypeDef(type_def) => match type_def.kind() {
-                                wit_encoder::TypeDefKind::Record(record)
-                                    if type_def.name() == &base_name =>
-                                {
-                                    Some(record.fields().to_vec())
-                                }
-                                _ => None,
-                            },
-                            InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
-                        })
-                        .expect("Base dictionary not found");
-                    fields.append(&mut base_fields);
+                    let base = state.interface.items().iter().find_map(|t| match t {
+                        InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                            wit_encoder::TypeDefKind::Record(record)
+                                if type_def.name() == &base_name =>
+                            {
+                                Some(record)
+                            }
+                            _ => None,
+                        },
+                        InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                    });
+                    match base {
+                        Some(base) => {
+                            let mut base_fields = base.fields().to_vec();
+                            fields.append(&mut base_fields);
+                        }
+                        None => {
+                            state
+                                .inheritors_waiting_for_base
+                                .entry(base_name.clone())
+                                .or_insert(vec![])
+                                .push(record_name.clone());
+                        }
+                    }
                 }
-                let type_def = wit_encoder::TypeDef::record(ident_name(dict.identifier.0), fields);
+
+                if let Some(inheritors) = state.inheritors_waiting_for_base.remove(&record_name) {
+                    for inheritor in inheritors {
+                        let inheritor = state
+                            .interface
+                            .items_mut()
+                            .iter_mut()
+                            .find_map(|t| match t {
+                                InterfaceItem::TypeDef(type_def) => {
+                                    if type_def.name() == &inheritor {
+                                        match type_def.kind_mut() {
+                                            wit_encoder::TypeDefKind::Record(record) => {
+                                                Some(record)
+                                            }
+                                            _ => panic!("Inheritor {} not a record", inheritor),
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                }
+                                InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                            })
+                            .unwrap();
+
+                        inheritor.fields_mut().append(&mut fields.clone())
+                    }
+                }
+
+                let type_def = wit_encoder::TypeDef::record(record_name, fields);
                 state.interface.type_def(type_def);
             }
             Definition::Enum(e) => {
@@ -434,7 +492,7 @@ pub fn webidl_to_wit(
 
     for global_name in global_world_singletons {
         let mut func = StandaloneFunc::new(format!("get-{}", global_name.clone()));
-        func.results(wit_encoder::Type::named(global_name.clone()));
+        func.set_results(wit_encoder::Type::named(global_name.clone()));
         state.interface.function(func);
         let mut world = World::new(global_name.clone());
         world.named_interface_import(options.interface_name.clone());
@@ -480,12 +538,12 @@ impl<'a> State<'a> {
         singleton_interface: bool,
     ) -> anyhow::Result<()> {
         enum Funcs {
-            Standalone(Vec<wit_encoder::StandaloneFunc>),
-            Resource(Vec<wit_encoder::ResourceFunc>),
+            Standalone(LinkedHashMap<Ident, Vec<wit_encoder::StandaloneFunc>>),
+            Resource(LinkedHashMap<Ident, Vec<wit_encoder::ResourceFunc>>),
         }
         let mut functions = match singleton_interface {
-            true => Funcs::Standalone(Vec::new()),
-            false => Funcs::Resource(Vec::new()),
+            true => Funcs::Standalone(LinkedHashMap::new()),
+            false => Funcs::Resource(LinkedHashMap::new()),
         };
         for member in members {
             match member {
@@ -512,14 +570,15 @@ impl<'a> State<'a> {
 
                     match &mut functions {
                         Funcs::Standalone(functions) => {
-                            let mut function = wit_encoder::StandaloneFunc::new(const_name);
-                            function.results(type_);
-                            functions.push(function);
+                            let mut function = wit_encoder::StandaloneFunc::new(const_name.clone());
+                            function.set_results(type_);
+                            functions.insert(const_name.into(), vec![function]);
                         }
                         Funcs::Resource(functions) => {
-                            let mut function = wit_encoder::ResourceFunc::static_(const_name);
-                            function.results(type_);
-                            functions.push(function);
+                            let mut function =
+                                wit_encoder::ResourceFunc::static_(const_name.clone());
+                            function.set_results(type_);
+                            functions.insert(const_name.into(), vec![function]);
                         }
                     }
                 }
@@ -541,12 +600,16 @@ impl<'a> State<'a> {
                 }
                 weedle::interface::InterfaceMember::Setlike(setlike) => match &mut functions {
                     Funcs::Standalone(functions) => {
-                        let mut set_methods = self.interface_set_methods(setlike)?;
-                        functions.append(&mut set_methods);
+                        let set_methods = self.interface_set_methods(setlike)?;
+                        for (name, func) in set_methods {
+                            functions.insert(name, vec![func]);
+                        }
                     }
                     Funcs::Resource(functions) => {
-                        let mut set_methods = self.resource_set_methods(setlike)?;
-                        functions.append(&mut set_methods);
+                        let set_methods = self.resource_set_methods(setlike)?;
+                        for (name, func) in set_methods {
+                            functions.insert(name, vec![func]);
+                        }
                     }
                 },
                 weedle::interface::InterfaceMember::Stringifier(_) => {
@@ -591,8 +654,8 @@ impl<'a> State<'a> {
                                 }
                                 _ => wit_encoder::StandaloneFunc::new(attr_name.clone()),
                             };
-                            getter.results(attr_type.clone());
-                            functions.push(getter);
+                            getter.set_results(attr_type.clone());
+                            functions.insert(attr_name.clone(), vec![getter]);
                         }
                         Funcs::Resource(functions) => {
                             let mut getter = match attr.modifier {
@@ -601,8 +664,8 @@ impl<'a> State<'a> {
                                 )) => wit_encoder::ResourceFunc::static_(attr_name.clone()),
                                 _ => wit_encoder::ResourceFunc::method(attr_name.clone()),
                             };
-                            getter.results(attr_type.clone());
-                            functions.push(getter);
+                            getter.set_results(attr_type.clone());
+                            functions.insert(attr_name.clone(), vec![getter]);
                         }
                     }
 
@@ -613,20 +676,20 @@ impl<'a> State<'a> {
                                     Some(
                                         weedle::interface::StringifierOrInheritOrStatic::Static(_),
                                     ) => unreachable!(),
-                                    _ => wit_encoder::StandaloneFunc::new(setter_name),
+                                    _ => wit_encoder::StandaloneFunc::new(setter_name.clone()),
                                 };
-                                setter.params((attr_name, attr_type));
-                                functions.push(setter);
+                                setter.set_params((attr_name, attr_type));
+                                functions.insert(setter_name, vec![setter]);
                             }
                             Funcs::Resource(functions) => {
                                 let mut setter = match attr.modifier {
                                     Some(
                                         weedle::interface::StringifierOrInheritOrStatic::Static(_),
-                                    ) => wit_encoder::ResourceFunc::static_(setter_name),
-                                    _ => wit_encoder::ResourceFunc::method(setter_name),
+                                    ) => wit_encoder::ResourceFunc::static_(setter_name.clone()),
+                                    _ => wit_encoder::ResourceFunc::method(setter_name.clone()),
                                 };
-                                setter.params((attr_name, attr_type));
-                                functions.push(setter);
+                                setter.set_params((attr_name, attr_type));
+                                functions.insert(setter_name, vec![setter]);
                             }
                         }
                     }
@@ -641,8 +704,11 @@ impl<'a> State<'a> {
                         }
                         Funcs::Resource(functions) => {
                             let mut function = wit_encoder::ResourceFunc::constructor();
-                            function.params(self.function_args(&constructor.args.body)?);
-                            functions.push(function);
+                            function.set_params(self.function_args(&constructor.args.body)?);
+                            functions
+                                .entry(Ident::new("constructor"))
+                                .or_insert(vec![])
+                                .push(function);
                         }
                     }
                 }
@@ -685,22 +751,28 @@ impl<'a> State<'a> {
                                             interface_name
                                         )
                                     }
-                                    _ => wit_encoder::StandaloneFunc::new(function_name),
+                                    _ => wit_encoder::StandaloneFunc::new(function_name.clone()),
                                 };
-                                function.params(params);
-                                function.results(results);
-                                functions.push(function);
+                                function.set_params(params);
+                                function.set_results(results);
+                                functions
+                                    .entry(function_name)
+                                    .or_insert(vec![])
+                                    .push(function);
                             }
                             Funcs::Resource(functions) => {
                                 let mut function = match operation.modifier {
                                     Some(weedle::interface::StringifierOrStatic::Static(_)) => {
-                                        wit_encoder::ResourceFunc::static_(function_name)
+                                        wit_encoder::ResourceFunc::static_(function_name.clone())
                                     }
-                                    _ => wit_encoder::ResourceFunc::method(function_name),
+                                    _ => wit_encoder::ResourceFunc::method(function_name.clone()),
                                 };
-                                function.params(params);
-                                function.results(results);
-                                functions.push(function);
+                                function.set_params(params);
+                                function.set_results(results);
+                                functions
+                                    .entry(function_name)
+                                    .or_insert(vec![])
+                                    .push(function);
                             }
                         }
                     } else {
@@ -714,11 +786,84 @@ impl<'a> State<'a> {
         }
 
         match functions {
-            Funcs::Standalone(functions) => {
-                let items = functions.into_iter().map(|f| InterfaceItem::Function(f));
+            Funcs::Standalone(mut functions) => {
+                for (func_name, functions) in &mut functions {
+                    if functions.len() > 1 {
+                        let variant_name = Ident::new(format!(
+                            "{}-{}-params",
+                            interface_name.raw_name(),
+                            func_name.raw_name()
+                        ));
+                        let results = functions[0].results();
+                        let same_results = functions.iter().all(|f| f.results() == results);
+                        if !same_results {
+                            handle_unsupported(
+                                func_name,
+                                "different results for overloading",
+                                &self.unsupported_features,
+                            );
+                            functions.clear();
+                            continue;
+                        }
+                        let optional = self
+                            .interface_functions_params_to_variant(variant_name.clone(), functions);
+                        functions.drain(1..);
+                        let params = match optional {
+                            true => {
+                                wit_encoder::Type::option(wit_encoder::Type::named(variant_name))
+                            }
+                            false => wit_encoder::Type::named(variant_name),
+                        };
+                        functions[0].set_params(("params", params));
+                    }
+                }
+                let items = functions
+                    .into_iter()
+                    .map(|(_, functions)| functions.into_iter().map(|f| InterfaceItem::Function(f)))
+                    .flatten();
                 self.interface.items_mut().extend(items);
             }
-            Funcs::Resource(functions) => {
+            Funcs::Resource(mut functions) => {
+                for (func_name, functions) in &mut functions {
+                    if functions.len() > 1 {
+                        let variant_name = Ident::new(format!(
+                            "{}-{}-params",
+                            interface_name.raw_name(),
+                            func_name.raw_name()
+                        ));
+                        let results = match functions[0].kind() {
+                            wit_encoder::ResourceFuncKind::Method(_, results) => Some(results),
+                            wit_encoder::ResourceFuncKind::Static(_, results) => Some(results),
+                            wit_encoder::ResourceFuncKind::Constructor => None,
+                        };
+                        if let Some(results) = results {
+                            let same_results = functions.iter().all(|f| match f.kind() {
+                                wit_encoder::ResourceFuncKind::Method(_, r) => r == results,
+                                wit_encoder::ResourceFuncKind::Static(_, r) => r == results,
+                                wit_encoder::ResourceFuncKind::Constructor => true,
+                            });
+                            if !same_results {
+                                handle_unsupported(
+                                    func_name,
+                                    "different results for overloading",
+                                    &self.unsupported_features,
+                                );
+                                functions.clear();
+                                continue;
+                            }
+                        }
+                        let optional = self
+                            .resource_functions_params_to_variant(variant_name.clone(), functions);
+                        functions.drain(1..);
+                        let params = match optional {
+                            true => {
+                                wit_encoder::Type::option(wit_encoder::Type::named(variant_name))
+                            }
+                            false => wit_encoder::Type::named(variant_name),
+                        };
+                        functions[0].set_params(("params", params));
+                    }
+                }
                 let resource = self
                     .interface
                     .items_mut()
@@ -732,17 +877,24 @@ impl<'a> State<'a> {
 
                 match resource {
                     None => {
-                        self.waiting_resource_method
-                            .insert(interface_name.clone(), functions);
+                        self.waiting_resource_methods.insert(
+                            interface_name.clone(),
+                            functions.into_iter().map(|(_, f)| f).flatten().collect(),
+                        );
                     }
                     Some(resource) => {
                         let resource = match resource.kind_mut() {
                             wit_encoder::TypeDefKind::Resource(resource) => resource,
                             _ => panic!("Not a resource"),
                         };
-                        resource.funcs_mut().extend(functions);
+                        resource.funcs_mut().extend(
+                            functions
+                                .into_iter()
+                                .map(|(_, functions)| functions.into_iter().map(|f| f))
+                                .flatten(),
+                        );
                         if let Some(functions) =
-                            self.waiting_resource_method.remove(&interface_name)
+                            self.waiting_resource_methods.remove(&interface_name)
                         {
                             resource.funcs_mut().extend(functions);
                         }
@@ -754,37 +906,106 @@ impl<'a> State<'a> {
         Ok(())
     }
 
+    fn params_to_tuple(&self, params: &mut wit_encoder::Params) -> (wit_encoder::Type, String) {
+        if params.items().len() == 1 {
+            if let Some((name, type_)) = params.items_mut().drain(..).next() {
+                return (type_, name.to_string());
+            }
+        }
+
+        let mut tuple = wit_encoder::Tuple::empty();
+        let name = params
+            .items()
+            .iter()
+            .map(|(name, _)| name.raw_name())
+            .join("-");
+        tuple
+            .types_mut()
+            .extend(params.items_mut().drain(..).map(|(_, type_)| type_));
+        (wit_encoder::Type::Tuple(tuple), name)
+    }
+
+    fn resource_functions_params_to_variant(
+        &mut self,
+        variant_name: Ident,
+        functions: &mut Vec<wit_encoder::ResourceFunc>,
+    ) -> bool {
+        let mut has_empty = false;
+        if let Some(pos) = functions.iter().position(|f| f.params().items().is_empty()) {
+            functions.remove(pos);
+            has_empty = true;
+        }
+        let cases = functions
+            .into_iter()
+            .map(|f| self.params_to_tuple(f.params_mut()))
+            .map(|(tuple, name)| wit_encoder::VariantCase::value(name, tuple));
+
+        let variant = wit_encoder::TypeDef::variant(variant_name, cases);
+        self.interface.type_def(variant);
+        has_empty
+    }
+
+    fn interface_functions_params_to_variant(
+        &mut self,
+        variant_name: Ident,
+        functions: &mut Vec<StandaloneFunc>,
+    ) -> bool {
+        let mut has_empty = false;
+        if let Some(pos) = functions.iter().position(|f| f.params().items().is_empty()) {
+            functions.remove(pos);
+            has_empty = true;
+        }
+        let cases = functions
+            .into_iter()
+            .map(|f| self.params_to_tuple(f.params_mut()))
+            .map(|(tuple, name)| wit_encoder::VariantCase::value(name, tuple));
+
+        let variant = wit_encoder::TypeDef::variant(variant_name, cases);
+        self.interface.type_def(variant);
+        has_empty
+    }
+
     fn resource_set_methods<'b>(
         &mut self,
         setlike: &weedle::interface::SetlikeInterfaceMember<'b>,
-    ) -> anyhow::Result<Vec<wit_encoder::ResourceFunc>> {
+    ) -> anyhow::Result<LinkedHashMap<Ident, wit_encoder::ResourceFunc>> {
         let generic_type = self.wi2w_type(&setlike.generics.body.type_, false)?;
         assert!(
             setlike.readonly.is_some(),
             "TODO: add mutable setlike support"
         );
-        Ok(vec![{
-            let mut func = wit_encoder::ResourceFunc::method("has");
-            func.params(("value", generic_type));
-            func.results(wit_encoder::Type::Bool);
-            func
-        }])
+        let mut functions = LinkedHashMap::new();
+        {
+            let name = ident_name("has");
+            functions.insert(name.clone(), {
+                let mut func = wit_encoder::ResourceFunc::method(name);
+                func.set_params(("value", generic_type));
+                func.set_results(wit_encoder::Type::Bool);
+                func
+            });
+        }
+        Ok(functions)
     }
     fn interface_set_methods<'b>(
         &mut self,
         setlike: &weedle::interface::SetlikeInterfaceMember<'b>,
-    ) -> anyhow::Result<Vec<wit_encoder::StandaloneFunc>> {
+    ) -> anyhow::Result<LinkedHashMap<Ident, wit_encoder::StandaloneFunc>> {
         let generic_type = self.wi2w_type(&setlike.generics.body.type_, false)?;
         assert!(
             setlike.readonly.is_some(),
             "TODO: add mutable setlike support"
         );
-        Ok(vec![{
-            let mut func = wit_encoder::StandaloneFunc::new("has");
-            func.params(("value", generic_type));
-            func.results(wit_encoder::Type::Bool);
-            func
-        }])
+        let mut functions = LinkedHashMap::new();
+        {
+            let name = ident_name("has");
+            functions.insert(name.clone(), {
+                let mut func = wit_encoder::StandaloneFunc::new(name);
+                func.set_params(("value", generic_type));
+                func.set_results(wit_encoder::Type::Bool);
+                func
+            });
+        }
+        Ok(functions)
     }
 }
 

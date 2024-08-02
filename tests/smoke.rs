@@ -21,7 +21,13 @@ fn enum_() {
 
 #[test]
 fn order() {
-    compare("order", Default::default());
+    compare(
+        "order",
+        ConversionOptions {
+            resource_inheritance: ResourceInheritance::DuplicateMethods,
+            ..Default::default()
+        },
+    );
 }
 
 #[test]
@@ -76,6 +82,18 @@ fn console() {
         "console",
         ConversionOptions {
             singleton_interface: Some("console".into()),
+            ..Default::default()
+        },
+    );
+}
+
+#[test]
+fn overloading() {
+    compare(
+        "overloading",
+        ConversionOptions {
+            singleton_interface: Some("overloading".into()),
+            unsupported_features: HandleUnsupported::Warn,
             ..Default::default()
         },
     );

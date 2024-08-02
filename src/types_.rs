@@ -71,7 +71,10 @@ impl<'a> State<'a> {
                     });
                 }
 
-                Ok(wit_encoder::Type::named(variant_name))
+                Ok(match optional {
+                    true => wit_encoder::Type::option(wit_encoder::Type::named(variant_name)),
+                    false => wit_encoder::Type::named(variant_name),
+                })
             }
         }
     }

@@ -52,7 +52,6 @@ interface mixin MainMixinIncludeMixin {
 };
 MainMixinInclude includes MainMixinIncludeMixin;
 
-
 interface mixin MixinMainIncludeMixin {
     readonly attribute long bar;
 };
@@ -60,3 +59,31 @@ interface MixinMainInclude {
     readonly attribute long foo;
 };
 MixinMainInclude includes MixinMainIncludeMixin;
+
+interface IntrBaseMainBase {
+    readonly attribute long foo;
+};
+interface IntrBaseMainMain: IntrBaseMainBase {
+    readonly attribute long bar;
+};
+
+interface IntrMainBaseMain: IntrMainBaseBase {
+    readonly attribute long bar;
+};
+interface IntrMainBaseBase {
+    readonly attribute long foo;
+};
+
+dictionary DictBaseMainBase {
+    required long foo;
+};
+dictionary DictBaseMainMain: DictBaseMainBase {
+    required long bar;
+};
+
+dictionary DictMainBaseMain: DictMainBaseBase {
+    required long bar;
+};
+dictionary DictMainBaseBase {
+    required long foo;
+};
