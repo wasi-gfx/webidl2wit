@@ -14,9 +14,7 @@ hashlink = "0.9.1"
 heck = "0.5"
 itertools = "0.13"
 weedle = "0.13.0"
-# wit-encoder = "0.214.0"
-wit-encoder = { git = "https://github.com/bytecodealliance/wasm-tools.git", rev = "701b2697718816f318892e568d55ce25cf964cc2" }
-# wit-encoder = { path = "../wasm-tools/crates/wit-encoder" }
+wit-encoder = "0.215.0"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
