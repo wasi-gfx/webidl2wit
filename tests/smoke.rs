@@ -57,7 +57,6 @@ fn webgpu() {
         ConversionOptions {
             phantom_interface: vec![
                 "EventHandler".into(),
-                "PredefinedColorSpace".into(),
                 "HTMLVideoElement".into(),
                 "HTMLImageElement".into(),
                 "HTMLCanvasElement".into(),
@@ -69,7 +68,7 @@ fn webgpu() {
                 "DOMException".into(),
                 "Event".into(),
             ],
-            phantom_dictionaries: vec!["EventInit".into()],
+            phantom_dictionaries: vec!["EventInit".into(), "PredefinedColorSpace".into()],
             resource_inheritance: ResourceInheritance::DuplicateMethods,
             ..Default::default()
         },
