@@ -56,7 +56,6 @@ fn webgpu() {
         "webgpu",
         ConversionOptions {
             phantom_interface: vec![
-                "EventHandler".into(),
                 "HTMLVideoElement".into(),
                 "HTMLImageElement".into(),
                 "HTMLCanvasElement".into(),
@@ -122,6 +121,17 @@ fn unsupported() {
         ConversionOptions {
             unsupported_features: HandleUnsupported::Warn,
             singleton_interface: Some("Singleton".into()),
+            ..Default::default()
+        },
+    );
+}
+
+#[test]
+fn html_element() {
+    compare(
+        "html-element",
+        ConversionOptions {
+            unsupported_features: HandleUnsupported::Warn,
             ..Default::default()
         },
     );
