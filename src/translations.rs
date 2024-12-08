@@ -432,7 +432,7 @@ pub fn webidl_to_wit(
                             }
                             _ => None,
                         },
-                        InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                        InterfaceItem::Function(_) => None,
                     });
                     match base {
                         Some(base) => {
@@ -468,7 +468,7 @@ pub fn webidl_to_wit(
                                         None
                                     }
                                 }
-                                InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                                InterfaceItem::Function(_) => None,
                             })
                             .unwrap();
 
@@ -870,8 +870,7 @@ impl<'a> State<'a> {
                     .iter_mut()
                     .filter_map(|td| match td {
                         wit_encoder::InterfaceItem::TypeDef(td) => Some(td),
-                        wit_encoder::InterfaceItem::Use(_)
-                        | wit_encoder::InterfaceItem::Function(_) => None,
+                        wit_encoder::InterfaceItem::Function(_) => None,
                     })
                     .find(|td| td.name() == interface_name);
 
