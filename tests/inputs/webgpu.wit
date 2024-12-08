@@ -97,12 +97,12 @@ interface my-interface {
   resource record-gpu-size64 {
     constructor();
     add: func(key: string, value: gpu-size64);
-    get: func(key: string) -> gpu-size64;
+    get: func(key: string) -> option<gpu-size64>;
     has: func(key: string) -> bool;
     remove: func(key: string);
     keys: func() -> list<string>;
     values: func() -> list<gpu-size64>;
-    entries: func() -> tuple<string, gpu-size64>;
+    entries: func() -> list<tuple<string, gpu-size64>>;
   }
   record gpu-device-descriptor {
     required-features: option<list<gpu-feature-name>>,
@@ -569,12 +569,12 @@ interface my-interface {
   resource record-gpu-pipeline-constant-value {
     constructor();
     add: func(key: string, value: gpu-pipeline-constant-value);
-    get: func(key: string) -> gpu-pipeline-constant-value;
+    get: func(key: string) -> option<gpu-pipeline-constant-value>;
     has: func(key: string) -> bool;
     remove: func(key: string);
     keys: func() -> list<string>;
     values: func() -> list<gpu-pipeline-constant-value>;
-    entries: func() -> tuple<string, gpu-pipeline-constant-value>;
+    entries: func() -> list<tuple<string, gpu-pipeline-constant-value>>;
   }
   record gpu-programmable-stage {
     module: borrow<gpu-shader-module>,

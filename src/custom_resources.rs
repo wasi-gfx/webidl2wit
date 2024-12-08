@@ -560,7 +560,9 @@ impl<'a> State<'a> {
                     {
                         let mut func = wit_encoder::ResourceFunc::method("get");
                         func.set_params(("key", wit_encoder::Type::String));
-                        func.set_results(wit_encoder::Results::anon(value.clone()));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::option(
+                            value.clone(),
+                        )));
                         func
                     },
                     {
@@ -590,10 +592,9 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("entries");
-                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
-                            wit_encoder::Type::String,
-                            value.clone(),
-                        ])));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                            wit_encoder::Type::tuple([wit_encoder::Type::String, value.clone()]),
+                        )));
                         func
                     },
                 ],
@@ -625,8 +626,8 @@ impl<'a> State<'a> {
                     {
                         let mut func = wit_encoder::ResourceFunc::method("get");
                         func.set_params(("key", wit_encoder::Type::String));
-                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::named(
-                            any.clone(),
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::option(
+                            wit_encoder::Type::named(any.clone()),
                         )));
                         func
                     },
@@ -657,10 +658,12 @@ impl<'a> State<'a> {
                     },
                     {
                         let mut func = wit_encoder::ResourceFunc::method("entries");
-                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::tuple([
-                            wit_encoder::Type::String,
-                            wit_encoder::Type::named(any.clone()),
-                        ])));
+                        func.set_results(wit_encoder::Results::anon(wit_encoder::Type::list(
+                            wit_encoder::Type::tuple([
+                                wit_encoder::Type::String,
+                                wit_encoder::Type::named(any.clone()),
+                            ]),
+                        )));
                         func
                     },
                 ],
