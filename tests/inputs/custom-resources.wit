@@ -4,12 +4,12 @@ interface my-interface {
   resource record-s32 {
     constructor();
     add: func(key: string, value: s32);
-    get: func(key: string) -> s32;
+    get: func(key: string) -> option<s32>;
     has: func(key: string) -> bool;
     remove: func(key: string);
     keys: func() -> list<string>;
     values: func() -> list<s32>;
-    entries: func() -> tuple<string, s32>;
+    entries: func() -> list<tuple<string, s32>>;
   }
   record array-buffer-constructor-options {
     max-byte-length: u32,
@@ -261,12 +261,12 @@ interface my-interface {
   resource object {
     constructor();
     add: func(key: string, value: any);
-    get: func(key: string) -> any;
+    get: func(key: string) -> option<any>;
     has: func(key: string) -> bool;
     remove: func(key: string);
     keys: func() -> list<string>;
     values: func() -> list<any>;
-    entries: func() -> tuple<string, any>;
+    entries: func() -> list<tuple<string, any>>;
   }
   resource data-view {
     constructor(buffer: borrow<array-buffer>, byte-offset: option<u32>, byte-length: option<u32>);
