@@ -3,8 +3,6 @@ package webidl:my-package-idl;
 interface my-interface {
   resource event-handler {
   }
-  resource predefined-color-space {
-  }
   resource html-video-element {
   }
   resource html-image-element {
@@ -26,6 +24,7 @@ interface my-interface {
   resource event {
   }
   record event-init {  }
+  record predefined-color-space {  }
   record gpu-object-descriptor-base {
     label: option<string>,
   }
@@ -374,7 +373,7 @@ interface my-interface {
   }
   record gpu-external-texture-descriptor {
     source: html-video-element-or-video-frame,
-    color-space: option<borrow<predefined-color-space>>,
+    color-space: option<predefined-color-space>,
     label: option<string>,
   }
   resource gpu-sampler {
@@ -791,7 +790,7 @@ interface my-interface {
     aspect: option<gpu-texture-aspect>,
   }
   record gpu-image-copy-texture-tagged {
-    color-space: option<borrow<predefined-color-space>>,
+    color-space: option<predefined-color-space>,
     premultiplied-alpha: option<bool>,
     texture: borrow<gpu-texture>,
     mip-level: option<gpu-integer-coordinate>,
@@ -1284,7 +1283,7 @@ interface my-interface {
     format: gpu-texture-format,
     usage: option<gpu-texture-usage-flags>,
     view-formats: option<list<gpu-texture-format>>,
-    color-space: option<borrow<predefined-color-space>>,
+    color-space: option<predefined-color-space>,
     tone-mapping: option<gpu-canvas-tone-mapping>,
     alpha-mode: option<gpu-canvas-alpha-mode>,
   }
