@@ -1,8 +1,7 @@
 package webidl:my-package-idl;
 
 interface my-interface {
-  resource event-handler {
-  }
+  use wasi:io/poll.{ pollable };
   resource html-video-element {
   }
   resource html-image-element {
@@ -150,8 +149,7 @@ interface my-interface {
     lost: func() -> gpu-device-lost-info;
     push-error-scope: func(filter: gpu-error-filter);
     pop-error-scope: func() -> option<gpu-error>;
-    onuncapturederror: func() -> event-handler;
-    set-onuncapturederror: func(onuncapturederror: event-handler);
+    onuncapturederror-subscribe: func() -> pollable;
   }
   resource gpu-buffer {
     size: func() -> gpu-size64-out;

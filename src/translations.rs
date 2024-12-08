@@ -110,6 +110,8 @@ pub(super) struct State<'a> {
     pub any_found: bool,
     pub resource_inheritance: ResourceInheritance,
     pub inheritors_waiting_for_base: HashMap<Ident, Vec<Ident>>,
+    // TODO: remove pollables in preview 3
+    pub import_pollable: bool,
 }
 
 fn handle_unsupported(
@@ -206,6 +208,7 @@ pub fn webidl_to_wit(
         any_found: false,
         resource_inheritance: options.resource_inheritance,
         inheritors_waiting_for_base: HashMap::new(),
+        import_pollable: false,
     };
 
     for item in webidl {
@@ -499,6 +502,10 @@ pub fn webidl_to_wit(
         package.world(world);
     }
 
+    if state.import_pollable {
+        state.interface.use_type("wasi:io/poll", "pollable", None);
+    }
+
     package.interface(state.interface);
 
     Ok(package)
@@ -637,23 +644,37 @@ impl<'a> State<'a> {
                         continue;
                     }
 
-                    let attr_name = ident_name(attr.identifier.0);
-                    let setter_name = Ident::new(format!("set-{}", attr_name.raw_name()));
-                    let attr_type = self.wi2w_type(&attr.type_.type_, false)?;
+                    let mut attr_name = ident_name(attr.identifier.0);
+                    let mut attr_type = self.wi2w_type(&attr.type_.type_, false)?;
+                    let mut setter_name = attr
+                        .readonly
+                        .is_none()
+                        .then(|| ident_name(&format!("set-{}", attr_name.raw_name())));
+                    let is_static = matches!(
+                        attr.modifier,
+                        Some(weedle::interface::StringifierOrInheritOrStatic::Static(_))
+                    );
+
+                    if matches!(&attr_type, wit_encoder::Type::Named(name) if name.raw_name() == "event-handler")
+                    {
+                        if !attr_name.raw_name().starts_with("on") {
+                            panic!("EventHandler without `on` prefix");
+                        }
+                        self.import_pollable = true;
+                        attr_type = wit_encoder::Type::named("pollable");
+                        attr_name = ident_name(&format!("{attr_name}-subscribe"));
+                        setter_name = None;
+                    }
 
                     match &mut functions {
                         Funcs::Standalone(functions) => {
-                            let mut getter = match attr.modifier {
-                                Some(weedle::interface::StringifierOrInheritOrStatic::Static(
-                                    _,
-                                )) => {
-                                    bail!(
-                                        "Static functions unsupported for singleton interface {}",
-                                        interface_name
-                                    );
-                                }
-                                _ => wit_encoder::StandaloneFunc::new(attr_name.clone()),
-                            };
+                            if is_static {
+                                bail!(
+                                    "Static functions unsupported for singleton interface {}",
+                                    interface_name
+                                );
+                            }
+                            let mut getter = wit_encoder::StandaloneFunc::new(attr_name.clone());
                             getter.set_results(attr_type.clone());
                             functions.insert(attr_name.clone(), vec![getter]);
                         }
@@ -669,15 +690,14 @@ impl<'a> State<'a> {
                         }
                     }
 
-                    if attr.readonly.is_none() {
+                    if let Some(setter_name) = setter_name {
                         match &mut functions {
                             Funcs::Standalone(functions) => {
-                                let mut setter = match attr.modifier {
-                                    Some(
-                                        weedle::interface::StringifierOrInheritOrStatic::Static(_),
-                                    ) => unreachable!(),
-                                    _ => wit_encoder::StandaloneFunc::new(setter_name.clone()),
-                                };
+                                if is_static {
+                                    unreachable!()
+                                }
+                                let mut setter =
+                                    wit_encoder::StandaloneFunc::new(setter_name.clone());
                                 setter.set_params((attr_name, attr_type));
                                 functions.insert(setter_name, vec![setter]);
                             }
