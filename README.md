@@ -45,5 +45,6 @@
 | `namespace`                     | `resource` or `interface` |
 | `typedef`                       | `type`                    |
 | `const`                         | A getter                  |
+| `EventHandler`                  | `stream`                  |
 
 ❓ = Not yet sure how to deal with this type.
