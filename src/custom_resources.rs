@@ -717,7 +717,6 @@ impl<'a> State<'a> {
         self.interface.items().iter().any(|item| match item {
             wit_encoder::InterfaceItem::TypeDef(td) => td.name() == name,
             wit_encoder::InterfaceItem::Function(_) => false,
-            wit_encoder::InterfaceItem::Use(_) => false,
         })
     }
 }

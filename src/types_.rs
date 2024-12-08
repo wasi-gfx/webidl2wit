@@ -58,8 +58,7 @@ impl<'a> State<'a> {
 
                 if self.interface.items().iter().all(|dt| match dt {
                     wit_encoder::InterfaceItem::TypeDef(dt) => dt.name() != &variant_name,
-                    wit_encoder::InterfaceItem::Use(_)
-                    | wit_encoder::InterfaceItem::Function(_) => true,
+                    wit_encoder::InterfaceItem::Function(_) => true,
                 }) {
                     self.interface.type_def({
                         let cases = cases
