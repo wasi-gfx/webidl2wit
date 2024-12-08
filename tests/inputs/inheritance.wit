@@ -1,0 +1,22 @@
+package webidl:my-package-idl;
+
+interface my-interface {
+  resource parent-a {
+    foo: func() -> string;
+    as-child-a: func() -> option<child-a>;
+  }
+  resource child-a {
+    as-parent-a: func() -> parent-a;
+    foo: func() -> string;
+    bar: func();
+  }
+  resource child-b {
+    as-parent-b: func() -> parent-b;
+    bar: func();
+    foo: func() -> string;
+  }
+  resource parent-b {
+    as-child-b: func() -> option<child-b>;
+    foo: func() -> string;
+  }
+}

@@ -6,6 +6,7 @@ world window {
 
 interface my-interface {
   resource event-target {
+    as-window: func() -> option<window>;
   }
   record structured-serialize-options {  }
   resource window {

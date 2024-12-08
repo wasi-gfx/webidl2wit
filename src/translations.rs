@@ -65,11 +65,13 @@ pub enum HandleUnsupported {
 
 #[derive(Clone, Debug, Default)]
 pub enum ResourceInheritance {
-    /// Add a `as-[base]` method to the resource.
+    /// Add an `as-[base]` method to the resource, and add an as-[child] method to the base.
     #[default]
-    AsBaseMethod,
+    AsMethods,
     /// Duplicate all the method from the base on the resource.
     DuplicateMethods,
+    /// Combine solutions from `AsMethods` and `DuplicateMethods`.
+    Both,
 }
 
 impl Default for ConversionOptions {
@@ -109,7 +111,7 @@ pub(super) struct State<'a> {
     // TODO: don't treat any as special. Have a set for defined types instead.
     pub any_found: bool,
     pub resource_inheritance: ResourceInheritance,
-    pub inheritors_waiting_for_base: HashMap<Ident, Vec<Ident>>,
+    pub inheritors_waiting_for_base: HashMap<Ident, HashSet<Ident>>,
     // TODO: remove pollables in preview 3
     pub import_pollable: bool,
 }
@@ -347,41 +349,85 @@ pub fn webidl_to_wit(
                     let mut resource = wit_encoder::Resource::empty();
                     if let Some(inheritance) = wi_interface.inheritance {
                         let base_name = ident_name(inheritance.identifier.0);
-                        match state.resource_inheritance {
-                            ResourceInheritance::AsBaseMethod => {
-                                resource.func({
-                                    let mut func = wit_encoder::ResourceFunc::method(format!(
-                                        "as-{}",
-                                        base_name.raw_name()
-                                    ));
-                                    func.set_results(wit_encoder::Type::named(base_name));
-                                    func
-                                });
-                            }
-                            ResourceInheritance::DuplicateMethods => {
-                                let base = state.interface.items().iter().find_map(|t| match t {
-                                    InterfaceItem::TypeDef(type_def) => match type_def.kind() {
-                                        wit_encoder::TypeDefKind::Resource(resource)
-                                            if type_def.name() == &base_name =>
-                                        {
-                                            Some(resource)
+                        let mut base =
+                            state
+                                .interface
+                                .items_mut()
+                                .iter_mut()
+                                .find_map(|t| match t {
+                                    InterfaceItem::TypeDef(type_def) => {
+                                        let type_def_name = type_def.name().clone();
+                                        match type_def.kind_mut() {
+                                            wit_encoder::TypeDefKind::Resource(resource)
+                                                if &type_def_name == &base_name =>
+                                            {
+                                                Some(resource)
+                                            }
+                                            _ => None,
                                         }
-                                        _ => None,
-                                    },
-                                    InterfaceItem::Use(_) | InterfaceItem::Function(_) => None,
+                                    }
+                                    InterfaceItem::Function(_) => None,
                                 });
-                                match base {
-                                    Some(base) => {
-                                        let mut base_funcs = base.funcs().to_vec();
-                                        resource.funcs_mut().append(&mut base_funcs);
-                                    }
-                                    None => {
-                                        state
-                                            .inheritors_waiting_for_base
-                                            .entry(base_name.clone())
-                                            .or_insert(vec![])
-                                            .push(interface_name.clone());
-                                    }
+                        if matches!(
+                            state.resource_inheritance,
+                            ResourceInheritance::AsMethods | ResourceInheritance::Both
+                        ) {
+                            resource.func({
+                                let mut func = wit_encoder::ResourceFunc::method(format!(
+                                    "as-{}",
+                                    base_name.raw_name()
+                                ));
+                                func.set_results(wit_encoder::Type::named(base_name.clone()));
+                                func
+                            });
+                            match &mut base {
+                                Some(ref mut base) => {
+                                    base.funcs_mut().push({
+                                        let mut func = wit_encoder::ResourceFunc::method(format!(
+                                            "as-{}",
+                                            interface_name.raw_name()
+                                        ));
+                                        func.set_results(wit_encoder::Type::option(
+                                            wit_encoder::Type::named(interface_name.clone()),
+                                        ));
+                                        func
+                                    });
+                                }
+                                None => {
+                                    state
+                                        .inheritors_waiting_for_base
+                                        .entry(base_name.clone())
+                                        .or_insert(HashSet::new())
+                                        .insert(interface_name.clone());
+                                }
+                            }
+                        }
+                        if matches!(
+                            state.resource_inheritance,
+                            ResourceInheritance::DuplicateMethods | ResourceInheritance::Both
+                        ) {
+                            match &mut base {
+                                Some(ref mut base) => {
+                                    let mut base_funcs = base
+                                        .funcs()
+                                        .iter()
+                                        .filter(|f| match f.kind() {
+                                            wit_encoder::ResourceFuncKind::Method(name, _) => {
+                                                name.raw_name()
+                                                    != format!("as-{}", interface_name.raw_name())
+                                            }
+                                            _ => true,
+                                        })
+                                        .cloned()
+                                        .collect::<Vec<_>>();
+                                    resource.funcs_mut().append(&mut base_funcs);
+                                }
+                                None => {
+                                    state
+                                        .inheritors_waiting_for_base
+                                        .entry(base_name.clone())
+                                        .or_insert(HashSet::new())
+                                        .insert(interface_name.clone());
                                 }
                             }
                         }
@@ -395,6 +441,22 @@ pub fn webidl_to_wit(
                                 &wi_interface.members.body,
                                 is_singleton,
                             )?;
+                            if matches!(
+                                state.resource_inheritance,
+                                ResourceInheritance::AsMethods | ResourceInheritance::Both
+                            ) {
+                                let as_child_method = {
+                                    let mut func = wit_encoder::ResourceFunc::method(format!(
+                                        "as-{}",
+                                        inheritor.raw_name()
+                                    ));
+                                    func.set_results(wit_encoder::Type::option(
+                                        wit_encoder::Type::named(inheritor.clone()),
+                                    ));
+                                    func
+                                };
+                                resource.func(as_child_method);
+                            }
                         }
                     }
                     let type_def = wit_encoder::TypeDef::new(
@@ -446,8 +508,8 @@ pub fn webidl_to_wit(
                             state
                                 .inheritors_waiting_for_base
                                 .entry(base_name.clone())
-                                .or_insert(vec![])
-                                .push(record_name.clone());
+                                .or_insert(HashSet::new())
+                                .insert(record_name.clone());
                         }
                     }
                 }

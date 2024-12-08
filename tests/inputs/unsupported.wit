@@ -41,6 +41,7 @@ interface my-interface {
     toggle-popover: func(force: option<bool>) -> bool;
     popover: func() -> string;
     set-popover: func(popover: string);
+    as-html-unknown-element: func() -> option<html-unknown-element>;
   }
   variant bool-or-f64-or-string {
     %bool(bool),

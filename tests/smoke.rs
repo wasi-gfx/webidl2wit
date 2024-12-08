@@ -20,6 +20,17 @@ fn enum_() {
 }
 
 #[test]
+fn inheritance() {
+    compare(
+        "inheritance",
+        ConversionOptions {
+            resource_inheritance: ResourceInheritance::Both,
+            ..Default::default()
+        },
+    );
+}
+
+#[test]
 fn order() {
     compare(
         "order",
