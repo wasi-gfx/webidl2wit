@@ -1,0 +1,17 @@
+// Parent first
+interface ParentA {
+    DOMString foo();
+};
+
+interface ChildA : ParentA {
+    undefined bar();
+};
+
+// Child first
+interface ChildB : ParentB {
+    undefined bar();
+};
+
+interface ParentB {
+    DOMString foo();
+};

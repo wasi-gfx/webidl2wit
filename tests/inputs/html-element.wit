@@ -46,6 +46,7 @@ interface my-interface {
     ontouchend-subscribe: func() -> pollable;
     ontouchmove-subscribe: func() -> pollable;
     ontouchcancel-subscribe: func() -> pollable;
+    as-html-unknown-element: func() -> option<html-unknown-element>;
   }
   resource html-unknown-element {
     as-html-element: func() -> html-element;
