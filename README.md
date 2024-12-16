@@ -17,7 +17,7 @@ to interact with interfaces (most importantly browser primitives) defined via We
 webidl2wit = "0.1.0"
 ```
 
-`webidl2wit` can also be used as a CLI:
+`webidl2wit` can also be used as a CLI, via the workspace [member project `webidl2wit-cli`](./crates/webidl2wit-cli`):
 
 ```console
 cargo install webidl2wit-cli
