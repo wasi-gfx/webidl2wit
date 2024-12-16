@@ -12,6 +12,9 @@ name = "webidl2wit"
 path = "src/main.rs"
 
 [dependencies]
+anstyle = { workspace = true }
 anyhow = { workspace = true }
 clap = { workspace = true, features = [ "derive" ] }
-anstyle = { workspace = true }
+semver = { workspace = true }
+webidl2wit = { workspace = true }
+weedle = { workspace = true }

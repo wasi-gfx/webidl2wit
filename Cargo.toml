@@ -1,19 +1,21 @@
 [workspace]
 resolver = "2"
-members = [
-        "crates/*",
-]
+members = ["crates/*"]
 
 [workspace.package]
 edition = "2021"
 
 [workspace.dependencies]
-anyhow = { version = "1.0" }
-anstyle = { version = "1.0" }
+anstyle = { version = "1" }
+anyhow = { version = "1" }
 clap = { version = "4.5" }
 hashlink = { version = "0.9.1" }
 heck = { version = "0.5" }
 itertools = { version = "0.13" }
+pretty_assertions = { version = "1.4.0" }
+semver = { version = "1" }
 weedle = { version = "0.13.0" }
 wit-encoder = { version = "0.221.0" }
-pretty_assertions = { version = "1.4.0" }
+
+webidl2wit = { path = "./crates/webidl2wit" }
+

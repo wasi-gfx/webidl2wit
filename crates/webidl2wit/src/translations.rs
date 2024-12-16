@@ -122,7 +122,7 @@ fn handle_unsupported(
     handle_unsupported: &HandleUnsupported,
 ) {
     match handle_unsupported {
-        HandleUnsupported::Bail => todo!("{feature} for {name}"),
+        HandleUnsupported::Bail => todo!("WebIDL feature [{feature}] for item [{name}] is unsupported"),
         HandleUnsupported::Skip => {}
         HandleUnsupported::Warn => {
             eprintln!("WARN: Skipping {} as {} is unsupported", name, feature);

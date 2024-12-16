@@ -388,6 +388,9 @@ dependencies = [
  "anstyle",
  "anyhow",
  "clap",
+ "semver",
+ "webidl2wit",
+ "weedle",
 ]
 
 [[package]]
