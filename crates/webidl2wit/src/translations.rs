@@ -1,11 +1,10 @@
+use std::collections::{HashMap, HashSet};
+use std::fmt;
+
 use anyhow::bail;
 use hashlink::LinkedHashMap;
 use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-};
 use weedle::{Definition, Definitions as WebIdlDefinitions};
 use wit_encoder::{Ident, Interface, InterfaceItem, StandaloneFunc, World};
 
@@ -97,6 +96,7 @@ impl Default for ConversionOptions {
         }
     }
 }
+
 pub(super) struct State<'a> {
     pub unsupported_features: HandleUnsupported,
     pub interface: wit_encoder::Interface,
