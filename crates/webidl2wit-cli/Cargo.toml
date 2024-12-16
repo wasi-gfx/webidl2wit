@@ -1,0 +1,17 @@
+[package]
+name = "webidl2wit-cli"
+version = "0.1.0"
+description = """
+CLI that enables easy use of webidl2wit (converting WebIDL to WebAssembly Interface Types)
+"""
+
+edition.workspace = true
+
+[[bin]]
+name = "webidl2wit"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true, features = [ "derive" ] }
+anstyle = { workspace = true }
