@@ -66,7 +66,10 @@ fn main() -> Result<()> {
     let wit_ns = wit_ns.unwrap_or_else(|| "webidl".into());
     let wit_package = wit_package.unwrap_or_else(|| "pkg".into());
     let wit_version = if let Some(raw) = wit_version {
-        Some(Version::parse(&raw).context("failed to parse version")?)
+        Some(
+            Version::parse(&raw)
+                .map_err(|e| anyhow::anyhow!(e).context("failed to parse version"))?,
+        )
     } else {
         None
     };

@@ -11,10 +11,10 @@ edition.workspace = true
 crate-type = ["lib"]
 
 [dependencies]
-anyhow = { workspace = true }
+anyhow = { workspace = true, features = [ "std" ] }
 hashlink = { workspace = true }
 heck = { workspace = true }
-itertools = { workspace = true }
+itertools = { workspace = true, features = [ "use_std" ] }
 weedle = { workspace = true }
 wit-encoder = { workspace = true }
 
