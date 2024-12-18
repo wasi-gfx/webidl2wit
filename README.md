@@ -1,7 +1,31 @@
-# WIP WebIDL to wit convertor.
+# `webidl2wit` - WebIDL to wit converter
 
+> [!WARNING]
+> This project is a Work In Progress ("WIP")
 
-### Conversions of types from WebIDL to wit.
+This project converts [WebIDL][webidl] to [WebAssembly Interface Types ("WIT")][wit], enabling WebAssembly components
+to interact with interfaces (most importantly browser primitives) defined via WebIDL.
+
+[webidl]: https://developer.mozilla.org/en-US/docs/Glossary/WebIDL
+[wit]: https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md
+
+## Usage
+
+`webidl2wit` can be used as a library from your project:
+
+```toml
+webidl2wit = "0.1.0"
+```
+
+`webidl2wit` can also be used as a CLI, via the workspace [member project `webidl2wit-cli`](./crates/webidl2wit-cli`):
+
+```console
+cargo install webidl2wit-cli
+```
+
+## Type conversions
+
+This section lists the type conversions between WebIDL and WIT, as implemented by `webidl2wit`:
 
 | WebIDL type                     | wit type                  |
 |:--------------------------------|:--------------------------|

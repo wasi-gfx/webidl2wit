@@ -1,20 +1,21 @@
-[package]
-name = "webidl2wit"
-version = "0.1.0"
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace.dependencies]
+anstyle = { version = "1", default-features = false }
+anyhow = { version = "1", default-features = false }
+clap = { version = "4.5", default-features = false }
+hashlink = { version = "0.9.1", default-features = false }
+heck = { version = "0.5", default-features = false }
+itertools = { version = "0.13", default-features = false }
+pretty_assertions = { version = "1.4.0", default-features = false }
+semver = { version = "1", default-features = false }
+weedle = { version = "0.13.0", default-features = false }
+wit-encoder = { version = "0.221.0", default-features = false }
 
-[lib]
-crate-type = ["lib"]
+webidl2wit = { path = "./crates/webidl2wit", default-features = false }
 
-[dependencies]
-anyhow = "1.0"
-hashlink = "0.9.1"
-heck = "0.5"
-itertools = "0.13"
-weedle = "0.13.0"
-wit-encoder = "0.221.0"
-
-[dev-dependencies]
-pretty_assertions = "1.4.0"

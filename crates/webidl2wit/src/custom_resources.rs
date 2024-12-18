@@ -11,6 +11,7 @@ pub(super) enum TypedArrayKind {
     Float32,
     Float64,
 }
+
 impl TypedArrayKind {
     fn to_wit_encoder_type(&self) -> wit_encoder::Type {
         match self {

@@ -1,0 +1,22 @@
+[package]
+name = "webidl2wit"
+version = "0.1.0"
+description = """
+Library that proivdes conversion from WebIDL to WebAssembly Interface Types (WIT)
+"""
+
+edition.workspace = true
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+anyhow = { workspace = true, features = [ "std" ] }
+hashlink = { workspace = true }
+heck = { workspace = true }
+itertools = { workspace = true, features = [ "use_std" ] }
+weedle = { workspace = true }
+wit-encoder = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
