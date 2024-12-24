@@ -1,4 +1,4 @@
-use crate::translations::State;
+use crate::{translations::State, types_::clean_generic};
 
 pub(super) enum TypedArrayKind {
     UInt8,
@@ -110,7 +110,8 @@ impl<'a> State<'a> {
     ) -> anyhow::Result<wit_encoder::Ident> {
         self.add_array_buffer()?;
         let type_ = kind.to_wit_encoder_type();
-        let array_name = wit_encoder::Ident::new(format!("{}-array", kind.prefix_name()));
+        let array_name =
+            wit_encoder::Ident::new(clean_generic(format!("{}-array", kind.prefix_name())));
         if !self.type_def_exists(&array_name) {
             let constructor_options_name =
                 wit_encoder::Ident::new(format!("{array_name}-constructor-options"));
@@ -544,7 +545,7 @@ impl<'a> State<'a> {
     ) -> anyhow::Result<wit_encoder::Ident> {
         let value = self.wi2w_type(&record.generics.body.2, false)?;
 
-        let record_name = wit_encoder::Ident::new(format!("record-{value}"));
+        let record_name = wit_encoder::Ident::new(clean_generic(format!("record-{value}")));
         if !self.type_def_exists(&record_name) {
             let set = wit_encoder::TypeDef::resource(
                 record_name.clone(),
