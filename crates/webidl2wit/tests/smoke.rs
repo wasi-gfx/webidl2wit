@@ -2,7 +2,18 @@ use pretty_assertions::assert_eq;
 use std::{fs, path::Path};
 use webidl2wit::{ConversionOptions, HandleUnsupported, ResourceInheritance};
 
+fn assert_wit_parses(path: &str) {
+    let mut resolve = wit_parser::Resolve::new();
+    resolve
+        .push_file(&format!("./tests/inputs/pollable.wit"))
+        .unwrap();
+    resolve
+        .push_file(&format!("./tests/inputs/{path}.wit"))
+        .unwrap();
+}
+
 fn compare(path: &str, opts: ConversionOptions) {
+    assert_wit_parses(path);
     let webidl_input =
         fs::read_to_string(Path::new(&format!("./tests/inputs/{path}.idl"))).unwrap();
     let wit_input = fs::read_to_string(Path::new(&format!("./tests/inputs/{path}.wit"))).unwrap();
