@@ -1,9 +1,9 @@
-[Exposed=Window]
-interface NodeList {
-  getter Node? item(unsigned long index);
-  readonly attribute unsigned long length;
-  iterable<Node>;
-};
+// [Exposed=Window]
+// interface NodeList {
+//   getter Node? item(unsigned long index);
+//   readonly attribute unsigned long length;
+//   iterable<Node>;
+// };
 
 [Exposed=Window]
 interface HTMLElement {
@@ -29,7 +29,7 @@ interface HTMLElement {
   [CEReactions] attribute [LegacyNullToEmptyString] DOMString innerText;
   [CEReactions] attribute [LegacyNullToEmptyString] DOMString outerText;
 
-  ElementInternals attachInternals();
+  // ElementInternals attachInternals();
 
   // The popover API
   undefined showPopover();

@@ -3,7 +3,6 @@ package webidl:my-package-idl;
 interface my-interface {
   use wasi:io/poll.{ pollable };
   resource html-element {
-    as-element: func() -> element;
     title: func() -> string;
     set-title: func(title: string);
     scroll-height: func() -> s32;
@@ -14,7 +13,6 @@ interface my-interface {
     set-lang: func(lang: string);
     dir: func() -> string;
     set-dir: func(dir: string);
-    dataset: func() -> dom-string-map;
     inner-text: func() -> string;
     set-inner-text: func(inner-text: string);
     hidden: func() -> bool;
@@ -24,7 +22,6 @@ interface my-interface {
     click: func();
     tab-index: func() -> s32;
     set-tab-index: func(tab-index: s32);
-    focus: func(options: option<focus-options>);
     blur: func();
     access-key: func() -> string;
     set-access-key: func(access-key: string);
@@ -36,8 +33,6 @@ interface my-interface {
     is-content-editable: func() -> bool;
     spellcheck: func() -> bool;
     set-spellcheck: func(spellcheck: bool);
-    style: func() -> css-style-declaration;
-    offset-parent: func() -> option<element>;
     offset-top: func() -> s32;
     offset-left: func() -> s32;
     offset-width: func() -> s32;

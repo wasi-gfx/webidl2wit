@@ -16,6 +16,7 @@ pretty_assertions = { version = "1.4.0", default-features = false }
 semver = { version = "1", default-features = false }
 weedle = { version = "0.13.0", default-features = false }
 wit-encoder = { version = "0.221.0", default-features = false }
+wit-parser = { version = "0.221.0", default-features = false }
 
 webidl2wit = { path = "./crates/webidl2wit", default-features = false }
 
