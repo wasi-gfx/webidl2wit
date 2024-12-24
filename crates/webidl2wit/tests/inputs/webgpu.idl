@@ -1184,7 +1184,7 @@ enum GPUQueryType {
 
 [Exposed=(Window, Worker), SecureContext]
 interface GPUCanvasContext {
-    // readonly attribute (HTMLCanvasElement or OffscreenCanvas) canvas;
+    readonly attribute (HTMLCanvasElement or OffscreenCanvas) canvas;
 
     undefined configure(GPUCanvasConfiguration configuration);
     undefined unconfigure();
