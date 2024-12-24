@@ -67,6 +67,8 @@ fn webgpu() {
         "webgpu",
         ConversionOptions {
             phantom_interface: vec![
+                "Navigator".into(),
+                "WorkerNavigator".into(),
                 "HTMLVideoElement".into(),
                 "HTMLImageElement".into(),
                 "HTMLCanvasElement".into(),

@@ -75,8 +75,8 @@ interface GPUAdapterInfo {
 interface mixin NavigatorGPU {
     [SameObject, SecureContext] readonly attribute GPU gpu;
 };
-// Navigator includes NavigatorGPU;
-// WorkerNavigator includes NavigatorGPU;
+Navigator includes NavigatorGPU;
+WorkerNavigator includes NavigatorGPU;
 
 [Exposed=(Window, Worker), SecureContext]
 interface GPU {
