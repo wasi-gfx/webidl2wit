@@ -2,6 +2,12 @@ package webidl:my-package-idl;
 
 interface my-interface {
   use wasi:io/poll.{ pollable };
+  resource navigator {
+    gpu: func() -> gpu;
+  }
+  resource worker-navigator {
+    gpu: func() -> gpu;
+  }
   resource html-video-element {
   }
   resource html-image-element {
