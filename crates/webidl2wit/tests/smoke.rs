@@ -87,8 +87,6 @@ fn webgpu() {
                 "WorkerNavigator".into(),
                 "HTMLVideoElement".into(),
                 "HTMLImageElement".into(),
-                "HTMLCanvasElement".into(),
-                "OffscreenCanvas".into(),
                 "VideoFrame".into(),
                 "ImageBitmap".into(),
                 "ImageData".into(),
@@ -96,7 +94,12 @@ fn webgpu() {
                 "DOMException".into(),
                 "Event".into(),
             ],
-            phantom_dictionaries: vec!["EventInit".into(), "PredefinedColorSpace".into()],
+            phantom_dictionaries: vec![
+                "EventInit".into(),
+                "PredefinedColorSpace".into(),
+                "HTMLCanvasElement".into(),
+                "OffscreenCanvas".into(),
+            ],
             resource_inheritance: ResourceInheritance::DuplicateMethods,
             ..Default::default()
         },

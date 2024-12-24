@@ -12,10 +12,6 @@ interface my-interface {
   }
   resource html-image-element {
   }
-  resource html-canvas-element {
-  }
-  resource offscreen-canvas {
-  }
   resource video-frame {
   }
   resource image-bitmap {
@@ -30,6 +26,8 @@ interface my-interface {
   }
   record event-init {  }
   record predefined-color-space {  }
+  record html-canvas-element {  }
+  record offscreen-canvas {  }
   record gpu-object-descriptor-base {
     label: option<string>,
   }
@@ -802,12 +800,12 @@ interface my-interface {
     aspect: option<gpu-texture-aspect>,
   }
   variant html-canvas-element-or-html-image-element-or-html-video-element-or-image-bitmap-or-image-data-or-offscreen-canvas-or-video-frame {
-    html-canvas-element(borrow<html-canvas-element>),
+    html-canvas-element(html-canvas-element),
     html-image-element(borrow<html-image-element>),
     html-video-element(borrow<html-video-element>),
     image-bitmap(borrow<image-bitmap>),
     image-data(borrow<image-data>),
-    offscreen-canvas(borrow<offscreen-canvas>),
+    offscreen-canvas(offscreen-canvas),
     video-frame(borrow<video-frame>),
   }
   type gpu-image-copy-external-image-source = html-canvas-element-or-html-image-element-or-html-video-element-or-image-bitmap-or-image-data-or-offscreen-canvas-or-video-frame;
@@ -1267,9 +1265,14 @@ interface my-interface {
     timestamp,
   }
   resource gpu-canvas-context {
+    canvas: func() -> html-canvas-element-or-offscreen-canvas;
     configure: func(configuration: gpu-canvas-configuration);
     unconfigure: func();
     get-current-texture: func() -> gpu-texture;
+  }
+  variant html-canvas-element-or-offscreen-canvas {
+    html-canvas-element(html-canvas-element),
+    offscreen-canvas(offscreen-canvas),
   }
   enum gpu-canvas-alpha-mode {
     opaque,
