@@ -31,6 +31,11 @@ fn inheritance() {
 }
 
 #[test]
+fn option() {
+    compare("option", Default::default());
+}
+
+#[test]
 fn order() {
     compare(
         "order",

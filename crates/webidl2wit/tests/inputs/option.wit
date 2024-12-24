@@ -1,0 +1,35 @@
+package webidl:my-package-idl;
+
+interface my-interface {
+  resource my-resource {
+    takes-or-undefined: func(value: option<string>);
+    takes-or-null: func(value: option<string>);
+    takes-optional: func(value: option<string>);
+    takes-nullable: func(value: option<string>);
+    takes-nullable-union: func(value: option<string>);
+    returns-or-undefined: func() -> option<string>;
+    returns-or-null: func() -> option<string>;
+    returns-nullable: func() -> option<string>;
+    returns-nullable-union: func() -> option<string>;
+  }
+  type single-with-nullable = option<string>;
+  type single-with-or-undefined = option<string>;
+  type single-with-or-null = option<string>;
+  variant bool-or-option-string {
+    %bool(bool),
+    option-string(option<string>),
+  }
+  type multiple-with-one-nullable = bool-or-option-string;
+  variant option-bool-or-option-string {
+    option-bool(option<bool>),
+    option-string(option<string>),
+  }
+  type multiple-with-multiple-nullable = option-bool-or-option-string;
+  variant bool-or-string {
+    %bool(bool),
+    %string(string),
+  }
+  type multiple-itself-is-nullable = option<bool-or-string>;
+  type multiple-with-or-undefined = option<bool-or-string>;
+  type multiple-with-or-null = option<bool-or-string>;
+}

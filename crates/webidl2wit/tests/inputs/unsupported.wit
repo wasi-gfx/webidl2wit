@@ -15,8 +15,8 @@ interface my-interface {
     set-translate: func(translate: bool);
     dir: func() -> string;
     set-dir: func(dir: string);
-    hidden: func() -> bool-or-f64-or-string;
-    set-hidden: func(hidden: bool-or-f64-or-string);
+    hidden: func() -> option<bool-or-f64-or-string>;
+    set-hidden: func(hidden: option<bool-or-f64-or-string>);
     inert: func() -> bool;
     set-inert: func(inert: bool);
     click: func();
@@ -39,8 +39,8 @@ interface my-interface {
     show-popover: func();
     hide-popover: func();
     toggle-popover: func(force: option<bool>) -> bool;
-    popover: func() -> string;
-    set-popover: func(popover: string);
+    popover: func() -> option<string>;
+    set-popover: func(popover: option<string>);
     as-html-unknown-element: func() -> option<html-unknown-element>;
   }
   variant bool-or-f64-or-string {

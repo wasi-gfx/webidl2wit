@@ -32,7 +32,7 @@ interface my-interface {
     origin-agent-cluster: func() -> bool;
     alert: func(message: string);
     confirm: func(message: option<string>) -> bool;
-    prompt: func(message: option<string>, default: option<string>) -> string;
+    prompt: func(message: option<string>, default: option<string>) -> option<string>;
     print: func();
   }
   record window-post-message-options {
