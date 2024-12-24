@@ -1,0 +1,21 @@
+interface MyResource {
+    undefined takesOrUndefined((DOMString or undefined) value);
+    undefined takesOrNull((DOMString or null) value);
+    undefined takesOptional(optional DOMString value);
+    undefined takesNullable(DOMString? value);
+    undefined takesNullableUnion((DOMString or USVString)? value);
+    (DOMString or undefined) returnsOrUndefined();
+    (DOMString or null) returnsOrNull();
+    DOMString? returnsNullable();
+    (DOMString or USVString)? returnsNullableUnion();
+};
+
+typedef DOMString? SingleWithNullable;
+typedef (DOMString or undefined) SingleWithOrUndefined;
+typedef (DOMString or null) SingleWithOrNull;
+
+typedef (DOMString? or boolean) MultipleWithOneNullable;
+typedef (DOMString? or boolean?) MultipleWithMultipleNullable;
+typedef (DOMString or boolean)? MultipleItselfIsNullable;
+typedef (DOMString or boolean or undefined) MultipleWithOrUndefined;
+typedef (DOMString or boolean or null) MultipleWithOrNull;

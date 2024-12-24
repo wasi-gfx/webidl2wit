@@ -13,7 +13,7 @@ impl<'a> State<'a> {
     pub fn wi2w_type(
         &mut self,
         wi: &weedle::types::Type,
-        optional: bool,
+        mut optional: bool,
     ) -> anyhow::Result<wit_encoder::Type> {
         match wi {
             weedle::types::Type::Single(weedle::types::SingleType::NonAny(type_)) => {
@@ -23,6 +23,8 @@ impl<'a> State<'a> {
                 Ok(wit_encoder::Type::named(self.found_any()))
             }
             weedle::types::Type::Union(union) => {
+                optional = optional || union.q_mark.is_some();
+
                 // using a HashSet to get rid of types that are different in WebIDL but are the same in wit.
                 // e.g. `(long or DOMString or ByteString)` should not have two sting options.
 
@@ -41,12 +43,22 @@ impl<'a> State<'a> {
                         }
                         weedle::types::UnionMemberType::Union(_) => todo!(),
                     })
+                    .filter(|(type_name, _)| {
+                        let is_nullable = type_name == "undefined" || type_name == "null";
+                        if is_nullable {
+                            optional = true;
+                        }
+                        !is_nullable
+                    })
                     .collect::<BTreeMap<_, _>>();
 
                 // Only create `Variant` if there's more than one type.
                 if cases.len() == 1 {
                     let (_, type_) = cases.into_iter().next().unwrap();
-                    return Ok(type_);
+                    return Ok(match optional {
+                        true => make_optional(type_),
+                        false => type_,
+                    });
                 }
 
                 let variant_name = cases
@@ -71,7 +83,7 @@ impl<'a> State<'a> {
                 }
 
                 Ok(match optional {
-                    true => wit_encoder::Type::option(wit_encoder::Type::named(variant_name)),
+                    true => make_optional(wit_encoder::Type::named(variant_name)),
                     false => wit_encoder::Type::named(variant_name),
                 })
             }
@@ -84,29 +96,35 @@ impl<'a> State<'a> {
         wi: &weedle::types::NonAnyType,
         optional: bool,
     ) -> anyhow::Result<wit_encoder::Type> {
-        let type_ = match wi {
-            weedle::types::NonAnyType::Boolean(_) => wit_encoder::Type::Bool,
-            weedle::types::NonAnyType::ByteString(_) => wit_encoder::Type::String,
-            weedle::types::NonAnyType::DOMString(_) => wit_encoder::Type::String,
-            weedle::types::NonAnyType::USVString(_) => wit_encoder::Type::String,
-            weedle::types::NonAnyType::Integer(int) => match int.type_ {
-                weedle::types::IntegerType::LongLong(int) => match int.unsigned {
-                    Some(_) => wit_encoder::Type::U64,
-                    None => wit_encoder::Type::S64,
+        let (type_, q_mark) = match wi {
+            weedle::types::NonAnyType::Boolean(b) => (wit_encoder::Type::Bool, b.q_mark),
+            weedle::types::NonAnyType::ByteString(s) => (wit_encoder::Type::String, s.q_mark),
+            weedle::types::NonAnyType::DOMString(s) => (wit_encoder::Type::String, s.q_mark),
+            weedle::types::NonAnyType::USVString(s) => (wit_encoder::Type::String, s.q_mark),
+            weedle::types::NonAnyType::Integer(int) => (
+                match int.type_ {
+                    weedle::types::IntegerType::LongLong(int) => match int.unsigned {
+                        Some(_) => wit_encoder::Type::U64,
+                        None => wit_encoder::Type::S64,
+                    },
+                    weedle::types::IntegerType::Long(int) => match int.unsigned {
+                        Some(_) => wit_encoder::Type::U32,
+                        None => wit_encoder::Type::S32,
+                    },
+                    weedle::types::IntegerType::Short(int) => match int.unsigned {
+                        Some(_) => wit_encoder::Type::U16,
+                        None => wit_encoder::Type::S16,
+                    },
                 },
-                weedle::types::IntegerType::Long(int) => match int.unsigned {
-                    Some(_) => wit_encoder::Type::U32,
-                    None => wit_encoder::Type::S32,
+                int.q_mark,
+            ),
+            weedle::types::NonAnyType::FloatingPoint(float) => (
+                match float.type_ {
+                    weedle::types::FloatingPointType::Float(_) => wit_encoder::Type::F32,
+                    weedle::types::FloatingPointType::Double(_) => wit_encoder::Type::F64,
                 },
-                weedle::types::IntegerType::Short(int) => match int.unsigned {
-                    Some(_) => wit_encoder::Type::U16,
-                    None => wit_encoder::Type::S16,
-                },
-            },
-            weedle::types::NonAnyType::FloatingPoint(float) => match float.type_ {
-                weedle::types::FloatingPointType::Float(_) => wit_encoder::Type::F32,
-                weedle::types::FloatingPointType::Double(_) => wit_encoder::Type::F64,
-            },
+                float.q_mark,
+            ),
             weedle::types::NonAnyType::Identifier(ident) => {
                 // TODO: can remove this check one weedle has native support for AllowSharedBufferSource
                 if ident.type_.0 == "AllowSharedBufferSource" {
@@ -114,102 +132,102 @@ impl<'a> State<'a> {
                 }
                 let mut type_ = wit_encoder::Type::named(ident_name(ident.type_.0));
                 if ident.q_mark.is_some() {
-                    type_ = wit_encoder::Type::option(type_)
+                    type_ = make_optional(type_)
                 }
-                type_
+                (type_, ident.q_mark)
             }
-            weedle::types::NonAnyType::Promise(promise) => {
+            weedle::types::NonAnyType::Promise(promise) => (
                 // use wit_encoder::TypeDefKind::Future instead?
                 match &*promise.generics.body {
                     weedle::types::ReturnType::Undefined(_) => todo!(),
                     weedle::types::ReturnType::Type(type_) => self.wi2w_type(type_, false)?,
-                }
-            }
+                },
+                // Promise doesn't have q_mark. I.e. is not `MayBeNull`
+                None,
+            ),
             weedle::types::NonAnyType::Sequence(seq) => {
-                let type_ = self.wi2w_type(&*seq.type_.generics.body, seq.q_mark.is_some())?;
-                wit_encoder::Type::list(type_)
+                let type_ = self.wi2w_type(&*seq.type_.generics.body, false)?;
+                (wit_encoder::Type::list(type_), seq.q_mark)
             }
             weedle::types::NonAnyType::Error(_) => todo!(),
-            weedle::types::NonAnyType::Byte(_) => wit_encoder::Type::S8,
-            weedle::types::NonAnyType::Octet(_) => wit_encoder::Type::U8,
-            weedle::types::NonAnyType::Object(_) => {
+            weedle::types::NonAnyType::Byte(b) => (wit_encoder::Type::S8, b.q_mark),
+            weedle::types::NonAnyType::Octet(o) => (wit_encoder::Type::U8, o.q_mark),
+            weedle::types::NonAnyType::Object(o) => {
                 let object = self.add_object();
-                wit_encoder::Type::named(object)
+                (wit_encoder::Type::named(object), o.q_mark)
             }
             weedle::types::NonAnyType::Symbol(_) => todo!(),
-            weedle::types::NonAnyType::ArrayBuffer(_) => {
+            weedle::types::NonAnyType::ArrayBuffer(a) => {
                 let buffer = self.add_array_buffer()?;
-                wit_encoder::Type::named(buffer)
+                (wit_encoder::Type::named(buffer), a.q_mark)
             }
-            weedle::types::NonAnyType::DataView(_) => {
+            weedle::types::NonAnyType::DataView(d) => {
                 let view = self.add_data_view()?;
-                wit_encoder::Type::named(view)
+                (wit_encoder::Type::named(view), d.q_mark)
             }
-            weedle::types::NonAnyType::Int8Array(_) => {
+            weedle::types::NonAnyType::Int8Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::Int8)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Int16Array(_) => {
+            weedle::types::NonAnyType::Int16Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::Int16)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Int32Array(_) => {
+            weedle::types::NonAnyType::Int32Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::Int32)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Uint8Array(_) => {
+            weedle::types::NonAnyType::Uint8Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::UInt8)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Uint16Array(_) => {
+            weedle::types::NonAnyType::Uint16Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::UInt16)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Uint32Array(_) => {
+            weedle::types::NonAnyType::Uint32Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::UInt32)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Uint8ClampedArray(_) => {
+            weedle::types::NonAnyType::Uint8ClampedArray(a) => {
                 let array = self.add_typed_array(TypedArrayKind::UInt8Clamped)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Float32Array(_) => {
+            weedle::types::NonAnyType::Float32Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::Float32)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::Float64Array(_) => {
+            weedle::types::NonAnyType::Float64Array(a) => {
                 let array = self.add_typed_array(TypedArrayKind::Float64)?;
-                wit_encoder::Type::named(array)
+                (wit_encoder::Type::named(array), a.q_mark)
             }
-            weedle::types::NonAnyType::ArrayBufferView(_) => {
+            weedle::types::NonAnyType::ArrayBufferView(a) => {
                 let buffer_view = self.add_array_buffer_view()?;
-                wit_encoder::Type::named(buffer_view)
+                (wit_encoder::Type::named(buffer_view), a.q_mark)
             }
-            weedle::types::NonAnyType::BufferSource(_) => {
+            weedle::types::NonAnyType::BufferSource(b) => {
                 let buffer_source = self.add_buffer_source()?;
-                wit_encoder::Type::named(buffer_source)
+                (wit_encoder::Type::named(buffer_source), b.q_mark)
             }
-            weedle::types::NonAnyType::FrozenArrayType(array) => {
-                let type_ = self.wi2w_type(&*array.type_.generics.body, array.q_mark.is_some())?;
-                wit_encoder::Type::list(type_)
+            weedle::types::NonAnyType::FrozenArrayType(a) => {
+                let type_ = self.wi2w_type(&*a.type_.generics.body, false)?;
+                (wit_encoder::Type::list(type_), a.q_mark)
             }
-            weedle::types::NonAnyType::RecordType(record) => {
-                let record = self.add_record(&record.type_)?;
-                wit_encoder::Type::named(record)
+            weedle::types::NonAnyType::RecordType(r) => {
+                let record = self.add_record(&r.type_)?;
+                (wit_encoder::Type::named(record), r.q_mark)
             }
         };
 
-        Ok(match optional {
+        Ok(match optional || q_mark.is_some() {
             false => type_,
-            true => wit_encoder::Type::option(type_),
+            true => make_optional(type_),
         })
     }
 
     pub fn borrow_resources(&self, type_: wit_encoder::Type) -> wit_encoder::Type {
         match type_ {
-            wit_encoder::Type::Option(type_) => {
-                wit_encoder::Type::option(self.borrow_resources(*type_))
-            }
+            wit_encoder::Type::Option(type_) => make_optional(self.borrow_resources(*type_)),
             wit_encoder::Type::List(type_) => {
                 wit_encoder::Type::list(self.borrow_resources(*type_))
             }
@@ -251,6 +269,14 @@ impl<'a> State<'a> {
         }
 
         any_name
+    }
+}
+
+// there are multiple levels where an item can be made optional. This will wrap the type in Type::Option unless its already Type::Option.
+fn make_optional(type_: wit_encoder::Type) -> wit_encoder::Type {
+    match type_ {
+        wit_encoder::Type::Option(_) => type_,
+        _ => wit_encoder::Type::option(type_),
     }
 }
 
