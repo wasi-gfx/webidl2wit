@@ -280,7 +280,7 @@ fn make_optional(type_: wit_encoder::Type) -> wit_encoder::Type {
     }
 }
 
-fn clean_generic(mut s: String) -> String {
+pub(crate) fn clean_generic(mut s: String) -> String {
     if s.contains("<") {
         s = s.replace("<", "-");
         s = s.replace(">", "")

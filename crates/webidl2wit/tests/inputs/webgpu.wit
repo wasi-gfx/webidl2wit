@@ -98,19 +98,19 @@ interface my-interface {
     is-fallback-adapter: func() -> bool;
     request-device: func(descriptor: option<gpu-device-descriptor>) -> gpu-device;
   }
-  resource record-gpu-size64 {
+  resource record-option-gpu-size64 {
     constructor();
-    add: func(key: string, value: gpu-size64);
-    get: func(key: string) -> option<gpu-size64>;
+    add: func(key: string, value: option<gpu-size64>);
+    get: func(key: string) -> option<option<gpu-size64>>;
     has: func(key: string) -> bool;
     remove: func(key: string);
     keys: func() -> list<string>;
-    values: func() -> list<gpu-size64>;
-    entries: func() -> list<tuple<string, gpu-size64>>;
+    values: func() -> list<option<gpu-size64>>;
+    entries: func() -> list<tuple<string, option<gpu-size64>>>;
   }
   record gpu-device-descriptor {
     required-features: option<list<gpu-feature-name>>,
-    required-limits: option<record-gpu-size64>,
+    required-limits: option<record-option-gpu-size64>,
     default-queue: option<gpu-queue-descriptor>,
     label: option<string>,
   }
