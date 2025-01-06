@@ -41,12 +41,12 @@ impl TypedArrayKind {
     }
 }
 
-impl<'a> State<'a> {
+impl State<'_> {
     pub(super) fn add_array_buffer<'b>(&mut self) -> anyhow::Result<wit_encoder::Ident> {
         let buffer_name = wit_encoder::Ident::new("array-buffer");
         if !self.type_def_exists(&buffer_name) {
             let constructor_options_name =
-                wit_encoder::Ident::new(format!("array-buffer-constructor-options"));
+                wit_encoder::Ident::new("array-buffer-constructor-options".to_string());
             let constructor_options = wit_encoder::TypeDef::record(
                 constructor_options_name.clone(),
                 [("max-byte-length", wit_encoder::Type::U32)],
@@ -539,9 +539,9 @@ impl<'a> State<'a> {
         Ok(buffer_view_name)
     }
 
-    pub(super) fn add_record<'b>(
+    pub(super) fn add_record(
         &mut self,
-        record: &weedle::types::RecordType<'b>,
+        record: &weedle::types::RecordType<'_>,
     ) -> anyhow::Result<wit_encoder::Ident> {
         let value = self.wi2w_type(&record.generics.body.2, false)?;
 
@@ -611,7 +611,7 @@ impl<'a> State<'a> {
     pub(super) fn add_object(&mut self) -> wit_encoder::Ident {
         let any = self.found_any();
 
-        let object_name = wit_encoder::Ident::new(format!("object"));
+        let object_name = wit_encoder::Ident::new("object".to_string());
         if !self.type_def_exists(&object_name) {
             let object = wit_encoder::TypeDef::resource(
                 object_name.clone(),
