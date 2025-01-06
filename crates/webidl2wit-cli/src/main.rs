@@ -8,6 +8,7 @@ use clap::Parser as _;
 
 use semver::Version;
 use webidl2wit::{webidl_to_wit, ConversionOptions, HandleUnsupported, PackageName};
+use weedle::Parse;
 
 mod style;
 use style::CLI_STYLES;
@@ -94,8 +95,8 @@ fn main() -> Result<()> {
         )
     })?;
 
-    // Parse the WebIDL input into a
-    let webidl = weedle::parse(webidl_input.leak())?;
+    // Parse the WebIDL input
+    let webidl = parse_webidl(&webidl_input)?;
 
     // Build the conversion options
     let opts = ConversionOptions {
@@ -121,4 +122,27 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Helper function for parsing WebIDL using `weedle::parse`
+///
+/// This function exists due to slightly confusing `'static` bounds
+/// requirements that will be inferred on `weedle::parse` by default.
+fn parse_webidl(input: &str) -> Result<Vec<weedle::Definition>> {
+    match weedle::Definitions::parse(input) {
+        Ok(("", parsed)) => Ok(parsed),
+
+        Ok((remaining, _))
+        | Err(weedle::Err::Error((remaining, _)))
+        | Err(weedle::Err::Failure((remaining, _))) => {
+            bail!(
+                "failed to parse entirety of input (stopped at {})",
+                input.len() - remaining.len()
+            )
+        }
+
+        Err(e) => {
+            bail!("failed to parse: {e}");
+        }
+    }
 }
