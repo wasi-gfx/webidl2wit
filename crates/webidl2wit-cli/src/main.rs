@@ -82,7 +82,7 @@ fn main() -> Result<()> {
 
     // Ensure the output path does not already exist
     if let Some(ref p) = wit_path {
-        if std::fs::exists(&p)? {
+        if std::fs::exists(p)? {
             bail!("output path [{}] already exists", p.display());
         }
     }
