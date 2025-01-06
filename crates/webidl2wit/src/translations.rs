@@ -361,7 +361,7 @@ pub fn webidl_to_wit(
                                         let type_def_name = type_def.name().clone();
                                         match type_def.kind_mut() {
                                             wit_encoder::TypeDefKind::Resource(resource)
-                                                if &type_def_name == &base_name =>
+                                                if type_def_name == base_name =>
                                             {
                                                 Some(resource)
                                             }
@@ -399,7 +399,7 @@ pub fn webidl_to_wit(
                                     state
                                         .inheritors_waiting_for_base
                                         .entry(base_name.clone())
-                                        .or_insert(HashSet::new())
+                                        .or_default()
                                         .insert(interface_name.clone());
                                 }
                             }
@@ -428,7 +428,7 @@ pub fn webidl_to_wit(
                                     state
                                         .inheritors_waiting_for_base
                                         .entry(base_name.clone())
-                                        .or_insert(HashSet::new())
+                                        .or_default()
                                         .insert(interface_name.clone());
                                 }
                             }
@@ -510,7 +510,7 @@ pub fn webidl_to_wit(
                             state
                                 .inheritors_waiting_for_base
                                 .entry(base_name.clone())
-                                .or_insert(HashSet::new())
+                                .or_default()
                                 .insert(record_name.clone());
                         }
                     }
@@ -575,7 +575,7 @@ pub fn webidl_to_wit(
     Ok(package)
 }
 
-impl<'a> State<'a> {
+impl State<'_> {
     fn function_args(
         &mut self,
         args: &weedle::argument::ArgumentList,
@@ -819,7 +819,7 @@ impl<'a> State<'a> {
                                 if is_undefined_promise {
                                     wit_encoder::Results::empty()
                                 } else {
-                                    self.wi2w_type(&type_, false)?.into()
+                                    self.wi2w_type(type_, false)?.into()
                                 }
                             }
                         };
@@ -903,8 +903,7 @@ impl<'a> State<'a> {
                 }
                 let items = functions
                     .into_iter()
-                    .map(|(_, functions)| functions.into_iter().map(|f| InterfaceItem::Function(f)))
-                    .flatten();
+                    .flat_map(|(_, functions)| functions.into_iter().map(InterfaceItem::Function));
                 self.interface.items_mut().extend(items);
             }
             Funcs::Resource(mut functions) => {
@@ -962,7 +961,7 @@ impl<'a> State<'a> {
                     None => {
                         self.waiting_resource_methods.insert(
                             interface_name.clone(),
-                            functions.into_iter().map(|(_, f)| f).flatten().collect(),
+                            functions.into_iter().flat_map(|(_, f)| f).collect(),
                         );
                     }
                     Some(resource) => {
@@ -973,11 +972,10 @@ impl<'a> State<'a> {
                         resource.funcs_mut().extend(
                             functions
                                 .into_iter()
-                                .map(|(_, functions)| functions.into_iter().map(|f| f))
-                                .flatten(),
+                                .flat_map(|(_, functions)| functions.into_iter()),
                         );
                         if let Some(functions) =
-                            self.waiting_resource_methods.remove(&interface_name)
+                            self.waiting_resource_methods.remove(interface_name)
                         {
                             resource.funcs_mut().extend(functions);
                         }
@@ -1019,7 +1017,7 @@ impl<'a> State<'a> {
             has_empty = true;
         }
         let cases = functions
-            .into_iter()
+            .iter_mut()
             .map(|f| self.params_to_tuple(f.params_mut()))
             .map(|(tuple, name)| wit_encoder::VariantCase::value(name, tuple));
 
@@ -1039,7 +1037,7 @@ impl<'a> State<'a> {
             has_empty = true;
         }
         let cases = functions
-            .into_iter()
+            .iter_mut()
             .map(|f| self.params_to_tuple(f.params_mut()))
             .map(|(tuple, name)| wit_encoder::VariantCase::value(name, tuple));
 
@@ -1048,9 +1046,9 @@ impl<'a> State<'a> {
         has_empty
     }
 
-    fn resource_set_methods<'b>(
+    fn resource_set_methods(
         &mut self,
-        setlike: &weedle::interface::SetlikeInterfaceMember<'b>,
+        setlike: &weedle::interface::SetlikeInterfaceMember<'_>,
     ) -> anyhow::Result<LinkedHashMap<Ident, wit_encoder::ResourceFunc>> {
         let generic_type = self.wi2w_type(&setlike.generics.body.type_, false)?;
         assert!(
@@ -1069,9 +1067,9 @@ impl<'a> State<'a> {
         }
         Ok(functions)
     }
-    fn interface_set_methods<'b>(
+    fn interface_set_methods(
         &mut self,
-        setlike: &weedle::interface::SetlikeInterfaceMember<'b>,
+        setlike: &weedle::interface::SetlikeInterfaceMember<'_>,
     ) -> anyhow::Result<LinkedHashMap<Ident, wit_encoder::StandaloneFunc>> {
         let generic_type = self.wi2w_type(&setlike.generics.body.type_, false)?;
         assert!(
@@ -1095,7 +1093,7 @@ impl<'a> State<'a> {
 pub(super) fn ident_name(src: &str) -> wit_encoder::Ident {
     // doing to_pascal_case first to get rid of all dashes. E.g. "A-1" should turn into "a1" and not "a-1".
     let mut name = src.to_pascal_case().to_kebab_case();
-    if matches!(name.chars().next(), Some(c) if c.is_digit(10)) {
+    if matches!(name.chars().next(), Some(c) if c.is_ascii_digit()) {
         name = format!("x{name}");
     }
     wit_encoder::Ident::new(name)

@@ -8,7 +8,7 @@ use crate::{
     translations::{ident_name, State},
 };
 
-impl<'a> State<'a> {
+impl State<'_> {
     // WebIdl 2 Wit
     pub fn wi2w_type(
         &mut self,
@@ -61,9 +61,7 @@ impl<'a> State<'a> {
                     });
                 }
 
-                let variant_name = cases
-                    .iter()
-                    .map(|(name, _)| name.to_owned())
+                let variant_name = cases.keys().map(|name| name.to_owned())
                     .collect_vec()
                     .join("-or-");
                 let variant_name = ident_name(&variant_name);
@@ -77,8 +75,8 @@ impl<'a> State<'a> {
                             .into_iter()
                             .map(|(name, case)| wit_encoder::VariantCase::value(name, case))
                             .collect_vec();
-                        let variant = wit_encoder::TypeDef::variant(variant_name.clone(), cases);
-                        variant
+                        
+                        wit_encoder::TypeDef::variant(variant_name.clone(), cases)
                     });
                 }
 
@@ -146,7 +144,7 @@ impl<'a> State<'a> {
                 None,
             ),
             weedle::types::NonAnyType::Sequence(seq) => {
-                let type_ = self.wi2w_type(&*seq.type_.generics.body, false)?;
+                let type_ = self.wi2w_type(&seq.type_.generics.body, false)?;
                 (wit_encoder::Type::list(type_), seq.q_mark)
             }
             weedle::types::NonAnyType::Error(_) => todo!(),
@@ -210,7 +208,7 @@ impl<'a> State<'a> {
                 (wit_encoder::Type::named(buffer_source), b.q_mark)
             }
             weedle::types::NonAnyType::FrozenArrayType(a) => {
-                let type_ = self.wi2w_type(&*a.type_.generics.body, false)?;
+                let type_ = self.wi2w_type(&a.type_.generics.body, false)?;
                 (wit_encoder::Type::list(type_), a.q_mark)
             }
             weedle::types::NonAnyType::RecordType(r) => {
@@ -233,7 +231,7 @@ impl<'a> State<'a> {
             }
             wit_encoder::Type::Result(_) => todo!(),
             wit_encoder::Type::Tuple(_) => todo!(),
-            wit_encoder::Type::Named(ref name) if self.resource_names.contains(&name) => {
+            wit_encoder::Type::Named(ref name) if self.resource_names.contains(name) => {
                 wit_encoder::Type::borrow(name.clone())
             }
             _ => type_,
