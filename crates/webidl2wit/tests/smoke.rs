@@ -4,9 +4,7 @@ use webidl2wit::{ConversionOptions, HandleUnsupported, ResourceInheritance};
 
 fn assert_wit_parses(path: &str) {
     let mut resolve = wit_parser::Resolve::new();
-    resolve
-        .push_file("./tests/inputs/pollable.wit")
-        .unwrap();
+    resolve.push_file("./tests/inputs/pollable.wit").unwrap();
     resolve
         .push_file(format!("./tests/inputs/{path}.wit"))
         .unwrap();

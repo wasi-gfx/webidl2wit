@@ -61,7 +61,9 @@ impl State<'_> {
                     });
                 }
 
-                let variant_name = cases.keys().map(|name| name.to_owned())
+                let variant_name = cases
+                    .keys()
+                    .map(|name| name.to_owned())
                     .collect_vec()
                     .join("-or-");
                 let variant_name = ident_name(&variant_name);
@@ -75,7 +77,7 @@ impl State<'_> {
                             .into_iter()
                             .map(|(name, case)| wit_encoder::VariantCase::value(name, case))
                             .collect_vec();
-                        
+
                         wit_encoder::TypeDef::variant(variant_name.clone(), cases)
                     });
                 }
