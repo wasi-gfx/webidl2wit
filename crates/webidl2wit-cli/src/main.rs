@@ -80,10 +80,13 @@ fn main() -> Result<()> {
         bail!("missing path [{}]", webidl_path.display());
     }
 
-    // Ensure the output path does not already exist
+    // Print a warning if the output path already exists
     if let Some(ref p) = wit_path {
         if std::fs::exists(p)? {
-            bail!("output path [{}] already exists", p.display());
+            eprintln!(
+                "output path [{}] already exists, overwriting...",
+                p.display()
+            );
         }
     }
 
