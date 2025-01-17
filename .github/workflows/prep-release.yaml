@@ -1,0 +1,97 @@
+name: create-release-pr
+run-name: create-release-pr
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Project to to prep for release (ex. `0.1.0`)
+        required: true
+        default: "webidl2wit"
+        type: choice
+        options:
+          - webidl2wit
+          - webidl2wit-cli
+
+      version:
+        description: Version to prep for release (ex. `0.1.0`, `0.1.0-rc.0`)
+        required: true
+        type: string
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: write
+    steps:
+      # Checkout the full repository history
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      # Set up Rust dependencies
+      - uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3 # v2.7.7
+      - name: Install cargo deps
+        uses: taiki-e/install-action@d125c0a83576d3c0c86ac610c708b38d3565af4e # v2.47.15
+        with:
+          tool: >-
+            just,
+            git-cliff
+      - uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # v2.0.1
+        with:
+          tool: cargo-get
+      - uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # v2.0.1
+        with:
+          tool: cargo-edit
+
+      - name: Gather metadata
+        id: meta
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+          PROJECT: ${{ inputs.project }}
+        run: |
+          export PROJECT=$(echo $PROJECT || echo "webidl")
+          cd crates/$PROJECT
+          export VERSION=$(cargo get package.version --terminator Nul)
+
+          echo -e "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo -e "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        env:
+          VERSION: ${{ steps.meta.outputs.value }}
+        working-directory: crates/${{ steps.meta.outputs.project }}
+        run: |
+          cargo set-version ${{ steps.meta.outputs.version }}
+          git cliff \
+            --repository=../../.git \
+            --unreleased \
+            --tag=${{ steps.meta.outputs.project }}-${{ steps.meta.outputs.version }} \
+            --prepend=CHANGELOG.md
+
+      # Create PR for release
+      - uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6
+        with:
+          branch: prep-release-${{ steps.meta.outputs.project}}-v${{ steps.meta.outputs.version }}
+          commit-message: |
+            release: ${{ steps.meta.outputs.project }} v${{ steps.meta.outputs.version }}
+          title: |
+            release: ${{ steps.meta.outputs.project }} v${{ steps.meta.outputs.version }}
+          labels: |
+            release-pr
+          assignees: |
+            MendyBerger
+          signoff: true
+          body: |
+            This is a release prep branch for `${{ steps.meta.outputs.project }}` release v${{ steps.meta.outputs.version }}.
+
+            Upon merging, this branch will cause a tag to be placed on the commit in `main`. After the tag has been placed, a build will run that generates artifacts and publishes a release.
+
+            Before this release is ready, please do the following:
+              - [ ] Generate and test artifacts
+              - [ ] Review the updated CHANGELOG(s)
+
+            See CHANGELOG for changes made to this release before it goes out.
