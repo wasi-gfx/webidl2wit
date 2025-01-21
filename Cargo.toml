@@ -4,6 +4,9 @@ members = ["crates/*"]
 
 [workspace.package]
 edition = "2021"
+license = "Apache-2.0"
+description = "Convert WebIDL to wit"
+repository = "https://github.com/wasi-gfx/webidl2wit"
 
 [workspace.dependencies]
 anstyle = { version = "1", default-features = false }
