@@ -11,7 +11,7 @@ on:
         required: true
         default: "webidl2wit"
         description: |
-          Project to to prep for release (ex. `0.1.0`)
+          Project to prep for release (ex. `0.1.0`)
         options:
           - webidl2wit
           - webidl2wit-cli
