@@ -57,7 +57,7 @@ commit_parsers = [
   { message = "^style(cli)", group = "<!-- 5 -->🎨 Styling" },
   { message = "^test(cli)", group = "<!-- 6 -->🧪 Testing" },
   { message = "^release", skip = true },
-  { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+  { message = "^chore(cli)", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
 ]
 
 # filter out the commits that are not matched by commit parsers
