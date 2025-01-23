@@ -305,7 +305,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "webidl2wit"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "hashlink",
@@ -319,7 +319,7 @@ dependencies = [
 
 [[package]]
 name = "webidl2wit-cli"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "anstyle",
  "anyhow",
