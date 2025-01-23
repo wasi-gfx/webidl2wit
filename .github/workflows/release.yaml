@@ -33,7 +33,7 @@ on:
 
 jobs:
   meta:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.meta.outputs.version }}
       project: ${{ steps.meta.outputs.project }}
@@ -62,7 +62,7 @@ jobs:
              core.setOutput('version', version);
 
   release-crate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - meta
     permissions:
@@ -101,8 +101,8 @@ jobs:
           cargo publish --locked --dry-run
 
   gh-release-lib:
-    if: ${{ inputs.project == 'webidl2wit' }}
-    runs-on: ubuntu-latest
+    if: ${{ needs.meta.outputs.project == 'webidl2wit' }}
+    runs-on: ubuntu-24.04
     needs:
       - meta
       - release-crate
@@ -127,24 +127,27 @@ jobs:
           git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
 
       - name: Create GH release
-        if: ${{ inputs.project == 'webidl2wit' }}
+        if: ${{ needs.meta.outputs.project == 'webidl2wit' }}
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           prerelease: ${{ startsWith(github.ref, 'refs/heads/prep-release') }}
           draft: ${{ startsWith(github.ref, 'refs/heads/prep-release') }}
-          tag_name: ${{ github.ref_name || inputs.version }}
+          tag_name: ${{ needs.meta.outputs.project }}-v${{ needs.meta.outputs.version }}
           generate_release_notes: false
-          body_path: CHANGELOG.current
+          body_path: crates/${{ needs.meta.outputs.project }}/CHANGELOG.current
 
-  release-bin:
-    if: ${{ inputs.project == 'webidl2wit-cli' }}
-    runs-on: ubuntu-latest
+  gh-release-build-cli:
+    if: ${{ needs.meta.outputs.project == 'webidl2wit-cli' }}
+    runs-on: ubuntu-24.04
     needs:
       - meta
+      - release-crate
     strategy:
       matrix:
         platform:
           - triple: x86_64-unknown-linux-gnu
+            runs-on: ubuntu-24.04
+            bin-name: webidl2wit
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -157,7 +160,29 @@ jobs:
 
       - name: build
         run: |
-          cargo zigbuild --target=${{ matrix.platform.triple }}
+          cargo zigbuild -p ${{ needs.meta.outputs.project }} --target=${{ matrix.platform.triple }} --release
+
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          path: target/${{ matrix.platform.triple }}/release/${{ matrix.platform.bin-name }}
+          if-no-files-found: error
+
+  gh-release-cli:
+    if: ${{ needs.meta.outputs.project == 'webidl2wit-cli' }}
+    runs-on: ubuntu-24.04
+    needs:
+      - meta
+      - gh-release-build-cli
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: taiki-e/install-action@d125c0a83576d3c0c86ac610c708b38d3565af4e # v2.47.15
+        with:
+          fallback: none
+          tool: git-cliff
 
       - name: Generate current changelog
         working-directory: crates/${{ needs.meta.outputs.project }}
@@ -168,19 +193,19 @@ jobs:
           export TAG=${{ needs.meta.outputs.project }}-${{ needs.meta.outputs.version }}
           git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
 
-      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        if: ${{ inputs.project == 'webidl2wit-cli' }}
         with:
-          path: target/${{ matrix.platform.triple }}/wit-bindgen-cli
-          if-no-files-found: error
+          path: artifacts
 
       - name: Create GH release
-        if: ${{ inputs.project == 'webidl2wit-cli' }}
+        if: ${{ needs.meta.outputs.project == 'webidl2wit-cli' }}
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           prerelease: ${{ startsWith(github.ref, 'refs/heads/prep-release') }}
           draft: ${{ startsWith(github.ref, 'refs/heads/prep-release') }}
-          tag_name: ${{ github.ref_name || inputs.version }}
+          tag_name: ${{ needs.meta.outputs.project }}-v${{ needs.meta.outputs.version }}
           generate_release_notes: false
-          body_path: CHANGELOG.current
+          body_path: crates/${{ needs.meta.outputs.project }}/CHANGELOG.current
           files: |
             ./artifacts/*/*
