@@ -6,6 +6,8 @@ Library that proivdes conversion from WebIDL to WebAssembly Interface Types (WIT
 """
 
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [lib]
 crate-type = ["lib"]
