@@ -31,7 +31,7 @@ on:
 jobs:
   ## Tag a release
   tag-release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged }}
     permissions:
       contents: write
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.ref || github.event.pull_request.head.ref }}
+          ref: ${{ github.event.inputs.ref || 'main' }}
 
       # Pull project and version
       # (automatically triggered run)
