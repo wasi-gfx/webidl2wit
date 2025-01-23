@@ -20,7 +20,7 @@ on:
         required: true
         default: "webidl2wit"
         description: |
-          Project to to prep for release (ex. `0.1.0`)
+          Project to release via tag
         options:
           - webidl2wit
           - webidl2wit-cli
@@ -29,17 +29,118 @@ on:
         type: string
         required: true
         description: |
-          Version tag (e.x. `v0.1.0`)
-
-      ref:
-        type: string
-        required: true
-        description: |
-          Repository ref to tag (e.x. 'branch', 'webidl2wit-v0.1.0', '<long SHA>')
+          Versoin tag to release (e.x. `0.1.0`, `0.2.0`)
 
 jobs:
-  build-cli:
+  meta:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      project: ${{ steps.meta.outputs.project }}
+    steps:
+      - name: Collect metadata
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        id: meta
+        with:
+          script: |
+            if (context.payload.inputs.project && context.payload.inputs.version) {
+              core.setOutput('project', context.payload.inputs.project);
+              core.setOutput('version', context.payload.inputs.version);
+              return;
+            }
+
+            if (context.ref.startsWith('refs/tags')) {
+              match = tag.replace(/^refs\/tags\//, '').match(/^(.*)-v(\d+\.\d+\.\d+)$/);
+            } else if (context.ref.startsWith('refs/heads')) {
+              match = tag.replace(/^refs\/heads\//, '').match(/^prep-release-(.+)-v(\d+\.\d+\.\d+)$/);
+             } else {
+               throw new Error(`Unexpected context ref [${context.ref}]`);
+             }
+             if (!match) { throw new Error(`Failed to parse tag/branch: [${context.ref}]`); }
+             const [_, project, version] = match;
+             core.setOutput('project', project);
+             core.setOutput('version', version);
+
+  release-crate:
+    runs-on: ubuntu-latest
+    needs:
+      - meta
+    permissions:
+      contents: write
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: taiki-e/install-action@d125c0a83576d3c0c86ac610c708b38d3565af4e # v2.47.15
+        with:
+          fallback: none
+          tool: git-cliff
+
+      - name: Generate current changelog
+        working-directory: crates/${{ needs.meta.outputs.project }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export TAG=${{ needs.meta.outputs.project }}-${{ needs.meta.outputs.version }}
+          git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
+
+      - name: Release crate (dry run)
+        if: ${{ startsWith(github.ref, 'refs/heads/prep-release') }} # release prep branch
+        working-directory: crates/${{ needs.meta.outputs.project }}
+        run: |
+          cargo publish --locked --dry-run
+
+      - name: Release crate to crates.io
+        if: ${{ startsWith(github.ref, 'refs/tags') || github.event_name == 'workflow_dispatch' }} # release tag
+        working-directory: crates/${{ needs.meta.outputs.project }}
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish --locked --dry-run
+
+  gh-release-lib:
+    if: ${{ inputs.project == 'webidl2wit' }}
+    runs-on: ubuntu-latest
+    needs:
+      - meta
+      - release-crate
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: taiki-e/install-action@d125c0a83576d3c0c86ac610c708b38d3565af4e # v2.47.15
+        with:
+          fallback: none
+          tool: git-cliff
+
+      - name: Generate current changelog
+        working-directory: crates/${{ needs.meta.outputs.project }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+        run: |
+          export TAG=${{ needs.meta.outputs.project }}-${{ needs.meta.outputs.version }}
+          git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
+
+      - name: Create GH release
+        if: ${{ inputs.project == 'webidl2wit' }}
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+        with:
+          prerelease: ${{ startsWith(github.ref, 'refs/heads/prep-release') }}
+          draft: ${{ startsWith(github.ref, 'refs/heads/prep-release') }}
+          tag_name: ${{ github.ref_name || inputs.version }}
+          generate_release_notes: false
+          body_path: CHANGELOG.current
+
+  release-bin:
+    if: ${{ inputs.project == 'webidl2wit-cli' }}
+    runs-on: ubuntu-latest
+    needs:
+      - meta
     strategy:
       matrix:
         platform:
@@ -58,82 +159,21 @@ jobs:
         run: |
           cargo zigbuild --target=${{ matrix.platform.triple }}
 
+      - name: Generate current changelog
+        working-directory: crates/${{ needs.meta.outputs.project }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+        run: |
+          export TAG=${{ needs.meta.outputs.project }}-${{ needs.meta.outputs.version }}
+          git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
+
       - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
-        if: ${{ inputs.project == 'webidl2wit-cli' }}
         with:
           path: target/${{ matrix.platform.triple }}/wit-bindgen-cli
           if-no-files-found: error
 
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    needs:
-      - build-cli
-    steps:
-      # Checkout the repository
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          fetch-depth: 0
-
-      - uses: taiki-e/install-action@d125c0a83576d3c0c86ac610c708b38d3565af4e # v2.47.15
-        with:
-          fallback: none
-          tool: git-cliff
-
-      - name: Collect metadata
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        id: meta
-        with:
-          script: |
-            if (context.payload.inputs.project && context.payload.inputs.version) {
-              core.setOutput('project', context.payload.inputs.project);
-              core.setOutput('version', context.payload.inputs.version);
-              return;
-            }
-
-            if (context.ref.startsWith('refs/tags')) {
-              match = tag.replace(/^refs\/tags\//, '').match(/^(.*)-v(\d+\.\d+\.\d+)$/);
-            } else if (context.ref.startsWith('refs/heads')) {
-              match = tag.replace(/^refs\/heads\//, '').match(/^release-(.+)-v(\d+\.\d+\.\d+)$/);
-             } else {
-               throw new Error(`Unexpected context ref [${context.ref}]`);
-             }
-             if (!match) { throw new Error(`Failed to parse tag/branch: [${context.ref}]`); }
-             const [_, project, version] = match;
-             core.setOutput('project', project);
-             core.setOutput('version', version);
-
-      # Generate a partial changelog
-      - name: Generate current changelog
-        working-directory: crates/${{ steps.meta.outputs.project }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          export TAG=${{ steps.meta.outputs.project }}-${{ steps.meta.outputs.version }}
-          git cliff --repository=../../ --tag=$TAG > CHANGELOG.current
-
-      - name: Release crate (dry run)
-        if: ${{ startsWith(github.ref, 'refs/heads/prep-release') }} # release prep branch
-        working-directory: crates/${{ steps.meta.outputs.project }}
-        run: |
-          cargo publish --locked --dry-run
-
-      - name: Release crate to crates.io
-        if: ${{ startsWith(github.ref, 'refs/tags') || github.event_name == 'workflow_dispatch' }} # release tag
-        working-directory: crates/${{ steps.meta.outputs.project }}
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: |
-          cargo publish --locked
-
-      # Download all artifacts
-      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-        with:
-          path: artifacts
-
-      # Create release (pre-release if we're prepping)
-      - name: Create release
+      - name: Create GH release
         if: ${{ inputs.project == 'webidl2wit-cli' }}
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:

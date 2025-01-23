@@ -11,22 +11,22 @@ on:
         required: true
         default: "webidl2wit"
         description: |
-          Project to prep for release (ex. `0.1.0`)
+          Project to tag release for
         options:
           - webidl2wit
           - webidl2wit-cli
-
-      version:
-        type: string
-        required: true
-        description: |
-          Version tag (e.x. `v0.1.0`)
 
       ref:
         type: string
         required: true
         description: |
           Repository ref to tag (e.x. 'branch', 'webidl2wit-v0.1.0', '<long SHA>')
+
+      version:
+        type: string
+        required: false
+        description: |
+          Version tag (e.x. `0.1.0`)
 
 jobs:
   ## Tag a release
@@ -87,6 +87,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]";
           git config user.email "github-actions[bot]@users.noreply.github.com";
-          export TAG=${{ steps.meta.outputs.project }}-${{ steps.meta.outputs.version }};
+          export TAG=${{ steps.meta.outputs.project }}-v${{ steps.meta.outputs.version }};
           git tag $TAG;
           git push origin $TAG;
