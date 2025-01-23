@@ -1,6 +1,6 @@
 [package]
 name = "webidl2wit"
-version = "0.1.0"
+version = "0.0.1"
 description = """
 Library that proivdes conversion from WebIDL to WebAssembly Interface Types (WIT)
 """
