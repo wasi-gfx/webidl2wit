@@ -14,7 +14,7 @@ enum BookGenre {
 };
 
 // WebIDL typedefs are converted into WIT type aliases
-typedef BookTitle DOMString;
+typedef DOMString BookTitle;
 
 // WebIDL dictionaries are turned into WIT structs
 dictionary Book {
@@ -52,7 +52,7 @@ partial interface Library {
   void renameLibrary(LibraryName newName);
 };
 
-typedef LibraryName DOMString;
+typedef DOMString LibraryName;
 
 // WebIDL interfaces become WIT resources
 interface BookManager {
