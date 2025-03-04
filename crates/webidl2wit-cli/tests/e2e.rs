@@ -23,7 +23,6 @@ fn test_webidl_fixtures() -> Result<()> {
             .stderr(Stdio::piped())
             .output()
             .with_context(|| format!("failed to run webidl2wit for fixture [{fixture_path}]"))?;
-        eprintln!("output: {output:#?}");
         assert!(output.status.success());
         let output = String::from_utf8(output.stdout)?;
         assert!(output.contains("test-ns") && output.contains("test-pkg"));
