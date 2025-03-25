@@ -71,8 +71,8 @@ fn type_() {
 }
 
 #[test]
-fn borrow() {
-    compare("borrow", Default::default());
+fn borrow_params() {
+    compare("borrow-params", Default::default());
 }
 
 #[test]
