@@ -8,6 +8,8 @@ use itertools::Itertools;
 use weedle::{Definition, Definitions as WebIdlDefinitions};
 use wit_encoder::{Ident, Interface, InterfaceItem, StandaloneFunc, World};
 
+use crate::borrow_params::params_resources_borrow;
+
 /// conversion options.
 #[derive(Clone, Debug)]
 pub struct ConversionOptions {
@@ -102,7 +104,6 @@ pub(super) struct State<'a> {
     pub interface: wit_encoder::Interface,
     pub mixins: HashMap<String, Vec<weedle::interface::InterfaceMember<'a>>>,
     // Resource names do know what needs to be borrowed.
-    pub resource_names: HashSet<Ident>,
     // Add these methods to the resource once they're found.
     // Used when partial interface is found before the main, or include is found before main declaration.
     pub waiting_resource_methods: HashMap<Ident, Vec<wit_encoder::ResourceFunc>>,
@@ -189,24 +190,6 @@ pub fn webidl_to_wit(
         unsupported_features: options.unsupported_features,
         interface: Interface::new(options.interface_name.clone()),
         mixins: HashMap::new(),
-        resource_names: webidl
-            .iter()
-            .filter_map(|item| match item {
-                Definition::Interface(wi_interface) => {
-                    if options
-                        .singleton_interface
-                        .as_ref()
-                        .map(|singleton_iface| singleton_iface == wi_interface.identifier.0)
-                        .unwrap_or(false)
-                    {
-                        None
-                    } else {
-                        Some(ident_name(wi_interface.identifier.0))
-                    }
-                }
-                _ => None,
-            })
-            .collect(),
         waiting_resource_methods: HashMap::new(),
         waiting_includes: HashMap::new(),
         any_found: false,
@@ -214,6 +197,25 @@ pub fn webidl_to_wit(
         inheritors_waiting_for_base: HashMap::new(),
         import_pollable: false,
     };
+
+    let resource_names = webidl
+        .iter()
+        .filter_map(|item| match item {
+            Definition::Interface(wi_interface) => {
+                if options
+                    .singleton_interface
+                    .as_ref()
+                    .map(|singleton_iface| singleton_iface == wi_interface.identifier.0)
+                    .unwrap_or(false)
+                {
+                    None
+                } else {
+                    Some(ident_name(wi_interface.identifier.0))
+                }
+            }
+            _ => None,
+        })
+        .collect();
 
     for item in webidl {
         match item {
@@ -481,7 +483,6 @@ pub fn webidl_to_wit(
                     .map(|mem| {
                         let name = ident_name(mem.identifier.0);
                         let ty = state.wi2w_type(&mem.type_, mem.required.is_none()).unwrap();
-                        let ty = state.borrow_resources(ty);
                         (name, ty).into()
                     })
                     .collect::<Vec<_>>();
@@ -557,6 +558,8 @@ pub fn webidl_to_wit(
         }
     }
 
+    params_resources_borrow(&mut state.interface, &resource_names);
+
     for global_name in global_world_singletons {
         let mut func = StandaloneFunc::new(format!("get-{}", global_name.clone()));
         func.set_results(wit_encoder::Type::named(global_name.clone()));
@@ -588,14 +591,12 @@ impl State<'_> {
                     let name = ident_name(varg.identifier.0);
                     let type_ = self.wi2w_type(&varg.type_, false).unwrap();
                     let type_ = wit_encoder::Type::List(Box::new(type_));
-                    let type_ = self.borrow_resources(type_);
                     (name, type_)
                 }
                 weedle::argument::Argument::Single(arg) => {
                     let name = ident_name(arg.identifier.0);
                     let optional = arg.optional.is_some();
                     let type_ = self.wi2w_type(&arg.type_.type_, optional).unwrap();
-                    let type_ = self.borrow_resources(type_);
                     (name, type_)
                 }
             })

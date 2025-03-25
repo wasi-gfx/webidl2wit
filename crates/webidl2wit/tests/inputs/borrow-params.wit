@@ -1,0 +1,102 @@
+package webidl:my-package-idl;
+
+interface my-interface {
+  resource only-return-resource {
+  }
+  record only-return-record {
+    only-return-resource: only-return-resource,
+  }
+  record only-return-record-nested {
+    only-return-record: only-return-record,
+  }
+  record only-return-record-with-list {
+    only-return-resource-list: list<only-return-resource>,
+  }
+  variant only-return-resource-or-s32 {
+    only-return-resource(only-return-resource),
+    %s32(s32),
+  }
+  type only-return-variant = only-return-resource-or-s32;
+  type only-return-type = only-return-resource;
+  resource only-param-resource {
+  }
+  record only-param-record {
+    only-param-resource: borrow<only-param-resource>,
+  }
+  record only-param-record-nested {
+    only-param-record: only-param-record,
+  }
+  record only-param-record-with-list {
+    only-param-resource-list: list<borrow<only-param-resource>>,
+  }
+  variant only-param-resource-or-s32 {
+    only-param-resource(borrow<only-param-resource>),
+    %s32(s32),
+  }
+  type only-param-variant = only-param-resource-or-s32;
+  type only-param-type = borrow<only-param-resource>;
+  resource both-resource {
+  }
+  record both-record {
+    both-resource: borrow<both-resource>,
+  }
+  record both-record-with-list {
+    both-resource-list: list<borrow<both-resource>>,
+  }
+  variant both-resource-or-s32 {
+    both-resource(borrow<both-resource>),
+    %s32(s32),
+  }
+  type both-variant = both-resource-or-s32;
+  type both-type = borrow<both-resource>;
+  resource neither-resource {
+  }
+  record neither-record {
+    neither-resource: neither-resource,
+  }
+  record neither-record-nested {
+    neither-record: neither-record,
+  }
+  record neither-record-with-list {
+    neither-resource-list: list<neither-resource>,
+  }
+  variant neither-resource-or-s32 {
+    neither-resource(neither-resource),
+    %s32(s32),
+  }
+  type neither-variant = neither-resource-or-s32;
+  type neither-type = neither-resource;
+  resource functions {
+    only-return-resource: func() -> only-return-resource;
+    only-return-record: func() -> only-return-record;
+    only-return-record-nested: func() -> only-return-record-nested;
+    only-return-record-with-list: func() -> only-return-record-with-list;
+    only-return-variant: func() -> only-return-variant;
+    only-return-type: func() -> only-return-type;
+    only-param-resource: func(x: borrow<only-param-resource>);
+    only-param-record: func(x: only-param-record);
+    only-param-record-nested: func(x: only-param-record-nested);
+    only-param-record-with-list: func(x: only-param-record-with-list);
+    only-param-variant: func(x: only-param-variant);
+    only-param-type: func(x: only-param-type);
+    both-resource: func(x: borrow<both-resource>) -> both-resource;
+    both-record: func(x: both-record) -> both-record-owned;
+    both-record-with-list: func(x: both-record-with-list) -> both-record-with-list-owned;
+    both-variant: func(x: both-variant) -> both-variant-owned;
+    both-type: func(x: both-type) -> both-type-owned;
+    resource-list: func(x: list<borrow<both-resource>>) -> list<both-resource>;
+    resource-option: func(x: option<borrow<both-resource>>) -> option<both-resource>;
+  }
+  record both-record-owned {
+    both-resource: both-resource,
+  }
+  record both-record-with-list-owned {
+    both-resource-list: list<both-resource>,
+  }
+  variant both-resource-or-s32-owned {
+    both-resource(both-resource),
+    %s32(s32),
+  }
+  type both-variant-owned = both-resource-or-s32-owned;
+  type both-type-owned = both-resource;
+}

@@ -1,0 +1,78 @@
+interface OnlyReturnResource {};
+dictionary OnlyReturnRecord {
+    required OnlyReturnResource onlyReturnResource;
+};
+dictionary OnlyReturnRecordNested {
+    required OnlyReturnRecord onlyReturnRecord;
+};
+dictionary OnlyReturnRecordWithList {
+    required sequence<OnlyReturnResource> onlyReturnResourceList;
+};
+typedef (OnlyReturnResource or long) OnlyReturnVariant;
+typedef OnlyReturnResource OnlyReturnType;
+
+interface OnlyParamResource {};
+dictionary OnlyParamRecord {
+    required OnlyParamResource onlyParamResource;
+};
+dictionary OnlyParamRecordNested {
+    required OnlyParamRecord onlyParamRecord;
+};
+dictionary OnlyParamRecordWithList {
+    required sequence<OnlyParamResource> onlyParamResourceList;
+};
+typedef (OnlyParamResource or long) OnlyParamVariant;
+typedef OnlyParamResource OnlyParamType;
+
+interface BothResource {};
+dictionary BothRecord {
+    required BothResource bothResource;
+};
+// dictionary BothRecordNested {
+//     required BothRecord bothRecord;
+// };
+dictionary BothRecordWithList {
+    required sequence<BothResource> bothResourceList;
+};
+typedef (BothResource or long) BothVariant;
+typedef BothResource BothType;
+
+interface NeitherResource {};
+dictionary NeitherRecord {
+    required NeitherResource neitherResource;
+};
+dictionary NeitherRecordNested {
+    required NeitherRecord neitherRecord;
+};
+dictionary NeitherRecordWithList {
+    required sequence<NeitherResource> neitherResourceList;
+};
+typedef (NeitherResource or long) NeitherVariant;
+typedef NeitherResource NeitherType;
+
+interface Functions {
+    OnlyReturnResource onlyReturnResource();
+    OnlyReturnRecord onlyReturnRecord();
+    OnlyReturnRecordNested onlyReturnRecordNested();
+    OnlyReturnRecordWithList onlyReturnRecordWithList();
+    OnlyReturnVariant onlyReturnVariant();
+    OnlyReturnType onlyReturnType();
+
+    undefined onlyParamResource(OnlyParamResource x);
+    undefined onlyParamRecord(OnlyParamRecord x);
+    undefined onlyParamRecordNested(OnlyParamRecordNested x);
+    undefined onlyParamRecordWithList(OnlyParamRecordWithList x);
+    undefined onlyParamVariant(OnlyParamVariant x);
+    undefined onlyParamType(OnlyParamType x);
+
+    BothResource bothResource(BothResource x);
+    BothRecord bothRecord(BothRecord x);
+    // TODO: not yet being handled (prob need to look at get_named_type inside get_all_named_with_resources_from_type_def. case where type is name, check items in name)
+    // BothRecordNested bothRecordNested(BothRecordNested x);
+    BothRecordWithList bothRecordWithList(BothRecordWithList x);
+    BothVariant bothVariant(BothVariant x);
+    BothType bothType(BothType x);
+
+    sequence<BothResource> resourceList(sequence<BothResource> x);
+    BothResource? resourceOption(BothResource? x);
+};

@@ -8,6 +8,7 @@
 //! [wit]: <https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md>
 //!
 
+mod borrow_params;
 mod custom_resources;
 mod translations;
 mod types_;
