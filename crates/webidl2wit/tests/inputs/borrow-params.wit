@@ -1,11 +1,15 @@
 package webidl:my-package-idl;
 
 interface my-interface {
+  record no-resource-record {
+    foo: f64,
+  }
   resource only-return-resource {
   }
   record only-return-record {
     only-return-resource: only-return-resource,
     only-return-enum: only-return-enum,
+    no-resource-record: no-resource-record,
   }
   record only-return-record-nested {
     only-return-record: only-return-record,
@@ -29,6 +33,7 @@ interface my-interface {
   record only-param-record {
     only-param-resource: borrow<only-param-resource>,
     only-param-enum: only-param-enum,
+    no-resource-record: no-resource-record,
   }
   record only-param-record-nested {
     only-param-record: only-param-record,
@@ -52,6 +57,7 @@ interface my-interface {
   record both-record {
     both-resource: borrow<both-resource>,
     both-enum: both-enum,
+    no-resource-record: no-resource-record,
   }
   record both-record-with-list {
     both-resource-list: list<borrow<both-resource>>,
@@ -72,6 +78,7 @@ interface my-interface {
   record neither-record {
     neither-resource: neither-resource,
     neither-enum: neither-enum,
+    no-resource-record: no-resource-record,
   }
   record neither-record-nested {
     neither-record: neither-record,
@@ -114,6 +121,7 @@ interface my-interface {
   record both-record-owned {
     both-resource: both-resource,
     both-enum: both-enum,
+    no-resource-record: no-resource-record,
   }
   record both-record-with-list-owned {
     both-resource-list: list<both-resource>,
