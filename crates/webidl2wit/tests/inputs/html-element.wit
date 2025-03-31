@@ -1,7 +1,7 @@
 package webidl:my-package-idl;
 
 interface my-interface {
-  use wasi:io/poll.{ pollable };
+  use wasi:io/poll@0.2.0.{ pollable };
   resource html-element {
     title: func() -> string;
     set-title: func(title: string);

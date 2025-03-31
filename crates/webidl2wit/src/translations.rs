@@ -570,7 +570,7 @@ pub fn webidl_to_wit(
     }
 
     if state.import_pollable {
-        state.interface.use_type("wasi:io/poll", "pollable", None);
+        state.interface.use_type("wasi:io/poll@0.2.0", "pollable", None);
     }
 
     package.interface(state.interface);
