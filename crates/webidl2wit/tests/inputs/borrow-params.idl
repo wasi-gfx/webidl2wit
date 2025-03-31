@@ -1,6 +1,7 @@
 interface OnlyReturnResource {};
 dictionary OnlyReturnRecord {
     required OnlyReturnResource onlyReturnResource;
+    required OnlyReturnEnum onlyReturnEnum;
 };
 dictionary OnlyReturnRecordNested {
     required OnlyReturnRecord onlyReturnRecord;
@@ -10,10 +11,16 @@ dictionary OnlyReturnRecordWithList {
 };
 typedef (OnlyReturnResource or long) OnlyReturnVariant;
 typedef OnlyReturnResource OnlyReturnType;
+enum OnlyReturnEnum {
+    "a",
+    "b",
+    "c",
+};
 
 interface OnlyParamResource {};
 dictionary OnlyParamRecord {
     required OnlyParamResource onlyParamResource;
+    required OnlyParamEnum onlyParamEnum;
 };
 dictionary OnlyParamRecordNested {
     required OnlyParamRecord onlyParamRecord;
@@ -23,10 +30,16 @@ dictionary OnlyParamRecordWithList {
 };
 typedef (OnlyParamResource or long) OnlyParamVariant;
 typedef OnlyParamResource OnlyParamType;
+enum OnlyParamEnum {
+    "a",
+    "b",
+    "c",
+};
 
 interface BothResource {};
 dictionary BothRecord {
     required BothResource bothResource;
+    required BothEnum bothEnum;
 };
 // dictionary BothRecordNested {
 //     required BothRecord bothRecord;
@@ -36,10 +49,16 @@ dictionary BothRecordWithList {
 };
 typedef (BothResource or long) BothVariant;
 typedef BothResource BothType;
+enum BothEnum {
+    "a",
+    "b",
+    "c",
+};
 
 interface NeitherResource {};
 dictionary NeitherRecord {
     required NeitherResource neitherResource;
+    required NeitherEnum neitherEnum;
 };
 dictionary NeitherRecordNested {
     required NeitherRecord neitherRecord;
@@ -49,6 +68,11 @@ dictionary NeitherRecordWithList {
 };
 typedef (NeitherResource or long) NeitherVariant;
 typedef NeitherResource NeitherType;
+enum NeitherEnum {
+    "a",
+    "b",
+    "c",
+};
 
 interface Functions {
     OnlyReturnResource onlyReturnResource();
