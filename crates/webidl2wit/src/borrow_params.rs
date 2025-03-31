@@ -21,9 +21,9 @@ pub fn params_resources_borrow(mut interface: &mut Interface, resource_names: &H
         }
     }
 
-    let types_that_might_contain_borrow = get_types_that_might_contain_borrow(&interface);
+    let overlaps_set = overlaps.iter().collect();
     for name in &overlaps {
-        copy_type_def_to_owned(interface, &name, &types_that_might_contain_borrow);
+        copy_type_def_to_owned(interface, &name, &overlaps_set);
         make_type_def_borrow(interface, &name, resource_names);
     }
     replace_all_named_returns_with_owned(&mut interface, &overlaps.iter().collect());
@@ -312,22 +312,6 @@ fn get_all_named_with_resources_from_type<'a>(
     }
 }
 
-fn get_types_that_might_contain_borrow(interface: &Interface) -> HashSet<Ident> {
-    interface
-        .items()
-        .iter()
-        .filter_map(|item| match item {
-            InterfaceItem::Function(_) => None,
-            InterfaceItem::TypeDef(type_def) => match type_def.kind() {
-                TypeDefKind::Resource(_) | TypeDefKind::Flags(_) | TypeDefKind::Enum(_) => None,
-                TypeDefKind::Record(_) | TypeDefKind::Variant(_) | TypeDefKind::Type(_) => {
-                    Some(type_def.name().clone())
-                }
-            },
-        })
-        .collect()
-}
-
 fn make_type_def_borrow(interface: &mut Interface, name: &Ident, resource_names: &HashSet<Ident>) {
     fn make_type_borrow(type_: &mut Type, resource_names: &HashSet<Ident>) {
         match type_ {
@@ -401,9 +385,9 @@ fn make_type_def_borrow(interface: &mut Interface, name: &Ident, resource_names:
 fn copy_type_def_to_owned(
     interface: &mut Interface,
     name: &Ident,
-    types_that_might_contain_borrow: &HashSet<Ident>,
+    types_being_copied: &HashSet<&Ident>,
 ) {
-    fn copy_type_to_owned(type_: &Type, types_that_might_contain_borrow: &HashSet<Ident>) -> Type {
+    fn copy_type_to_owned(type_: &Type, types_being_copied: &HashSet<&Ident>) -> Type {
         match type_ {
             Type::Bool
             | Type::U8
@@ -422,19 +406,15 @@ fn copy_type_def_to_owned(
                 // no one is adding borrows before this point
                 unreachable!();
             }
-            Type::Option(type_) => {
-                Type::option(copy_type_to_owned(type_, types_that_might_contain_borrow))
-            }
+            Type::Option(type_) => Type::option(copy_type_to_owned(type_, types_being_copied)),
             Type::Result(_result) => todo!(),
-            Type::List(type_) => {
-                Type::list(copy_type_to_owned(type_, types_that_might_contain_borrow))
-            }
+            Type::List(type_) => Type::list(copy_type_to_owned(type_, types_being_copied)),
             Type::Tuple(_tuple) => {
                 todo!()
             }
             Type::Named(name) => {
-                // if it is not a type that's being converted to `-owned` (record, variant, type), don't create a copy.
-                if types_that_might_contain_borrow.contains(name) {
+                // if type is being copied to -owned, use the -owned version
+                if types_being_copied.contains(name) {
                     Type::named(name_to_owned(name))
                 } else {
                     type_.clone()
@@ -462,7 +442,7 @@ fn copy_type_def_to_owned(
         TypeDefKind::Record(record) => {
             let fields = record.fields().iter().map(|f| {
                 let mut f = f.clone();
-                *f.type_mut() = copy_type_to_owned(f.type_(), types_that_might_contain_borrow);
+                *f.type_mut() = copy_type_to_owned(f.type_(), types_being_copied);
                 f
             });
 
@@ -472,14 +452,14 @@ fn copy_type_def_to_owned(
             let cases = variant.cases().iter().map(|case| {
                 let mut case = case.clone();
                 if let Some(type_) = case.type_mut() {
-                    *type_ = copy_type_to_owned(type_, types_that_might_contain_borrow);
+                    *type_ = copy_type_to_owned(type_, types_being_copied);
                 }
                 case
             });
             TypeDefKind::variant(cases)
         }
         TypeDefKind::Type(type_) => {
-            TypeDefKind::type_(copy_type_to_owned(type_, types_that_might_contain_borrow))
+            TypeDefKind::type_(copy_type_to_owned(type_, types_being_copied))
         }
     };
     let name = name_to_owned(name);

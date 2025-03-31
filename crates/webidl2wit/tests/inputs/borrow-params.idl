@@ -1,7 +1,12 @@
+dictionary NoResourceRecord {
+    required double foo;
+};
+
 interface OnlyReturnResource {};
 dictionary OnlyReturnRecord {
     required OnlyReturnResource onlyReturnResource;
     required OnlyReturnEnum onlyReturnEnum;
+    required NoResourceRecord noResourceRecord;
 };
 dictionary OnlyReturnRecordNested {
     required OnlyReturnRecord onlyReturnRecord;
@@ -21,6 +26,7 @@ interface OnlyParamResource {};
 dictionary OnlyParamRecord {
     required OnlyParamResource onlyParamResource;
     required OnlyParamEnum onlyParamEnum;
+    required NoResourceRecord noResourceRecord;
 };
 dictionary OnlyParamRecordNested {
     required OnlyParamRecord onlyParamRecord;
@@ -40,6 +46,7 @@ interface BothResource {};
 dictionary BothRecord {
     required BothResource bothResource;
     required BothEnum bothEnum;
+    required NoResourceRecord noResourceRecord;
 };
 // dictionary BothRecordNested {
 //     required BothRecord bothRecord;
@@ -59,6 +66,7 @@ interface NeitherResource {};
 dictionary NeitherRecord {
     required NeitherResource neitherResource;
     required NeitherEnum neitherEnum;
+    required NoResourceRecord noResourceRecord;
 };
 dictionary NeitherRecordNested {
     required NeitherRecord neitherRecord;
