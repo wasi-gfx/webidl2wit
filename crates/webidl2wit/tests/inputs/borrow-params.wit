@@ -5,6 +5,7 @@ interface my-interface {
   }
   record only-return-record {
     only-return-resource: only-return-resource,
+    only-return-enum: only-return-enum,
   }
   record only-return-record-nested {
     only-return-record: only-return-record,
@@ -18,10 +19,16 @@ interface my-interface {
   }
   type only-return-variant = only-return-resource-or-s32;
   type only-return-type = only-return-resource;
+  enum only-return-enum {
+    a,
+    b,
+    c,
+  }
   resource only-param-resource {
   }
   record only-param-record {
     only-param-resource: borrow<only-param-resource>,
+    only-param-enum: only-param-enum,
   }
   record only-param-record-nested {
     only-param-record: only-param-record,
@@ -35,10 +42,16 @@ interface my-interface {
   }
   type only-param-variant = only-param-resource-or-s32;
   type only-param-type = borrow<only-param-resource>;
+  enum only-param-enum {
+    a,
+    b,
+    c,
+  }
   resource both-resource {
   }
   record both-record {
     both-resource: borrow<both-resource>,
+    both-enum: both-enum,
   }
   record both-record-with-list {
     both-resource-list: list<borrow<both-resource>>,
@@ -49,10 +62,16 @@ interface my-interface {
   }
   type both-variant = both-resource-or-s32;
   type both-type = borrow<both-resource>;
+  enum both-enum {
+    a,
+    b,
+    c,
+  }
   resource neither-resource {
   }
   record neither-record {
     neither-resource: neither-resource,
+    neither-enum: neither-enum,
   }
   record neither-record-nested {
     neither-record: neither-record,
@@ -66,6 +85,11 @@ interface my-interface {
   }
   type neither-variant = neither-resource-or-s32;
   type neither-type = neither-resource;
+  enum neither-enum {
+    a,
+    b,
+    c,
+  }
   resource functions {
     only-return-resource: func() -> only-return-resource;
     only-return-record: func() -> only-return-record;
@@ -89,6 +113,7 @@ interface my-interface {
   }
   record both-record-owned {
     both-resource: both-resource,
+    both-enum: both-enum,
   }
   record both-record-with-list-owned {
     both-resource-list: list<both-resource>,
