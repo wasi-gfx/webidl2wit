@@ -55,7 +55,7 @@ impl State<'_> {
                 if cases.len() == 1 {
                     let (_, type_) = cases.into_iter().next().unwrap();
                     return Ok(match optional {
-                        true => make_optional(type_),
+                        true => ensure_optional(type_),
                         false => type_,
                     });
                 }
@@ -82,7 +82,7 @@ impl State<'_> {
                 }
 
                 Ok(match optional {
-                    true => make_optional(wit_encoder::Type::named(variant_name)),
+                    true => ensure_optional(wit_encoder::Type::named(variant_name)),
                     false => wit_encoder::Type::named(variant_name),
                 })
             }
@@ -131,7 +131,7 @@ impl State<'_> {
                 }
                 let mut type_ = wit_encoder::Type::named(ident_name(ident.type_.0));
                 if ident.q_mark.is_some() {
-                    type_ = make_optional(type_)
+                    type_ = ensure_optional(type_)
                 }
                 (type_, ident.q_mark)
             }
@@ -220,7 +220,7 @@ impl State<'_> {
 
         Ok(match optional || q_mark.is_some() {
             false => type_,
-            true => make_optional(type_),
+            true => ensure_optional(type_),
         })
     }
 
@@ -257,7 +257,7 @@ impl State<'_> {
 }
 
 // there are multiple levels where an item can be made optional. This will wrap the type in Type::Option unless its already Type::Option.
-fn make_optional(type_: wit_encoder::Type) -> wit_encoder::Type {
+fn ensure_optional(type_: wit_encoder::Type) -> wit_encoder::Type {
     match type_ {
         wit_encoder::Type::Option(_) => type_,
         _ => wit_encoder::Type::option(type_),
