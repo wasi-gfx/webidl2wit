@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use wit_encoder::{Ident, Interface, InterfaceItem, Params, Results, Type, TypeDef, TypeDefKind};
+use wit_encoder::{Ident, Interface, InterfaceItem, Params, Type, TypeDef, TypeDefKind};
 
 pub fn params_resources_borrow(mut interface: &mut Interface, resource_names: &HashSet<Ident>) {
     let param_types =
@@ -95,54 +95,45 @@ fn get_all_func_return_types_with_resource<'a>(
     resource_names: &HashSet<Ident>,
     checked: &mut HashSet<&'a Ident>,
 ) -> HashSet<Ident> {
-    fn types_from_results<'a>(results: &'a Results) -> HashSet<&'a Type> {
-        match results {
-            Results::Named(params) => params.items().iter().map(|(_, type_)| type_).collect(),
-            Results::Anon(type_) => HashSet::from([type_]),
-        }
-    }
-
     interface
         .items()
         .iter()
-        .flat_map(|item| {
-            match item {
-                InterfaceItem::Function(func) => types_from_results(func.results())
-                    .into_iter()
-                    .flat_map(|type_| {
-                        get_all_named_with_resources_from_type(
-                            type_,
-                            interface,
-                            resource_names,
-                            checked,
-                        )
-                    })
-                    .collect::<Vec<_>>(),
-                InterfaceItem::TypeDef(type_def) => {
-                    if let TypeDefKind::Resource(resource) = type_def.kind() {
-                        resource
-                            .funcs()
-                            .iter()
-                            .map(|func| func.results())
-                            .flat_map(|results| match results {
-                                Some(results) => types_from_results(results)
-                                    .into_iter()
-                                    .flat_map(|type_| {
-                                        get_all_named_with_resources_from_type(
-                                            type_,
-                                            interface,
-                                            resource_names,
-                                            checked,
-                                        )
-                                    })
-                                    .collect(),
-                                None => HashSet::new(),
-                            })
-                            .collect()
-                    } else {
-                        vec![]
-                    }
-                    // todo!()
+        .flat_map(|item| match item {
+            InterfaceItem::Function(func) => func
+                .result()
+                .as_ref()
+                .map(|type_| {
+                    get_all_named_with_resources_from_type(
+                        type_,
+                        interface,
+                        resource_names,
+                        checked,
+                    )
+                })
+                .unwrap_or_default(),
+            InterfaceItem::TypeDef(type_def) => {
+                if let TypeDefKind::Resource(resource) = type_def.kind() {
+                    resource
+                        .funcs()
+                        .iter()
+                        .map(|func| func.result())
+                        .flat_map(|result| match result {
+                            Some(result) => result
+                                .as_ref()
+                                .map(|type_| {
+                                    get_all_named_with_resources_from_type(
+                                        type_,
+                                        interface,
+                                        resource_names,
+                                        checked,
+                                    )
+                                })
+                                .unwrap_or_default(),
+                            None => vec![],
+                        })
+                        .collect()
+                } else {
+                    vec![]
                 }
             }
         })
@@ -186,6 +177,9 @@ fn get_all_named_with_resources_from_type<'a>(
             Type::Named(ident) => {
                 vec![ident]
             }
+            Type::Future(_) => todo!(),
+            Type::Stream(_) => todo!(),
+            Type::ErrorContext => todo!(),
         }
     }
     fn get_all_named_with_resources_from_type_def<'a>(
@@ -309,6 +303,9 @@ fn get_all_named_with_resources_from_type<'a>(
         Type::Named(ident) => {
             get_all_named_with_resources_from_type_def(ident, interface, resource_names, checked)
         }
+        Type::Future(_) => todo!(),
+        Type::Stream(_) => todo!(),
+        Type::ErrorContext => todo!(),
     }
 }
 
@@ -345,6 +342,9 @@ fn make_type_def_borrow(interface: &mut Interface, name: &Ident, resource_names:
                     *type_ = Type::borrow(ident.clone());
                 }
             }
+            Type::Future(_) => todo!(),
+            Type::Stream(_) => todo!(),
+            Type::ErrorContext => todo!(),
         }
     }
 
@@ -420,6 +420,9 @@ fn copy_type_def_to_owned(
                     type_.clone()
                 }
             }
+            Type::Future(_) => todo!(),
+            Type::Stream(_) => todo!(),
+            Type::ErrorContext => todo!(),
         }
     }
 
@@ -501,30 +504,26 @@ fn replace_all_named_returns_with_owned(interface: &mut Interface, to_rename: &H
                     *ident = name_to_owned(ident);
                 }
             }
+            Type::Future(_) => todo!(),
+            Type::Stream(_) => todo!(),
+            Type::ErrorContext => todo!(),
         }
     }
-    fn replace_func_returns_with_owned(results: &mut Results, to_rename: &HashSet<&Ident>) {
-        match results {
-            Results::Named(params) => {
-                for (_, type_) in params.items_mut() {
-                    postfix_named_type(type_, to_rename);
-                }
-            }
-            Results::Anon(type_) => {
-                postfix_named_type(type_, to_rename);
-            }
+    fn replace_func_returns_with_owned(type_: &mut Option<Type>, to_rename: &HashSet<&Ident>) {
+        if let Some(type_) = type_ {
+            postfix_named_type(type_, to_rename);
         }
     }
 
     for item in interface.items_mut() {
         match item {
             InterfaceItem::Function(func) => {
-                replace_func_returns_with_owned(func.results_mut(), to_rename);
+                replace_func_returns_with_owned(func.result_mut(), to_rename);
             }
             InterfaceItem::TypeDef(type_def) => {
                 if let TypeDefKind::Resource(resource) = type_def.kind_mut() {
                     for func in resource.funcs_mut() {
-                        if let Some(results) = func.results_mut() {
+                        if let Some(results) = func.result_mut() {
                             replace_func_returns_with_owned(results, to_rename);
                         }
                     }
@@ -563,6 +562,9 @@ fn change_func_resource_params_to_borrow(
             Type::Result(_result) => todo!(),
             Type::List(type_) => named_to_borrow(type_, resource_names),
             Type::Tuple(_tuple) => todo!(),
+            Type::Future(_) => todo!(),
+            Type::Stream(_) => todo!(),
+            Type::ErrorContext => todo!(),
         }
     }
     fn named_to_borrow_params(params: &mut Params, resource_names: &HashSet<Ident>) {

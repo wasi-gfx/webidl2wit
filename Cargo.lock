@@ -500,9 +500,9 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "wit-encoder"
-version = "0.221.2"
+version = "0.229.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c2921dd7e71ae11b6e28b33d42cc0eed4fa6ad3fe3ed1f9c5df80dacfec6a28"
+checksum = "52b22120872fbeea51d41381dbd5c91395a9c8ceec77102d49a0bc6b503984ed"
 dependencies = [
  "pretty_assertions",
  "semver",
@@ -510,9 +510,9 @@ dependencies = [
 
 [[package]]
 name = "wit-parser"
-version = "0.221.2"
+version = "0.229.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbe1538eea6ea5ddbe5defd0dc82539ad7ba751e1631e9185d24a931f0a5adc8"
+checksum = "459c6ba62bf511d6b5f2a845a2a736822e38059c1cfa0b644b467bbbfae4efa6"
 dependencies = [
  "anyhow",
  "id-arena",
