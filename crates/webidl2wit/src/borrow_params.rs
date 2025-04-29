@@ -196,20 +196,25 @@ fn get_all_named_with_resources_from_type<'a>(
             return vec![];
         }
         checked.insert(name);
-        let type_def = interface
-            .items()
-            .into_iter()
-            .find_map(|item| match item {
-                InterfaceItem::Function(_) => None,
-                InterfaceItem::TypeDef(type_def) => {
-                    if type_def.name() == name {
-                        Some(type_def)
-                    } else {
-                        None
-                    }
+        let type_def = interface.items().into_iter().find_map(|item| match item {
+            InterfaceItem::Function(_) => None,
+            InterfaceItem::TypeDef(type_def) => {
+                if type_def.name() == name {
+                    Some(type_def)
+                } else {
+                    None
                 }
-            })
-            .expect(&format!("Can't find type {name}"));
+            }
+        });
+        let type_def = match type_def {
+            Some(type_def) => type_def,
+            None => {
+                // since we'ren not parsing all WebIDL types yet, there might be some missing types here.
+                // This should be turned into a hard error once we parse all WebIDL types.
+                eprintln!("Type {name} not found. Continuing anyway.");
+                return vec![];
+            }
+        };
 
         let mut contains_resource_directly = false;
         let mut output = vec![];
