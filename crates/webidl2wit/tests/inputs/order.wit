@@ -37,8 +37,8 @@ interface my-interface {
     foo: func() -> s32;
   }
   resource intr-base-main-main {
-    foo: func() -> s32;
     bar: func() -> s32;
+    foo: func() -> s32;
   }
   resource intr-main-base-main {
     bar: func() -> s32;
