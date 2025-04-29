@@ -1,12 +1,12 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
 
-use anyhow::bail;
+use anyhow::{bail, Context};
 use hashlink::LinkedHashMap;
 use heck::{ToKebabCase, ToPascalCase};
 use itertools::Itertools;
 use weedle::{Definition, Definitions as WebIdlDefinitions};
-use wit_encoder::{Ident, Interface, InterfaceItem, StandaloneFunc, World};
+use wit_encoder::{Field, Ident, Interface, InterfaceItem, ResourceFunc, StandaloneFunc, World};
 
 use crate::borrow_params::params_resources_borrow;
 
@@ -112,7 +112,9 @@ pub(super) struct State<'a> {
     // TODO: don't treat any as special. Have a set for defined types instead.
     pub any_found: bool,
     pub resource_inheritance: ResourceInheritance,
-    pub inheritors_waiting_for_base: HashMap<Ident, HashSet<Ident>>,
+    // Using BTreeMap for to keep sorting. Otherwise, parent's `as-child` methods don't keep their order
+    resource_inheritance_map: BTreeMap<Ident, Ident>,
+    record_inheritance_map: BTreeMap<Ident, Ident>,
     // TODO: remove pollables in preview 3
     pub import_pollable: bool,
 }
@@ -194,11 +196,12 @@ pub fn webidl_to_wit(
         waiting_includes: HashMap::new(),
         any_found: false,
         resource_inheritance: options.resource_inheritance,
-        inheritors_waiting_for_base: HashMap::new(),
+        resource_inheritance_map: BTreeMap::new(),
+        record_inheritance_map: BTreeMap::new(),
         import_pollable: false,
     };
 
-    let resource_names = webidl
+    let resource_names: HashSet<Ident> = webidl
         .iter()
         .filter_map(|item| match item {
             Definition::Interface(wi_interface) => {
@@ -350,118 +353,12 @@ pub fn webidl_to_wit(
                         );
                     }
                 } else {
-                    let mut resource = wit_encoder::Resource::empty();
+                    let resource = wit_encoder::Resource::empty();
                     if let Some(inheritance) = wi_interface.inheritance {
                         let base_name = ident_name(inheritance.identifier.0);
-                        let mut base =
-                            state
-                                .interface
-                                .items_mut()
-                                .iter_mut()
-                                .find_map(|t| match t {
-                                    InterfaceItem::TypeDef(type_def) => {
-                                        let type_def_name = type_def.name().clone();
-                                        match type_def.kind_mut() {
-                                            wit_encoder::TypeDefKind::Resource(resource)
-                                                if type_def_name == base_name =>
-                                            {
-                                                Some(resource)
-                                            }
-                                            _ => None,
-                                        }
-                                    }
-                                    InterfaceItem::Function(_) => None,
-                                });
-                        if matches!(
-                            state.resource_inheritance,
-                            ResourceInheritance::AsMethods | ResourceInheritance::Both
-                        ) {
-                            resource.func({
-                                let mut func = wit_encoder::ResourceFunc::method(
-                                    format!("as-{}", base_name.raw_name()),
-                                    false,
-                                );
-                                func.set_result(Some(wit_encoder::Type::named(base_name.clone())));
-                                func
-                            });
-                            match &mut base {
-                                Some(ref mut base) => {
-                                    base.funcs_mut().push({
-                                        let mut func = wit_encoder::ResourceFunc::method(
-                                            format!("as-{}", interface_name.raw_name()),
-                                            false,
-                                        );
-                                        func.set_result(Some(wit_encoder::Type::option(
-                                            wit_encoder::Type::named(interface_name.clone()),
-                                        )));
-                                        func
-                                    });
-                                }
-                                None => {
-                                    state
-                                        .inheritors_waiting_for_base
-                                        .entry(base_name.clone())
-                                        .or_default()
-                                        .insert(interface_name.clone());
-                                }
-                            }
-                        }
-                        if matches!(
-                            state.resource_inheritance,
-                            ResourceInheritance::DuplicateMethods | ResourceInheritance::Both
-                        ) {
-                            match &mut base {
-                                Some(ref mut base) => {
-                                    let mut base_funcs = base
-                                        .funcs()
-                                        .iter()
-                                        .filter(|f| match f.kind() {
-                                            wit_encoder::ResourceFuncKind::Method(name, _, _) => {
-                                                name.raw_name()
-                                                    != format!("as-{}", interface_name.raw_name())
-                                            }
-                                            _ => true,
-                                        })
-                                        .cloned()
-                                        .collect::<Vec<_>>();
-                                    resource.funcs_mut().append(&mut base_funcs);
-                                }
-                                None => {
-                                    state
-                                        .inheritors_waiting_for_base
-                                        .entry(base_name.clone())
-                                        .or_default()
-                                        .insert(interface_name.clone());
-                                }
-                            }
-                        }
-                    }
-                    if let Some(inheritors) =
-                        state.inheritors_waiting_for_base.remove(&interface_name)
-                    {
-                        for inheritor in inheritors {
-                            state.interface_members_to_functions(
-                                &inheritor,
-                                &wi_interface.members.body,
-                                is_singleton,
-                            )?;
-                            if matches!(
-                                state.resource_inheritance,
-                                ResourceInheritance::AsMethods | ResourceInheritance::Both
-                            ) {
-                                let as_child_method = {
-                                    let mut func = wit_encoder::ResourceFunc::method(
-                                        format!("as-{}", inheritor.raw_name()),
-                                        false,
-                                    );
-                                    func.set_result(Some(wit_encoder::Type::option(
-                                        wit_encoder::Type::named(inheritor.clone()),
-                                    )));
-                                    func
-                                };
-                                resource.func(as_child_method);
-                            }
-                        }
+                        state
+                            .resource_inheritance_map
+                            .insert(interface_name.clone(), base_name);
                     }
                     let type_def = wit_encoder::TypeDef::new(
                         interface_name.clone(),
@@ -476,7 +373,7 @@ pub fn webidl_to_wit(
                 )?;
             }
             Definition::Dictionary(dict) => {
-                let mut fields = dict
+                let fields = dict
                     .members
                     .body
                     .iter()
@@ -485,63 +382,15 @@ pub fn webidl_to_wit(
                         let ty = state.wi2w_type(&mem.type_, mem.required.is_none()).unwrap();
                         (name, ty).into()
                     })
-                    .collect::<Vec<_>>();
+                    .collect::<Vec<Field>>();
 
                 let record_name = ident_name(dict.identifier.0);
 
                 if let Some(inheritance) = dict.inheritance {
                     let base_name = ident_name(inheritance.identifier.0);
-                    let base = state.interface.items().iter().find_map(|t| match t {
-                        InterfaceItem::TypeDef(type_def) => match type_def.kind() {
-                            wit_encoder::TypeDefKind::Record(record)
-                                if type_def.name() == &base_name =>
-                            {
-                                Some(record)
-                            }
-                            _ => None,
-                        },
-                        InterfaceItem::Function(_) => None,
-                    });
-                    match base {
-                        Some(base) => {
-                            let mut base_fields = base.fields().to_vec();
-                            fields.append(&mut base_fields);
-                        }
-                        None => {
-                            state
-                                .inheritors_waiting_for_base
-                                .entry(base_name.clone())
-                                .or_default()
-                                .insert(record_name.clone());
-                        }
-                    }
-                }
-
-                if let Some(inheritors) = state.inheritors_waiting_for_base.remove(&record_name) {
-                    for inheritor in inheritors {
-                        let inheritor = state
-                            .interface
-                            .items_mut()
-                            .iter_mut()
-                            .find_map(|t| match t {
-                                InterfaceItem::TypeDef(type_def) => {
-                                    if type_def.name() == &inheritor {
-                                        match type_def.kind_mut() {
-                                            wit_encoder::TypeDefKind::Record(record) => {
-                                                Some(record)
-                                            }
-                                            _ => panic!("Inheritor {} not a record", inheritor),
-                                        }
-                                    } else {
-                                        None
-                                    }
-                                }
-                                InterfaceItem::Function(_) => None,
-                            })
-                            .unwrap();
-
-                        inheritor.fields_mut().append(&mut fields.clone())
-                    }
+                    state
+                        .record_inheritance_map
+                        .insert(record_name.clone(), base_name);
                 }
 
                 let type_def = wit_encoder::TypeDef::record(record_name, fields);
@@ -557,6 +406,9 @@ pub fn webidl_to_wit(
             }
         }
     }
+
+    state.handle_resource_inheritance().unwrap();
+    state.handle_record_inheritance().unwrap();
 
     params_resources_borrow(&mut state.interface, &resource_names);
 
@@ -1101,6 +953,202 @@ impl State<'_> {
         }
         Ok(functions)
     }
+
+    fn handle_resource_inheritance(&mut self) -> anyhow::Result<()> {
+        let parents: HashSet<&Ident> = self.resource_inheritance_map.values().collect();
+        let parents_funcs: HashMap<Ident, Vec<ResourceFunc>> = self
+            .interface
+            .items()
+            .iter()
+            .filter_map(|item| match item {
+                InterfaceItem::Function(_) => None,
+                InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                    wit_encoder::TypeDefKind::Resource(resource) => {
+                        if parents.contains(type_def.name()) {
+                            Some((type_def.name().clone(), resource.funcs().to_vec()))
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                },
+            })
+            .collect();
+
+        let ancestors_map: BTreeMap<Ident, Vec<Ident>> =
+            resolve_ancestors(&mut self.resource_inheritance_map);
+        const CONSTRUCTOR_NAME: &str = "constructor";
+
+        fn func_name(func: &ResourceFunc) -> &str {
+            match func.kind() {
+                wit_encoder::ResourceFuncKind::Method(name, _, _) => name.raw_name(),
+                wit_encoder::ResourceFuncKind::Static(name, _, _) => name.raw_name(),
+                wit_encoder::ResourceFuncKind::Constructor => &CONSTRUCTOR_NAME,
+            }
+        }
+
+        for (child, parents) in ancestors_map {
+            let child_funcs = self
+                .interface
+                .items_mut()
+                .into_iter()
+                .find_map(|item| match item {
+                    InterfaceItem::Function(_) => None,
+                    InterfaceItem::TypeDef(type_def) => {
+                        let name = type_def.name().clone();
+                        match type_def.kind_mut() {
+                            wit_encoder::TypeDefKind::Resource(resource) => {
+                                if name == child {
+                                    Some(resource.funcs_mut())
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        }
+                    }
+                })
+                .unwrap();
+            let mut func_names: HashSet<String> = child_funcs
+                .iter()
+                .map(|f| func_name(f).to_string())
+                .collect();
+            for parent in &parents {
+                if matches!(
+                    self.resource_inheritance,
+                    ResourceInheritance::DuplicateMethods | ResourceInheritance::Both
+                ) {
+                    for parent_func in parents_funcs
+                        .get(parent)
+                        .context(format!("Parent {parent} not found"))?
+                    {
+                        if !func_names.contains(func_name(parent_func)) {
+                            func_names.insert(func_name(parent_func).to_string());
+                            child_funcs.push(parent_func.clone());
+                        }
+                    }
+                }
+                if matches!(
+                    self.resource_inheritance,
+                    ResourceInheritance::AsMethods | ResourceInheritance::Both
+                ) {
+                    child_funcs.push({
+                        let mut func = wit_encoder::ResourceFunc::method(
+                            format!("as-{}", parent.raw_name()),
+                            false,
+                        );
+                        func.set_result(Some(wit_encoder::Type::named(parent.clone())));
+                        func
+                    });
+                }
+            }
+
+            if matches!(
+                self.resource_inheritance,
+                ResourceInheritance::AsMethods | ResourceInheritance::Both
+            ) {
+                for parent in parents {
+                    let parent_funcs = self
+                        .interface
+                        .items_mut()
+                        .into_iter()
+                        .find_map(|item| match item {
+                            InterfaceItem::Function(_) => None,
+                            InterfaceItem::TypeDef(type_def) => {
+                                let name = type_def.name().clone();
+                                match type_def.kind_mut() {
+                                    wit_encoder::TypeDefKind::Resource(resource) => {
+                                        if name == parent {
+                                            Some(resource.funcs_mut())
+                                        } else {
+                                            None
+                                        }
+                                    }
+                                    _ => None,
+                                }
+                            }
+                        })
+                        .unwrap();
+                    parent_funcs.push({
+                        let mut func = wit_encoder::ResourceFunc::method(
+                            format!("as-{}", child.raw_name()),
+                            false,
+                        );
+                        func.set_result(Some(wit_encoder::Type::option(wit_encoder::Type::named(
+                            child.clone(),
+                        ))));
+                        func
+                    });
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn handle_record_inheritance(&mut self) -> anyhow::Result<()> {
+        let parents: HashSet<&Ident> = self.record_inheritance_map.values().collect();
+        let parents_fields: HashMap<Ident, Vec<Field>> = self
+            .interface
+            .items()
+            .iter()
+            .filter_map(|item| match item {
+                InterfaceItem::Function(_) => None,
+                InterfaceItem::TypeDef(type_def) => match type_def.kind() {
+                    wit_encoder::TypeDefKind::Record(record) => {
+                        if parents.contains(type_def.name()) {
+                            Some((type_def.name().clone(), record.fields().to_vec()))
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                },
+            })
+            .collect();
+
+        let ancestors_map: BTreeMap<Ident, Vec<Ident>> =
+            resolve_ancestors(&mut self.record_inheritance_map);
+
+        for (child, parents) in ancestors_map {
+            let child_fields = self
+                .interface
+                .items_mut()
+                .into_iter()
+                .find_map(|item| match item {
+                    InterfaceItem::Function(_) => None,
+                    InterfaceItem::TypeDef(type_def) => {
+                        let name = type_def.name().clone();
+                        match type_def.kind_mut() {
+                            wit_encoder::TypeDefKind::Record(record) => {
+                                if name == child {
+                                    Some(record.fields_mut())
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        }
+                    }
+                })
+                .unwrap();
+            let mut field_names: HashSet<Ident> =
+                child_fields.iter().map(|f| f.name().clone()).collect();
+            for parent in &parents {
+                for parent_field in parents_fields
+                    .get(parent)
+                    .context(format!("Parent {parent} not found"))?
+                {
+                    if !field_names.contains(parent_field.name()) {
+                        field_names.insert(parent_field.name().clone());
+                        child_fields.push(parent_field.clone());
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
 }
 
 pub(super) fn ident_name(src: &str) -> wit_encoder::Ident {
@@ -1197,4 +1245,23 @@ fn mixin_to_interface_member(
             weedle::interface::InterfaceMember::Stringifier(stringifier)
         }
     }
+}
+
+fn resolve_ancestors(input: &BTreeMap<Ident, Ident>) -> BTreeMap<Ident, Vec<Ident>> {
+    // TODO: memoize the work
+    let mut output: BTreeMap<Ident, Vec<Ident>> = BTreeMap::new();
+
+    for child in input.keys() {
+        let mut ancestry: Vec<Ident> = Vec::new();
+        let mut current = child;
+
+        while let Some(parent) = input.get(current) {
+            ancestry.push(parent.clone());
+            current = parent;
+        }
+
+        output.insert(child.clone(), ancestry);
+    }
+
+    output
 }

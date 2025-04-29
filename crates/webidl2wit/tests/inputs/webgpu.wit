@@ -1306,16 +1306,16 @@ interface my-interface {
     message: func() -> string;
   }
   resource gpu-validation-error {
-    message: func() -> string;
     constructor(message: string);
+    message: func() -> string;
   }
   resource gpu-out-of-memory-error {
-    message: func() -> string;
     constructor(message: string);
+    message: func() -> string;
   }
   resource gpu-internal-error {
-    message: func() -> string;
     constructor(message: string);
+    message: func() -> string;
   }
   enum gpu-error-filter {
     validation,

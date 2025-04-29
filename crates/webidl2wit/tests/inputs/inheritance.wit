@@ -1,22 +1,116 @@
 package webidl:my-package-idl;
 
 interface my-interface {
-  resource parent-a {
-    foo: func() -> string;
-    as-child-a: func() -> option<child-a>;
+  resource interface-level-a {
+    from-level-a: func();
+    name-collision: func() -> s16;
+    as-interface-level-b: func() -> option<interface-level-b>;
+    as-interface-level-c: func() -> option<interface-level-c>;
+    as-interface-level-d: func() -> option<interface-level-d>;
   }
-  resource child-a {
-    as-parent-a: func() -> parent-a;
-    foo: func() -> string;
-    bar: func();
+  resource interface-level-b {
+    from-level-b: func();
+    name-collision: func() -> s32;
+    from-level-a: func();
+    as-interface-level-a: func() -> interface-level-a;
+    as-interface-level-c: func() -> option<interface-level-c>;
+    as-interface-level-d: func() -> option<interface-level-d>;
   }
-  resource child-b {
-    as-parent-b: func() -> parent-b;
-    bar: func();
-    foo: func() -> string;
+  resource interface-level-c {
+    from-level-c: func();
+    from-level-b: func();
+    name-collision: func() -> s32;
+    as-interface-level-b: func() -> interface-level-b;
+    from-level-a: func();
+    as-interface-level-a: func() -> interface-level-a;
+    as-interface-level-d: func() -> option<interface-level-d>;
   }
-  resource parent-b {
-    as-child-b: func() -> option<child-b>;
-    foo: func() -> string;
+  resource interface-level-d {
+    from-level-d: func();
+    from-level-c: func();
+    as-interface-level-c: func() -> interface-level-c;
+    from-level-b: func();
+    name-collision: func() -> s32;
+    as-interface-level-b: func() -> interface-level-b;
+    from-level-a: func();
+    as-interface-level-a: func() -> interface-level-a;
+  }
+  resource interface-level4 {
+    from-level4: func();
+    from-level3: func();
+    as-interface-level3: func() -> interface-level3;
+    from-level2: func();
+    name-collision: func() -> s32;
+    as-interface-level2: func() -> interface-level2;
+    from-level1: func();
+    as-interface-level1: func() -> interface-level1;
+  }
+  resource interface-level3 {
+    from-level3: func();
+    from-level2: func();
+    name-collision: func() -> s32;
+    as-interface-level2: func() -> interface-level2;
+    from-level1: func();
+    as-interface-level1: func() -> interface-level1;
+    as-interface-level4: func() -> option<interface-level4>;
+  }
+  resource interface-level2 {
+    from-level2: func();
+    name-collision: func() -> s32;
+    from-level1: func();
+    as-interface-level1: func() -> interface-level1;
+    as-interface-level3: func() -> option<interface-level3>;
+    as-interface-level4: func() -> option<interface-level4>;
+  }
+  resource interface-level1 {
+    from-level1: func();
+    name-collision: func() -> s16;
+    as-interface-level2: func() -> option<interface-level2>;
+    as-interface-level3: func() -> option<interface-level3>;
+    as-interface-level4: func() -> option<interface-level4>;
+  }
+  record dictionary-level-a {
+    from-level-a: string,
+    name-collision: s16,
+  }
+  record dictionary-level-b {
+    from-level-b: string,
+    name-collision: s32,
+    from-level-a: string,
+  }
+  record dictionary-level-c {
+    from-level-c: string,
+    from-level-b: string,
+    name-collision: s32,
+    from-level-a: string,
+  }
+  record dictionary-level-d {
+    from-level-d: string,
+    from-level-c: string,
+    from-level-b: string,
+    name-collision: s32,
+    from-level-a: string,
+  }
+  record dictionary-level4 {
+    from-level4: string,
+    from-level3: string,
+    from-level2: string,
+    name-collision: s32,
+    from-level1: string,
+  }
+  record dictionary-level3 {
+    from-level3: string,
+    from-level2: string,
+    name-collision: s32,
+    from-level1: string,
+  }
+  record dictionary-level2 {
+    from-level2: string,
+    name-collision: s32,
+    from-level1: string,
+  }
+  record dictionary-level1 {
+    from-level1: string,
+    name-collision: s16,
   }
 }

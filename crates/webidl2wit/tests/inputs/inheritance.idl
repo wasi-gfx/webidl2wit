@@ -1,17 +1,74 @@
-// Parent first
-interface ParentA {
-    DOMString foo();
+interface InterfaceLevelA {
+    undefined fromLevelA();
+    short nameCollision();
 };
 
-interface ChildA : ParentA {
-    undefined bar();
+interface InterfaceLevelB : InterfaceLevelA {
+    undefined fromLevelB();
+    long nameCollision();
 };
 
-// Child first
-interface ChildB : ParentB {
-    undefined bar();
+interface InterfaceLevelC : InterfaceLevelB {
+    undefined fromLevelC();
 };
 
-interface ParentB {
-    DOMString foo();
+interface InterfaceLevelD : InterfaceLevelC {
+    undefined fromLevelD();
+};
+
+// reversed order
+interface InterfaceLevel4 : InterfaceLevel3 {
+    undefined fromLevel4();
+};
+
+interface InterfaceLevel3 : InterfaceLevel2 {
+    undefined fromLevel3();
+};
+
+interface InterfaceLevel2 : InterfaceLevel1 {
+    undefined fromLevel2();
+    long nameCollision();
+};
+
+interface InterfaceLevel1 {
+    undefined fromLevel1();
+    short nameCollision();
+};
+
+
+dictionary DictionaryLevelA {
+    required DOMString fromLevelA;
+    required short nameCollision;
+};
+
+dictionary DictionaryLevelB : DictionaryLevelA {
+    required DOMString fromLevelB;
+    required long nameCollision;
+};
+
+dictionary DictionaryLevelC : DictionaryLevelB {
+    required DOMString fromLevelC;
+};
+
+dictionary DictionaryLevelD : DictionaryLevelC {
+    required DOMString fromLevelD;
+};
+
+// reversed order
+dictionary DictionaryLevel4 : DictionaryLevel3 {
+    required DOMString fromLevel4;
+};
+
+dictionary DictionaryLevel3 : DictionaryLevel2 {
+    required DOMString fromLevel3;
+};
+
+dictionary DictionaryLevel2 : DictionaryLevel1 {
+    required DOMString fromLevel2;
+    required long nameCollision;
+};
+
+dictionary DictionaryLevel1 {
+    required DOMString fromLevel1;
+    required short nameCollision;
 };
