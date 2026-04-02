@@ -145,7 +145,7 @@ fn main() -> Result<()> {
 ///
 /// This function exists due to slightly confusing `'static` bounds
 /// requirements that will be inferred on `weedle::parse` by default.
-fn parse_webidl(input: &str) -> Result<Vec<weedle::Definition>> {
+fn parse_webidl(input: &str) -> Result<Vec<weedle::Definition<'_>>> {
     match weedle::Definitions::parse(input) {
         Ok(("", parsed)) => Ok(parsed),
 
