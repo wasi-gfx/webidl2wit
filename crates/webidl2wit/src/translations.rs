@@ -786,9 +786,13 @@ impl State<'_> {
                         ));
                         if let Some(results) = functions[0].result() {
                             let same_results = functions.iter().all(|f| match f.kind() {
-                                wit_encoder::ResourceFuncKind::Method(_, _, r) => r == results,
-                                wit_encoder::ResourceFuncKind::Static(_, _, r) => r == results,
-                                wit_encoder::ResourceFuncKind::Constructor => true,
+                                wit_encoder::ResourceFuncKind::Method(_, _, r) => {
+                                    r.as_ref().is_some_and(|v| v == results)
+                                }
+                                wit_encoder::ResourceFuncKind::Static(_, _, r) => {
+                                    r.as_ref().is_some_and(|v| v == results)
+                                }
+                                wit_encoder::ResourceFuncKind::Constructor(_) => true,
                             });
                             if !same_results {
                                 handle_unsupported(
@@ -983,7 +987,7 @@ impl State<'_> {
             match func.kind() {
                 wit_encoder::ResourceFuncKind::Method(name, _, _) => name.raw_name(),
                 wit_encoder::ResourceFuncKind::Static(name, _, _) => name.raw_name(),
-                wit_encoder::ResourceFuncKind::Constructor => &CONSTRUCTOR_NAME,
+                wit_encoder::ResourceFuncKind::Constructor(_) => &CONSTRUCTOR_NAME,
             }
         }
 

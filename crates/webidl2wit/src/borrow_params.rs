@@ -118,17 +118,12 @@ fn get_all_func_return_types_with_resource<'a>(
                         .iter()
                         .map(|func| func.result())
                         .flat_map(|result| match result {
-                            Some(result) => result
-                                .as_ref()
-                                .map(|type_| {
-                                    get_all_named_with_resources_from_type(
-                                        type_,
-                                        interface,
-                                        resource_names,
-                                        checked,
-                                    )
-                                })
-                                .unwrap_or_default(),
+                            Some(result) => get_all_named_with_resources_from_type(
+                                result,
+                                interface,
+                                resource_names,
+                                checked,
+                            ),
                             None => vec![],
                         })
                         .collect()
@@ -168,6 +163,7 @@ fn get_all_named_with_resources_from_type<'a>(
             Type::Option(type_) => get_named_type(type_),
             Type::Result(_result) => todo!(),
             Type::List(type_) => get_named_type(type_),
+            Type::FixedLengthList(type_, _) => get_named_type(type_),
             Type::Tuple(tuple) => tuple
                 .types()
                 .iter()
@@ -180,6 +176,7 @@ fn get_all_named_with_resources_from_type<'a>(
             Type::Future(_) => todo!(),
             Type::Stream(_) => todo!(),
             Type::ErrorContext => todo!(),
+            Type::Map(_, _) => todo!(),
         }
     }
     fn get_all_named_with_resources_from_type_def<'a>(
@@ -297,6 +294,9 @@ fn get_all_named_with_resources_from_type<'a>(
         Type::List(type_) => {
             get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
         }
+        Type::FixedLengthList(type_, _) => {
+            get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
+        }
         Type::Tuple(tuple) => tuple
             .types()
             .iter()
@@ -311,6 +311,7 @@ fn get_all_named_with_resources_from_type<'a>(
         Type::Future(_) => todo!(),
         Type::Stream(_) => todo!(),
         Type::ErrorContext => todo!(),
+        Type::Map(_, _) => todo!(),
     }
 }
 
@@ -337,6 +338,7 @@ fn make_type_def_borrow(interface: &mut Interface, name: &Ident, resource_names:
             Type::Option(type_) => make_type_borrow(type_, resource_names),
             Type::Result(_result) => todo!(),
             Type::List(type_) => make_type_borrow(type_, resource_names),
+            Type::FixedLengthList(type_, _) => make_type_borrow(type_, resource_names),
             Type::Tuple(tuple) => {
                 for type_ in tuple.types_mut() {
                     make_type_borrow(type_, resource_names);
@@ -350,6 +352,7 @@ fn make_type_def_borrow(interface: &mut Interface, name: &Ident, resource_names:
             Type::Future(_) => todo!(),
             Type::Stream(_) => todo!(),
             Type::ErrorContext => todo!(),
+            Type::Map(_, _) => todo!(),
         }
     }
 
@@ -414,6 +417,9 @@ fn copy_type_def_to_owned(
             Type::Option(type_) => Type::option(copy_type_to_owned(type_, types_being_copied)),
             Type::Result(_result) => todo!(),
             Type::List(type_) => Type::list(copy_type_to_owned(type_, types_being_copied)),
+            Type::FixedLengthList(type_, _) => {
+                Type::list(copy_type_to_owned(type_, types_being_copied))
+            }
             Type::Tuple(_tuple) => {
                 todo!()
             }
@@ -428,6 +434,7 @@ fn copy_type_def_to_owned(
             Type::Future(_) => todo!(),
             Type::Stream(_) => todo!(),
             Type::ErrorContext => todo!(),
+            Type::Map(_, _) => todo!(),
         }
     }
 
@@ -499,6 +506,9 @@ fn replace_all_named_returns_with_owned(interface: &mut Interface, to_rename: &H
             Type::List(type_) => {
                 postfix_named_type(type_, to_rename);
             }
+            Type::FixedLengthList(type_, _) => {
+                postfix_named_type(type_, to_rename);
+            }
             Type::Tuple(tuple) => {
                 for type_ in tuple.types_mut() {
                     postfix_named_type(type_, to_rename);
@@ -512,8 +522,10 @@ fn replace_all_named_returns_with_owned(interface: &mut Interface, to_rename: &H
             Type::Future(_) => todo!(),
             Type::Stream(_) => todo!(),
             Type::ErrorContext => todo!(),
+            Type::Map(_, _) => todo!(),
         }
     }
+
     fn replace_func_returns_with_owned(type_: &mut Option<Type>, to_rename: &HashSet<&Ident>) {
         if let Some(type_) = type_ {
             postfix_named_type(type_, to_rename);
@@ -528,9 +540,7 @@ fn replace_all_named_returns_with_owned(interface: &mut Interface, to_rename: &H
             InterfaceItem::TypeDef(type_def) => {
                 if let TypeDefKind::Resource(resource) = type_def.kind_mut() {
                     for func in resource.funcs_mut() {
-                        if let Some(results) = func.result_mut() {
-                            replace_func_returns_with_owned(results, to_rename);
-                        }
+                        replace_func_returns_with_owned(func.result_mut(), to_rename);
                     }
                 }
             }
@@ -566,10 +576,12 @@ fn change_func_resource_params_to_borrow(
             Type::Option(type_) => named_to_borrow(type_, resource_names),
             Type::Result(_result) => todo!(),
             Type::List(type_) => named_to_borrow(type_, resource_names),
+            Type::FixedLengthList(type_, _) => named_to_borrow(type_, resource_names),
             Type::Tuple(_tuple) => todo!(),
             Type::Future(_) => todo!(),
             Type::Stream(_) => todo!(),
             Type::ErrorContext => todo!(),
+            Type::Map(_, _) => todo!(),
         }
     }
     fn named_to_borrow_params(params: &mut Params, resource_names: &HashSet<Ident>) {
