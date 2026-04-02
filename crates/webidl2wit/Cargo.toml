@@ -19,7 +19,7 @@ heck = { workspace = true }
 itertools = { workspace = true, features = [ "use_std" ] }
 weedle = { workspace = true }
 wit-encoder = { workspace = true }
-wit-parser = { workspace = true }
+wit-parser = { workspace = true, features = [ "decoding", "std" ] }
 
 [dev-dependencies]
 similar-asserts = { workspace = true }
