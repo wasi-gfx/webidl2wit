@@ -7,6 +7,9 @@ version = "0.10"
 [imports.bytecode-alliance]
 url = "https://raw.githubusercontent.com/bytecodealliance/wasmtime/main/supply-chain/audits.toml"
 
+[imports.google]
+url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
+
 [imports.mozilla]
 url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
 
@@ -44,10 +47,6 @@ criteria = "safe-to-deploy"
 version = "1.0.86"
 criteria = "safe-to-deploy"
 
-[[exemptions.bstr]]
-version = "1.11.3"
-criteria = "safe-to-run"
-
 [[exemptions.clap]]
 version = "4.5.23"
 criteria = "safe-to-deploy"
@@ -80,24 +79,8 @@ criteria = "safe-to-deploy"
 version = "1.0.0"
 criteria = "safe-to-run"
 
-[[exemptions.equivalent]]
-version = "1.0.1"
-criteria = "safe-to-deploy"
-
-[[exemptions.hashbrown]]
-version = "0.16.1"
-criteria = "safe-to-deploy"
-
 [[exemptions.hashlink]]
 version = "0.9.1"
-criteria = "safe-to-deploy"
-
-[[exemptions.id-arena]]
-version = "2.3.0"
-criteria = "safe-to-deploy"
-
-[[exemptions.indexmap]]
-version = "2.13.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.is_terminal_polyfill]]
@@ -107,10 +90,6 @@ criteria = "safe-to-deploy"
 [[exemptions.itertools]]
 version = "0.13.0"
 criteria = "safe-to-deploy"
-
-[[exemptions.libc]]
-version = "0.2.171"
-criteria = "safe-to-run"
 
 [[exemptions.memchr]]
 version = "2.7.4"
@@ -128,29 +107,9 @@ criteria = "safe-to-deploy"
 version = "1.4.0"
 criteria = "safe-to-deploy"
 
-[[exemptions.proc-macro2]]
-version = "1.0.86"
-criteria = "safe-to-deploy"
-
-[[exemptions.quote]]
-version = "1.0.36"
-criteria = "safe-to-deploy"
-
-[[exemptions.regex-automata]]
-version = "0.4.9"
-criteria = "safe-to-run"
-
 [[exemptions.semver]]
 version = "1.0.23"
 criteria = "safe-to-deploy"
-
-[[exemptions.serde]]
-version = "1.0.210"
-criteria = "safe-to-run"
-
-[[exemptions.serde_derive]]
-version = "1.0.210"
-criteria = "safe-to-run"
 
 [[exemptions.similar]]
 version = "2.7.0"
@@ -160,24 +119,8 @@ criteria = "safe-to-run"
 version = "1.7.0"
 criteria = "safe-to-run"
 
-[[exemptions.strsim]]
-version = "0.11.1"
-criteria = "safe-to-deploy"
-
 [[exemptions.syn]]
 version = "2.0.71"
-criteria = "safe-to-deploy"
-
-[[exemptions.unicode-ident]]
-version = "1.0.12"
-criteria = "safe-to-deploy"
-
-[[exemptions.utf8parse]]
-version = "0.2.2"
-criteria = "safe-to-deploy"
-
-[[exemptions.version_check]]
-version = "0.9.4"
 criteria = "safe-to-deploy"
 
 [[exemptions.webidl2wit]]
@@ -186,10 +129,6 @@ criteria = "safe-to-deploy"
 
 [[exemptions.webidl2wit-cli]]
 version = "0.1.0"
-criteria = "safe-to-deploy"
-
-[[exemptions.weedle]]
-version = "0.13.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.windows-sys]]
@@ -233,7 +172,7 @@ version = "0.52.6"
 criteria = "safe-to-deploy"
 
 [[exemptions.wit-encoder]]
-version = "0.229.0"
+version = "0.245.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.yansi]]
