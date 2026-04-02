@@ -216,6 +216,7 @@ impl State<'_> {
                 let record = self.add_record(&r.type_)?;
                 (wit_encoder::Type::named(record), r.q_mark)
             }
+            weedle::types::NonAnyType::ObservableArrayType(_) => todo!(),
         };
 
         Ok(match optional || q_mark.is_some() {
