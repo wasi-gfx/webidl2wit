@@ -4,6 +4,12 @@
 [cargo-vet]
 version = "0.10"
 
+[imports.bytecode-alliance]
+url = "https://raw.githubusercontent.com/bytecodealliance/wasmtime/main/supply-chain/audits.toml"
+
+[imports.mozilla]
+url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
+
 [policy.webidl2wit]
 audit-as-crates-io = true
 
@@ -42,10 +48,6 @@ criteria = "safe-to-deploy"
 version = "1.11.3"
 criteria = "safe-to-run"
 
-[[exemptions.cfg-if]]
-version = "1.0.0"
-criteria = "safe-to-deploy"
-
 [[exemptions.clap]]
 version = "4.5.23"
 criteria = "safe-to-deploy"
@@ -74,10 +76,6 @@ criteria = "safe-to-run"
 version = "0.1.13"
 criteria = "safe-to-deploy"
 
-[[exemptions.either]]
-version = "1.13.0"
-criteria = "safe-to-deploy"
-
 [[exemptions.encode_unicode]]
 version = "1.0.0"
 criteria = "safe-to-run"
@@ -87,27 +85,19 @@ version = "1.0.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.hashbrown]]
-version = "0.14.5"
-criteria = "safe-to-deploy"
-
-[[exemptions.hashbrown]]
-version = "0.15.2"
+version = "0.16.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.hashlink]]
 version = "0.9.1"
 criteria = "safe-to-deploy"
 
-[[exemptions.heck]]
-version = "0.5.0"
-criteria = "safe-to-deploy"
-
 [[exemptions.id-arena]]
-version = "2.2.1"
+version = "2.3.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.indexmap]]
-version = "2.7.0"
+version = "2.13.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.is_terminal_polyfill]]
@@ -121,10 +111,6 @@ criteria = "safe-to-deploy"
 [[exemptions.libc]]
 version = "0.2.171"
 criteria = "safe-to-run"
-
-[[exemptions.log]]
-version = "0.4.22"
-criteria = "safe-to-deploy"
 
 [[exemptions.memchr]]
 version = "2.7.4"
@@ -186,14 +172,6 @@ criteria = "safe-to-deploy"
 version = "1.0.12"
 criteria = "safe-to-deploy"
 
-[[exemptions.unicode-segmentation]]
-version = "1.12.0"
-criteria = "safe-to-run"
-
-[[exemptions.unicode-xid]]
-version = "0.2.6"
-criteria = "safe-to-deploy"
-
 [[exemptions.utf8parse]]
 version = "0.2.2"
 criteria = "safe-to-deploy"
@@ -211,7 +189,7 @@ version = "0.1.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.weedle]]
-version = "0.13.0"
+version = "0.13.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.windows-sys]]
@@ -255,10 +233,6 @@ version = "0.52.6"
 criteria = "safe-to-deploy"
 
 [[exemptions.wit-encoder]]
-version = "0.229.0"
-criteria = "safe-to-deploy"
-
-[[exemptions.wit-parser]]
 version = "0.229.0"
 criteria = "safe-to-deploy"
 
