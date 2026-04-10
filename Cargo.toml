@@ -18,7 +18,6 @@ itertools = { version = "0.13", default-features = false }
 similar-asserts = "1.7"
 semver = { version = "1", default-features = false }
 weedle = { version = "0.13.1", default-features = false }
-
 wit-encoder = { version = "0.229.0", default-features = false }
 wit-parser = { version = "0.229.0", default-features = false }
 
