@@ -22,5 +22,5 @@ weedle = { version = "0.13.1", default-features = false }
 wit-encoder = { version = "0.245.1", default-features = false }
 wit-parser = { version = "0.245.1", default-features = false }
 
-webidl2wit = { version = "^0.1.0", path = "./crates/webidl2wit", default-features = false }
+webidl2wit = { version = "^0.1.1", path = "./crates/webidl2wit", default-features = false }
 
