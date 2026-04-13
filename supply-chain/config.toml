@@ -13,12 +13,6 @@ url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
 [imports.mozilla]
 url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
 
-[policy.webidl2wit]
-audit-as-crates-io = true
-
-[policy.webidl2wit-cli]
-audit-as-crates-io = true
-
 [[exemptions.ahash]]
 version = "0.8.11"
 criteria = "safe-to-deploy"
