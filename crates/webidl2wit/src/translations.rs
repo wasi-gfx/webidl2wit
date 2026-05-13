@@ -115,8 +115,6 @@ pub(super) struct State<'a> {
     // Using BTreeMap for to keep sorting. Otherwise, parent's `as-child` methods don't keep their order
     resource_inheritance_map: BTreeMap<Ident, Ident>,
     record_inheritance_map: BTreeMap<Ident, Ident>,
-    // TODO: remove pollables in preview 3
-    pub import_pollable: bool,
 }
 
 fn handle_unsupported(
@@ -198,7 +196,6 @@ pub fn webidl_to_wit(
         resource_inheritance: options.resource_inheritance,
         resource_inheritance_map: BTreeMap::new(),
         record_inheritance_map: BTreeMap::new(),
-        import_pollable: false,
     };
 
     let resource_names: HashSet<Ident> = webidl
@@ -421,12 +418,6 @@ pub fn webidl_to_wit(
         package.world(world);
     }
 
-    if state.import_pollable {
-        state
-            .interface
-            .use_type("wasi:io/poll@0.2.0", "pollable", None);
-    }
-
     package.interface(state.interface);
 
     Ok(package)
@@ -544,7 +535,7 @@ impl State<'_> {
                     continue;
                 }
                 weedle::interface::InterfaceMember::Attribute(attr) => {
-                    let mut attr_name = ident_name(attr.identifier.0);
+                    let attr_name = ident_name(attr.identifier.0);
                     let mut attr_type = self.wi2w_type(&attr.type_.type_, false)?;
                     let mut setter_name = attr
                         .readonly
@@ -560,9 +551,8 @@ impl State<'_> {
                         if !attr_name.raw_name().starts_with("on") {
                             panic!("EventHandler without `on` prefix");
                         }
-                        self.import_pollable = true;
-                        attr_type = wit_encoder::Type::named("pollable");
-                        attr_name = ident_name(&format!("{attr_name}-subscribe"));
+                        // TODO: how can we get the event type here
+                        attr_type = wit_encoder::Type::Stream(None);
                         setter_name = None;
                     }
 
@@ -646,7 +636,7 @@ impl State<'_> {
                         let results = match &operation.return_type {
                             weedle::types::ReturnType::Undefined(_) => None,
                             weedle::types::ReturnType::Type(type_) => {
-                                    Some(self.wi2w_type(type_, false)?.into())
+                                Some(self.wi2w_type(type_, false)?.into())
                             }
                         };
                         let params = self.function_args(&operation.args.body)?;

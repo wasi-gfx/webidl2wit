@@ -193,10 +193,6 @@ fn get_all_named_with_resources_from_type<'a>(
         resource_names: &HashSet<Ident>,
         checked: &mut HashSet<&'a Ident>,
     ) -> Vec<Ident> {
-        // TODO: remove once we nave native async support
-        if name.raw_name() == "pollable" {
-            return vec![];
-        }
         if checked.contains(name) {
             return vec![];
         }
@@ -317,14 +313,14 @@ fn get_all_named_with_resources_from_type<'a>(
             get_all_named_with_resources_from_type_def(ident, interface, resource_names, checked)
         }
         Type::Future(type_) => match type_ {
-                Some(type_) => {
-                    get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
+            Some(type_) => {
+                get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
             }
             None => vec![],
         },
         Type::Stream(type_) => match type_ {
-                Some(type_) => {
-                    get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
+            Some(type_) => {
+                get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
             }
             None => vec![],
         },
