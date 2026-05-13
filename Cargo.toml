@@ -11,16 +11,15 @@ repository = "https://github.com/wasi-gfx/webidl2wit"
 [workspace.dependencies]
 anstyle = { version = "1", default-features = false }
 anyhow = { version = "1", default-features = false }
-clap = { version = "4.5", default-features = false }
-hashlink = { version = "0.9.1", default-features = false }
+clap = { version = "4.6", default-features = false }
+hashlink = { version = "0.11", default-features = false }
 heck = { version = "0.5", default-features = false }
-itertools = { version = "0.13", default-features = false }
-similar-asserts = "1.7"
+itertools = { version = "0.14", default-features = false }
+similar-asserts = "2"
 semver = { version = "1", default-features = false }
-weedle = { version = "0.13.1", default-features = false }
+weedle = { version = "0.13", default-features = false }
 
-wit-encoder = { version = "0.245.1", default-features = false }
-wit-parser = { version = "0.245.1", default-features = false }
+wit-encoder = { version = "0.248", default-features = false }
+wit-parser = { version = "0.248", default-features = false }
 
-webidl2wit = { version = "^0.1.1", path = "./crates/webidl2wit", default-features = false }
-
+webidl2wit = { path = "./crates/webidl2wit", default-features = false }
