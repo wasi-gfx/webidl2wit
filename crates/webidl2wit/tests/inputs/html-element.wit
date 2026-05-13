@@ -1,7 +1,6 @@
 package webidl:my-package-idl;
 
 interface my-interface {
-  use wasi:io/poll@0.2.0.{ pollable };
   resource html-element {
     title: func() -> string;
     set-title: func(title: string);
@@ -37,10 +36,10 @@ interface my-interface {
     offset-left: func() -> s32;
     offset-width: func() -> s32;
     offset-height: func() -> s32;
-    ontouchstart-subscribe: func() -> pollable;
-    ontouchend-subscribe: func() -> pollable;
-    ontouchmove-subscribe: func() -> pollable;
-    ontouchcancel-subscribe: func() -> pollable;
+    ontouchstart: func() -> stream;
+    ontouchend: func() -> stream;
+    ontouchmove: func() -> stream;
+    ontouchcancel: func() -> stream;
     as-html-unknown-element: func() -> option<html-unknown-element>;
   }
   resource html-unknown-element {

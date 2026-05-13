@@ -1,7 +1,6 @@
 package webidl:my-package-idl;
 
 interface my-interface {
-  use wasi:io/poll@0.2.0.{ pollable };
   resource navigator {
     gpu: func() -> gpu;
   }
@@ -153,7 +152,7 @@ interface my-interface {
     lost: func() -> future<gpu-device-lost-info>;
     push-error-scope: func(filter: gpu-error-filter);
     pop-error-scope: func() -> future<option<gpu-error>>;
-    onuncapturederror-subscribe: func() -> pollable;
+    onuncapturederror: func() -> stream;
   }
   resource gpu-buffer {
     size: func() -> gpu-size64-out;
