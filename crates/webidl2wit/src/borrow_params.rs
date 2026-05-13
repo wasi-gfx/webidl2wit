@@ -316,8 +316,18 @@ fn get_all_named_with_resources_from_type<'a>(
         Type::Named(ident) => {
             get_all_named_with_resources_from_type_def(ident, interface, resource_names, checked)
         }
-        Type::Future(_) => todo!(),
-        Type::Stream(_) => todo!(),
+        Type::Future(type_) => match type_ {
+                Some(type_) => {
+                    get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
+            }
+            None => vec![],
+        },
+        Type::Stream(type_) => match type_ {
+                Some(type_) => {
+                    get_all_named_with_resources_from_type(type_, interface, resource_names, checked)
+            }
+            None => vec![],
+        },
         Type::ErrorContext => todo!(),
         Type::Map(_, _) => todo!(),
     }
@@ -527,8 +537,16 @@ fn replace_all_named_returns_with_owned(interface: &mut Interface, to_rename: &H
                     *ident = name_to_owned(ident);
                 }
             }
-            Type::Future(_) => todo!(),
-            Type::Stream(_) => todo!(),
+            Type::Future(type_) => {
+                if let Some(type_) = type_ {
+                    postfix_named_type(type_, to_rename);
+                }
+            }
+            Type::Stream(type_) => {
+                if let Some(type_) = type_ {
+                    postfix_named_type(type_, to_rename);
+                }
+            }
             Type::ErrorContext => todo!(),
             Type::Map(_, _) => todo!(),
         }

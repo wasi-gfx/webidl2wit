@@ -544,26 +544,6 @@ impl State<'_> {
                     continue;
                 }
                 weedle::interface::InterfaceMember::Attribute(attr) => {
-                    use weedle::types::{NonAnyType, ReturnType, SingleType, Type};
-                    // TODO: remove the `is_undefined_promise` once Jco has Future support
-                    let mut is_undefined_promise = false;
-                    if let Type::Single(SingleType::NonAny(NonAnyType::Promise(promise))) =
-                        &attr.type_.type_
-                    {
-                        if let ReturnType::Undefined(_) = &*promise.generics.body {
-                            is_undefined_promise = true;
-                        }
-                    }
-                    if is_undefined_promise {
-                        // wit_encoder::Results::empty()
-                        handle_unsupported(
-                            attr.identifier.0,
-                            "attribute Promise<undefined>",
-                            &self.unsupported_features,
-                        );
-                        continue;
-                    }
-
                     let mut attr_name = ident_name(attr.identifier.0);
                     let mut attr_type = self.wi2w_type(&attr.type_.type_, false)?;
                     let mut setter_name = attr
@@ -666,22 +646,7 @@ impl State<'_> {
                         let results = match &operation.return_type {
                             weedle::types::ReturnType::Undefined(_) => None,
                             weedle::types::ReturnType::Type(type_) => {
-                                use weedle::types::{NonAnyType, ReturnType, SingleType, Type};
-                                // TODO: remove the `is_undefined_promise` once Jco has Future support
-                                let mut is_undefined_promise = false;
-                                if let Type::Single(SingleType::NonAny(NonAnyType::Promise(
-                                    promise,
-                                ))) = type_
-                                {
-                                    if let ReturnType::Undefined(_) = &*promise.generics.body {
-                                        is_undefined_promise = true;
-                                    }
-                                }
-                                if is_undefined_promise {
-                                    None
-                                } else {
                                     Some(self.wi2w_type(type_, false)?.into())
-                                }
                             }
                         };
                         let params = self.function_args(&operation.args.body)?;

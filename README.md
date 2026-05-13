@@ -59,7 +59,7 @@ This section lists the type conversions between WebIDL and WIT, as implemented b
 | `T?` (optional)                 | `option<T>`               |
 | `sequence<T>`                   | `list<T>`                 |
 | `record<K, V>`                  | A custom resource         |
-| `Promise<T>`                    | ❓                        |
+| `Promise<T>`                    | `future<T>`               |
 | `or` (union)                    | `variant`                 |
 | Buffer types (e.g. `Int8Array`) | A custom resource         |
 | `FrozenArray<T>`                | `list<T>`                 |

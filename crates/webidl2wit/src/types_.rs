@@ -136,10 +136,11 @@ impl State<'_> {
                 (type_, ident.q_mark)
             }
             weedle::types::NonAnyType::Promise(promise) => (
-                // use wit_encoder::TypeDefKind::Future instead?
                 match &*promise.generics.body {
-                    weedle::types::ReturnType::Undefined(_) => todo!(),
-                    weedle::types::ReturnType::Type(type_) => self.wi2w_type(type_, false)?,
+                    weedle::types::ReturnType::Undefined(_) => wit_encoder::Type::Future(None),
+                    weedle::types::ReturnType::Type(type_) => {
+                        wit_encoder::Type::Future(Some(Box::new(self.wi2w_type(type_, false)?)))
+                    }
                 },
                 // Promise doesn't have q_mark. I.e. is not `MayBeNull`
                 None,
