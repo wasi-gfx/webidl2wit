@@ -65,7 +65,7 @@ This section lists the type conversions between WebIDL and WIT, as implemented b
 | `FrozenArray<T>`                | `list<T>`                 |
 | `ObservableArray<T>`            | ❓                        |
 | `setlike<T>`                    | Add set methods           |
-| `maplike<K, V>`                 | ❓                        |
+| `maplike<K, V>`                 | `map<K, V>`               |
 | `namespace`                     | `resource` or `interface` |
 | `typedef`                       | `type`                    |
 | `const`                         | A getter                  |
