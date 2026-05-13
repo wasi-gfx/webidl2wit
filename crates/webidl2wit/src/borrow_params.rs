@@ -135,12 +135,18 @@ fn get_all_func_return_types_with_resource<'a>(
         .collect()
 }
 
+/// get all types that are named and contain resources
 fn get_all_named_with_resources_from_type<'a>(
+    // type to get from
     type_: &'a Type,
+    // reference to interface
     interface: &'a Interface,
+    // set of all resource names for easy lookup
     resource_names: &HashSet<Ident>,
+    // types that have already been checked
     checked: &mut HashSet<&'a Ident>,
 ) -> Vec<Ident> {
+    /// get all types that are named
     fn get_named_type<'a>(type_: &'a Type) -> Vec<&'a Ident> {
         match type_ {
             Type::Bool
@@ -179,6 +185,8 @@ fn get_all_named_with_resources_from_type<'a>(
             Type::Map(_, _) => todo!(),
         }
     }
+
+    /// gets a list of named types that contain a resource
     fn get_all_named_with_resources_from_type_def<'a>(
         name: &'a Ident,
         interface: &'a Interface,
