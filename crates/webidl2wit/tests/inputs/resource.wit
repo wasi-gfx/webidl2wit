@@ -49,4 +49,10 @@ interface my-interface {
     label: func() -> string;
     set-label: func(label: string);
   }
+  resource async-futures {
+    returns-simple-promise: async func() -> s32;
+    returns-nested-promise: func() -> list<future<s32>>;
+    promise-property: func() -> future<s32>;
+    set-promise-property: func(promise-property: future<s32>);
+  }
 }

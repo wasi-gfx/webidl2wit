@@ -600,8 +600,16 @@ fn change_func_resource_params_to_borrow(
             Type::List(type_) => named_to_borrow(type_, resource_names),
             Type::FixedLengthList(type_, _) => named_to_borrow(type_, resource_names),
             Type::Tuple(_tuple) => todo!(),
-            Type::Future(_) => todo!(),
-            Type::Stream(_) => todo!(),
+            Type::Future(type_) => {
+                if let Some(type_) = type_ {
+                    named_to_borrow(type_, resource_names)
+                }
+            }
+            Type::Stream(type_) => {
+                if let Some(type_) = type_ {
+                    named_to_borrow(type_, resource_names)
+                }
+            }
             Type::ErrorContext => todo!(),
             Type::Map(_, _) => todo!(),
         }

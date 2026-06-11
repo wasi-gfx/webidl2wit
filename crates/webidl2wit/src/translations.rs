@@ -632,8 +632,22 @@ impl State<'_> {
                 weedle::interface::InterfaceMember::Operation(operation) => {
                     if let Some(identifier) = operation.identifier {
                         let function_name = ident_name(identifier.0);
+                        let mut async_ = false;
 
-                        let results = match &operation.return_type {
+                        // extract type if returns a promise and mark as async
+                        let return_type = match &operation.return_type {
+                            weedle::types::ReturnType::Type(weedle::types::Type::Single(
+                                weedle::types::SingleType::NonAny(
+                                    weedle::types::NonAnyType::Promise(promise),
+                                ),
+                            )) => {
+                                async_ = true;
+                                &promise.generics.body
+                            }
+                            type_ => type_,
+                        };
+
+                        let results = match return_type {
                             weedle::types::ReturnType::Undefined(_) => None,
                             weedle::types::ReturnType::Type(type_) => {
                                 Some(self.wi2w_type(type_, false)?.into())
@@ -653,7 +667,7 @@ impl State<'_> {
                                     }
                                     _ => wit_encoder::StandaloneFunc::new(
                                         function_name.clone(),
-                                        false,
+                                        async_,
                                     ),
                                 };
                                 function.set_params(params);
@@ -668,12 +682,12 @@ impl State<'_> {
                                     Some(weedle::interface::StringifierOrStatic::Static(_)) => {
                                         wit_encoder::ResourceFunc::static_(
                                             function_name.clone(),
-                                            false,
+                                            async_,
                                         )
                                     }
                                     _ => wit_encoder::ResourceFunc::method(
                                         function_name.clone(),
-                                        false,
+                                        async_,
                                     ),
                                 };
                                 function.set_params(params);
