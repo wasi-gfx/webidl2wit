@@ -55,3 +55,10 @@ GPUSupportedLimits includes SomeMixin;
 partial interface GPUBuffer {
     undefined partialInterfaceMethod(long filter);
 };
+
+interface AsyncFutures {
+    Promise<long> returnsSimplePromise();
+    sequence<Promise<long>> returnsNestedPromise();
+    // attributes (properties) don't turn into async methods as they're just accessors
+    attribute Promise<long> promiseProperty;
+};
