@@ -1,0 +1,10 @@
+package webidl:my-package-idl;
+
+interface my-interface {
+  resource child {
+    from-child: func();
+  }
+  record child-dict {
+    from-child: s16,
+  }
+}
