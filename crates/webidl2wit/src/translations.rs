@@ -133,6 +133,22 @@ fn handle_unsupported(
     }
 }
 
+/// A parent named in an inheritance clause has no definition in the input.
+fn unknown_parent(
+    child: &Ident,
+    parent: &Ident,
+    handle_unsupported: &HandleUnsupported,
+) -> anyhow::Result<()> {
+    match handle_unsupported {
+        HandleUnsupported::Bail => bail!("Parent {parent} of {child} not found"),
+        HandleUnsupported::Skip => Ok(()),
+        HandleUnsupported::Warn => {
+            eprintln!("WARN: Skipping unknown parent {parent} of {child}");
+            Ok(())
+        }
+    }
+}
+
 pub fn webidl_to_wit(
     mut webidl: WebIdlDefinitions,
     options: ConversionOptions,
@@ -404,8 +420,8 @@ pub fn webidl_to_wit(
         }
     }
 
-    state.handle_resource_inheritance().unwrap();
-    state.handle_record_inheritance().unwrap();
+    state.handle_resource_inheritance()?;
+    state.handle_record_inheritance()?;
 
     params_resources_borrow(&mut state.interface, &resource_names);
 
@@ -960,6 +976,9 @@ impl State<'_> {
             }
         }
 
+        let unsupported_features = self.unsupported_features.clone();
+        let resource_inheritance = self.resource_inheritance.clone();
+
         for (child, parents) in ancestors_map {
             let child_funcs = self
                 .interface
@@ -981,20 +1000,21 @@ impl State<'_> {
                         }
                     }
                 })
-                .unwrap();
+                .with_context(|| format!("Resource {child} not found"))?;
             let mut func_names: HashSet<String> = child_funcs
                 .iter()
                 .map(|f| func_name(f).to_string())
                 .collect();
             for parent in &parents {
+                let Some(parent_funcs) = parents_funcs.get(parent) else {
+                    unknown_parent(&child, parent, &unsupported_features)?;
+                    continue;
+                };
                 if matches!(
-                    self.resource_inheritance,
+                    resource_inheritance,
                     ResourceInheritance::DuplicateMethods | ResourceInheritance::Both
                 ) {
-                    for parent_func in parents_funcs
-                        .get(parent)
-                        .context(format!("Parent {parent} not found"))?
-                    {
+                    for parent_func in parent_funcs {
                         if !func_names.contains(func_name(parent_func)) {
                             func_names.insert(func_name(parent_func).to_string());
                             child_funcs.push(parent_func.clone());
@@ -1002,7 +1022,7 @@ impl State<'_> {
                     }
                 }
                 if matches!(
-                    self.resource_inheritance,
+                    resource_inheritance,
                     ResourceInheritance::AsMethods | ResourceInheritance::Both
                 ) {
                     child_funcs.push({
@@ -1017,31 +1037,34 @@ impl State<'_> {
             }
 
             if matches!(
-                self.resource_inheritance,
+                resource_inheritance,
                 ResourceInheritance::AsMethods | ResourceInheritance::Both
             ) {
                 for parent in parents {
-                    let parent_funcs = self
-                        .interface
-                        .items_mut()
-                        .into_iter()
-                        .find_map(|item| match item {
-                            InterfaceItem::Function(_) => None,
-                            InterfaceItem::TypeDef(type_def) => {
-                                let name = type_def.name().clone();
-                                match type_def.kind_mut() {
-                                    wit_encoder::TypeDefKind::Resource(resource) => {
-                                        if name == parent {
-                                            Some(resource.funcs_mut())
-                                        } else {
-                                            None
+                    let Some(parent_funcs) =
+                        self.interface
+                            .items_mut()
+                            .into_iter()
+                            .find_map(|item| match item {
+                                InterfaceItem::Function(_) => None,
+                                InterfaceItem::TypeDef(type_def) => {
+                                    let name = type_def.name().clone();
+                                    match type_def.kind_mut() {
+                                        wit_encoder::TypeDefKind::Resource(resource) => {
+                                            if name == parent {
+                                                Some(resource.funcs_mut())
+                                            } else {
+                                                None
+                                            }
                                         }
+                                        _ => None,
                                     }
-                                    _ => None,
                                 }
-                            }
-                        })
-                        .unwrap();
+                            })
+                    else {
+                        // Already reported while merging the child's methods.
+                        continue;
+                    };
                     parent_funcs.push({
                         let mut func = wit_encoder::ResourceFunc::method(
                             format!("as-{}", child.raw_name()),
@@ -1083,6 +1106,8 @@ impl State<'_> {
         let ancestors_map: BTreeMap<Ident, Vec<Ident>> =
             resolve_ancestors(&mut self.record_inheritance_map);
 
+        let unsupported_features = self.unsupported_features.clone();
+
         for (child, parents) in ancestors_map {
             let child_fields = self
                 .interface
@@ -1104,14 +1129,15 @@ impl State<'_> {
                         }
                     }
                 })
-                .unwrap();
+                .with_context(|| format!("Record {child} not found"))?;
             let mut field_names: HashSet<Ident> =
                 child_fields.iter().map(|f| f.name().clone()).collect();
             for parent in &parents {
-                for parent_field in parents_fields
-                    .get(parent)
-                    .context(format!("Parent {parent} not found"))?
-                {
+                let Some(parent_fields) = parents_fields.get(parent) else {
+                    unknown_parent(&child, parent, &unsupported_features)?;
+                    continue;
+                };
+                for parent_field in parent_fields {
                     if !field_names.contains(parent_field.name()) {
                         field_names.insert(parent_field.name().clone());
                         child_fields.push(parent_field.clone());

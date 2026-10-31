@@ -165,3 +165,23 @@ fn html_element() {
         },
     );
 }
+
+#[test]
+fn unknown_parent() {
+    compare(
+        "unknown-parent",
+        ConversionOptions {
+            unsupported_features: HandleUnsupported::Warn,
+            resource_inheritance: ResourceInheritance::Both,
+            ..Default::default()
+        },
+    );
+}
+
+#[test]
+fn unknown_parent_is_an_error_when_bailing() {
+    let webidl_input = fs::read_to_string("./tests/inputs/unknown-parent.idl").unwrap();
+    let webidl_ast = weedle::parse(&webidl_input).unwrap();
+    let result = webidl2wit::webidl_to_wit(webidl_ast, Default::default());
+    assert!(result.is_err());
+}

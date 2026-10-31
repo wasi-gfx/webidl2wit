@@ -1,0 +1,8 @@
+// The parents are declared elsewhere (another spec) and absent from the input.
+interface Child : Missing {
+    undefined fromChild();
+};
+
+dictionary ChildDict : MissingDict {
+    required short fromChild;
+};
